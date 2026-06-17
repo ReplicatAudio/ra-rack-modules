@@ -28,6 +28,12 @@
       "name": "ra-ulfo",
       "description": "Ultra low frequency LFO — sine/cosine outputs",
       "tags": ["LFO", "Utility"]
+    },
+    {
+      "slug": "ra-scaler",
+      "name": "ra-scaler",
+      "description": "Signal scaler with power scaling, multi-mode clipping, and wave folding",
+      "tags": ["Utility", "Waveshaper", "Distortion"]
     }
   ]
 }

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.32 128.5" width="20.32mm" height="128.5mm">
+  <rect width="20.32" height="128.5" fill="#222"/>
+  <text x="10.16" y="4" fill="#ddd" font-size="2.5" font-family="sans-serif" text-anchor="middle" font-weight="bold">SCALER</text>
+  <line x1="3" y1="6.5" x2="17.32" y2="6.5" stroke="#444" stroke-width="0.3"/>
+  <text x="10.16" y="13" fill="#888" font-size="1.5" font-family="sans-serif" text-anchor="middle">IN</text>
+  <text x="10.16" y="49" fill="#888" font-size="1.5" font-family="sans-serif" text-anchor="middle">SCALE</text>
+  <text x="10.16" y="78" fill="#888" font-size="1.5" font-family="sans-serif" text-anchor="middle">CLIP</text>
+  <text x="10.16" y="106" fill="#888" font-size="1.2" font-family="sans-serif" text-anchor="middle">PWR</text>
+  <text x="10.16" y="128" fill="#888" font-size="1.2" font-family="sans-serif" text-anchor="middle">MODE</text>
+  <text x="10.16" y="152" fill="#888" font-size="1.2" font-family="sans-serif" text-anchor="middle">RNG</text>
+  <text x="10.16" y="182" fill="#888" font-size="1.5" font-family="sans-serif" text-anchor="middle">OUT</text>
+</svg>
