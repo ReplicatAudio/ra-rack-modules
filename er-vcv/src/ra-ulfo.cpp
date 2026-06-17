@@ -19,6 +19,7 @@ struct RaUlfoModule : Module {
     enum InputIds {
         A_CV_INPUT,
         B_CV_INPUT,
+        RESET_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -35,6 +36,7 @@ struct RaUlfoModule : Module {
 
     float phase = 0.f;
     float phaseB = 0.f;
+    dsp::SchmittTrigger resetTrigger;
 
     RaUlfoModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -48,6 +50,7 @@ struct RaUlfoModule : Module {
         configParam(B_ATTN_PARAM, -1.f, 1.f, 0.f, "B CV attenuverter");
         configInput(A_CV_INPUT, "A input");
         configInput(B_CV_INPUT, "B input");
+        configInput(RESET_INPUT, "Reset");
         configOutput(SINE_OUTPUT, "Sine");
         configOutput(COSINE_OUTPUT, "Cosine");
         configOutput(INV_SINE_OUTPUT, "Inverted sine");
@@ -57,6 +60,11 @@ struct RaUlfoModule : Module {
 
     void process(const ProcessArgs &args) override {
         float freq = params[FREQ_PARAM].getValue();
+
+        if (resetTrigger.process(inputs[RESET_INPUT].getVoltage())) {
+            phase = 0.f;
+            phaseB = 0.f;
+        }
 
         phase += freq * args.sampleTime;
         if (phase >= 1.f)
@@ -115,6 +123,7 @@ struct RaUlfoWidget : ModuleWidget {
 
         addParam(createParamCentered<RoundBlackKnob>(Vec(box.size.x / 2, 24), module, RaUlfoModule::FREQ_PARAM));
         addParam(createParamCentered<CKSS>(Vec(box.size.x - 8, 46), module, RaUlfoModule::RANGE_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(14, 52), module, RaUlfoModule::RESET_INPUT));
         addParam(createParamCentered<RoundSmallBlackKnob>(Vec(box.size.x / 2, 72), module, RaUlfoModule::ATTN_PARAM));
 
         addOutput(createOutputCentered<PJ301MPort>(Vec(16, 106), module, RaUlfoModule::SINE_OUTPUT));
