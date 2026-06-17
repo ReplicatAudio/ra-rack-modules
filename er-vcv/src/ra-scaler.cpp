@@ -138,10 +138,10 @@ struct RaScalerWidget : ModuleWidget {
         addInput(createInputCentered<PJ301MPort>(Vec(cx, 22), module, RaScalerModule::CV_INPUT));
         addParam(createParamCentered<RoundBlackKnob>(Vec(cx, 56), module, RaScalerModule::SCALE_PARAM));
         addParam(createParamCentered<RoundSmallBlackKnob>(Vec(cx, 84), module, RaScalerModule::CLIP_PARAM));
-        addParam(createParamCentered<CKSS>(Vec(cx, 110), module, RaScalerModule::POWER_PARAM));
-        addParam(createParamCentered<CKSSThree>(Vec(cx, 134), module, RaScalerModule::CLIP_MODE_PARAM));
-        addParam(createParamCentered<CKSSThree>(Vec(cx, 158), module, RaScalerModule::RANGE_PARAM));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(cx, 186), module, RaScalerModule::OUTPUT));
+        addParam(createParamCentered<CKSSThree>(Vec(cx - 12, 118), module, RaScalerModule::RANGE_PARAM));
+        addParam(createParamCentered<CKSS>(Vec(cx, 118), module, RaScalerModule::POWER_PARAM));
+        addParam(createParamCentered<CKSSThree>(Vec(cx + 12, 118), module, RaScalerModule::CLIP_MODE_PARAM));
+        addOutput(createOutputCentered<PJ301MPort>(Vec(cx, 158), module, RaScalerModule::OUTPUT));
     }
 };
 
