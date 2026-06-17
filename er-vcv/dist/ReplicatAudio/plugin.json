@@ -1,8 +1,8 @@
 {
-  "slug": "ER",
+  "slug": "ReplicatAudio",
   "version": "2.0.0",
-  "name": "ER Modules",
-  "author": "er",
+  "name": "ReplicatAudio",
+  "author": "ReplicatAudio",
   "license": "CC0-1.0",
   "modules": [
     {
