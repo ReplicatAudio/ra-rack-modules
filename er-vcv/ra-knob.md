@@ -3,17 +3,17 @@
 ## Overview
 
 ra-knob is a 4‑channel CV source module for VCV Rack v2.  
-Each channel produces a DC voltage controlled by three parameters (Macro, Range, Scale) and
+Each channel produces a DC voltage controlled by three parameters (Knob, Range, Scale) and
 indicates the output level with an RGB LED.
 
 Channel layout is a single vertical column in a 4 hp panel (20.32 mm × 128.5 mm).
 The four channels are evenly spaced at y (rack‑unit) positions 32, 120, 208, 296,
-with 88 units between macro centers and 7‑units of visible gap between the bottom
-of one channel’s output jack and the top of the next channel’s macro knob.
+with 88 units between knob centers and 7‑units of visible gap between the bottom
+of one channel’s output jack and the top of the next channel’s knob.
 
 | y (rack‑units) | Control        | Type                 |
 |----------------|----------------|----------------------|
-| y[i]           | Macro knob     | `RoundBlackKnob`     |
+| y[i]           | Knob           | `RoundBlackKnob`     |
 | y[i] + 18      | Range switch   | `CKSS`               |
 | y[i] + 30      | Scale knob     | `RoundSmallBlackKnob`|
 | y[i] + 45      | RGB LED        | `MediumLight<RedGreenBlueLight>` |
@@ -23,7 +23,7 @@ Horizontal layout (4 hp, `box.size.x` = 60 rack‑units):
 
 | Control        | x (rack‑units) | x (SVG mm) |
 |----------------|----------------|------------|
-| Macro knob     | 30             | 10.16      |
+| Knob           | 30             | 10.16      |
 | Range switch   | 52             | 17.61      |
 | Scale knob     | 30             | 10.16      |
 | RGB LED        | 8              | 2.71       |
@@ -38,7 +38,7 @@ bottom–left at `(0, box.size.y − RACK_GRID_WIDTH)`, bottom–right at
 ## Signal Flow
 
 ```
-Macro (0‑1)
+Knob (0‑1)
   │
   ├─ Range=Unipolar:  × 10    →  0 … 10 V
   └─ Range=Bipolar:  × 10 − 5  →  −5 … +5 V
@@ -53,10 +53,10 @@ Macro (0‑1)
 
 For each of the four channels the `process()` method:
 
-1.  Reads `MACRO1_PARAM` (range 0‑1, default 0.5).
+1.  Reads `KNOB1_PARAM` (range 0‑1, default 0.5).
 2.  Applies the range switch:
-    - **Unipolar** (up): `v = macro × 10` → output range 0 … +10 V.
-    - **Bipolar** (down): `v = macro × 10 − 5` → output range −5 … +5 V.
+    - **Unipolar** (up): `v = knob × 10` → output range 0 … +10 V.
+    - **Bipolar** (down): `v = knob × 10 − 5` → output range −5 … +5 V.
 3.  Applies the scale knob: `v ×= SCALE1_PARAM` (range 0‑1, default 1).
 4.  Writes `v` to the output port via `outputs[OUTPUT1].setVoltage(v)`.
 5.  Normalises `v` to a hue value in `[0, 1)`:
@@ -81,7 +81,7 @@ At scale = 0 the output is always 0 V, so the hue collapses to a fixed col
 
 | ID            | Type        | Range | Default | Display                 |
 |---------------|-------------|-------|---------|-------------------------|
-| MACROn_PARAM  | knob        | 0‑1   | 0.5     | —                       |
+| KNOBn_PARAM  | knob        | 0‑1   | 0.5     | —                       |
 | RANGEn_PARAM  | toggle      | 0‑1   | 0       | **±5 V** / **0–10 V**  |
 | SCALEn_PARAM  | knob        | 0‑1   | 1       | `%` (0–100, 0 dB gain)  |
 
