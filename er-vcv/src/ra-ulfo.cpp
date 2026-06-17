@@ -9,9 +9,16 @@ struct RaUlfoModule : Module {
         FREQ_PARAM,
         ATTN_PARAM,
         RANGE_PARAM,
+        PHASE_PARAM,
+        A_PARAM,
+        A_ATTN_PARAM,
+        B_PARAM,
+        B_ATTN_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
+        A_CV_INPUT,
+        B_CV_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -19,6 +26,7 @@ struct RaUlfoModule : Module {
         COSINE_OUTPUT,
         INV_SINE_OUTPUT,
         INV_COSINE_OUTPUT,
+        FORMULA_OUTPUT,
         NUM_OUTPUTS
     };
     enum LightIds {
@@ -26,16 +34,25 @@ struct RaUlfoModule : Module {
     };
 
     float phase = 0.f;
+    float phaseB = 0.f;
 
     RaUlfoModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(FREQ_PARAM, 0.f, 1.f, 0.1f, "Frequency", "Hz", 0.f, 1.f);
         configParam(ATTN_PARAM, 0.f, 1.f, 1.f, "Attenuation", "%", 0.f, 100.f);
         configSwitch(RANGE_PARAM, 0.f, 1.f, 0.f, "Range", {"\u00B15V", "0\u201310V"});
+        configParam(PHASE_PARAM, 0.f, 1.f, 0.f, "Phase shift");
+        configParam(A_PARAM, 0.f, 1.f, 0.5f, "A", "%", 0.f, 100.f);
+        configParam(A_ATTN_PARAM, -1.f, 1.f, 0.f, "A CV attenuverter");
+        configParam(B_PARAM, 0.f, 10.f, 0.f, "B");
+        configParam(B_ATTN_PARAM, -1.f, 1.f, 0.f, "B CV attenuverter");
+        configInput(A_CV_INPUT, "A input");
+        configInput(B_CV_INPUT, "B input");
         configOutput(SINE_OUTPUT, "Sine");
         configOutput(COSINE_OUTPUT, "Cosine");
         configOutput(INV_SINE_OUTPUT, "Inverted sine");
         configOutput(INV_COSINE_OUTPUT, "Inverted cosine");
+        configOutput(FORMULA_OUTPUT, "Formula");
     }
 
     void process(const ProcessArgs &args) override {
@@ -45,9 +62,10 @@ struct RaUlfoModule : Module {
         if (phase >= 1.f)
             phase -= 1.f;
 
-        float angle = 2.f * M_PI * phase;
-        float s = sinf(angle);
-        float c = cosf(angle);
+        float phaseOffset = params[PHASE_PARAM].getValue();
+        float x = 2.f * M_PI * (phase + phaseOffset);
+        float s = sinf(x);
+        float c = cosf(x);
 
         float vSine, vCosine;
         if (params[RANGE_PARAM].getValue() > 0.5f) {
@@ -64,6 +82,24 @@ struct RaUlfoModule : Module {
         outputs[COSINE_OUTPUT].setVoltage(vCosine);
         outputs[INV_SINE_OUTPUT].setVoltage(-vSine);
         outputs[INV_COSINE_OUTPUT].setVoltage(-vCosine);
+
+        float a = params[A_PARAM].getValue();
+        if (inputs[A_CV_INPUT].isConnected()) {
+            a += inputs[A_CV_INPUT].getVoltage() * params[A_ATTN_PARAM].getValue() / 10.f;
+            a = clamp(a, 0.f, 1.f);
+        }
+        float b = params[B_PARAM].getValue();
+        if (inputs[B_CV_INPUT].isConnected()) {
+            b += inputs[B_CV_INPUT].getVoltage() * params[B_ATTN_PARAM].getValue();
+            b = clamp(b, 0.f, 10.f);
+        }
+
+        phaseB += freq * b * args.sampleTime;
+        if (phaseB >= 1.f)
+            phaseB -= 1.f;
+
+        float formula = ((2.f - a) * (s + cosf(2.f * M_PI * (phaseB + phaseOffset * b)) * a)) / 2.f;
+        outputs[FORMULA_OUTPUT].setVoltage(formula * 5.f);
     }
 };
 
@@ -85,6 +121,18 @@ struct RaUlfoWidget : ModuleWidget {
         addOutput(createOutputCentered<PJ301MPort>(Vec(44, 106), module, RaUlfoModule::COSINE_OUTPUT));
         addOutput(createOutputCentered<PJ301MPort>(Vec(16, 128), module, RaUlfoModule::INV_SINE_OUTPUT));
         addOutput(createOutputCentered<PJ301MPort>(Vec(44, 128), module, RaUlfoModule::INV_COSINE_OUTPUT));
+
+        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(box.size.x / 2, 158), module, RaUlfoModule::PHASE_PARAM));
+
+        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(16, 194), module, RaUlfoModule::A_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(44, 190), module, RaUlfoModule::A_CV_INPUT));
+        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(44, 212), module, RaUlfoModule::A_ATTN_PARAM));
+
+        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(16, 242), module, RaUlfoModule::B_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(44, 238), module, RaUlfoModule::B_CV_INPUT));
+        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(44, 260), module, RaUlfoModule::B_ATTN_PARAM));
+
+        addOutput(createOutputCentered<PJ301MPort>(Vec(box.size.x / 2, 290), module, RaUlfoModule::FORMULA_OUTPUT));
     }
 };
 
