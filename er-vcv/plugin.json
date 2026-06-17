@@ -1,0 +1,21 @@
+{
+  "slug": "ER",
+  "version": "2.0.0",
+  "name": "ER Modules",
+  "author": "er",
+  "license": "CC0-1.0",
+  "modules": [
+    {
+      "slug": "ra-vca",
+      "name": "ra-vca",
+      "description": "Voltage-controlled amplifier",
+      "tags": ["VCA", "Utility"]
+    },
+    {
+      "slug": "ra-knob",
+      "name": "ra-knob",
+      "description": "4-channel macro control voltage source",
+      "tags": ["Utility", "CV source"]
+    }
+  ]
+}
