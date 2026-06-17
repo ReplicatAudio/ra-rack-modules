@@ -22,6 +22,12 @@
       "name": "ra-gnawbz-1x4",
       "description": "Single macro knob with 4 attenuverted outputs",
       "tags": ["Utility", "CV source"]
+    },
+    {
+      "slug": "ra-ulfo",
+      "name": "ra-ulfo",
+      "description": "Ultra low frequency LFO — sine/cosine outputs",
+      "tags": ["LFO", "Utility"]
     }
   ]
 }

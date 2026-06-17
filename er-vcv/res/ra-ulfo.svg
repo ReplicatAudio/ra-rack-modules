@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.32 128.5" width="20.32mm" height="128.5mm">
+  <rect width="20.32" height="128.5" fill="#222"/>
+  <text x="10.16" y="10" fill="#ddd" font-size="3.5" font-family="sans-serif" text-anchor="middle" font-weight="bold">ULFO</text>
+  <line x1="3" y1="14" x2="17.32" y2="14" stroke="#444" stroke-width="0.3"/>
+  <text x="10.16" y="22" fill="#888" font-size="1.8" font-family="sans-serif" text-anchor="middle">FREQ</text>
+  <text x="17.61" y="42" fill="#666" font-size="1.2" font-family="sans-serif" text-anchor="middle">±5|10</text>
+  <text x="10.16" y="69" fill="#888" font-size="1.8" font-family="sans-serif" text-anchor="middle">ATN</text>
+  <text x="6.1" y="102" fill="#888" font-size="1.4" font-family="sans-serif" text-anchor="middle">SIN</text>
+  <text x="14.22" y="102" fill="#888" font-size="1.4" font-family="sans-serif" text-anchor="middle">COS</text>
+  <text x="6.1" y="124" fill="#888" font-size="1.4" font-family="sans-serif" text-anchor="middle">-S</text>
+  <text x="14.22" y="124" fill="#888" font-size="1.4" font-family="sans-serif" text-anchor="middle">-C</text>
+</svg>
