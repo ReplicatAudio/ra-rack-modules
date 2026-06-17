@@ -6,7 +6,6 @@ cd "$(dirname "$0")"
 RACK_DIR="${RACK_DIR:-../Rack-SDK}"
 
 echo "=== Building plugin ==="
-make clean 2>/dev/null || true
 make RACK_DIR="$RACK_DIR"
 
 echo ""
