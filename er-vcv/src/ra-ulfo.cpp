@@ -40,7 +40,7 @@ struct RaUlfoModule : Module {
 
     RaUlfoModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(FREQ_PARAM, 0.f, 1.f, 0.1f, "Frequency", "Hz", 0.f, 1.f);
+        configParam(FREQ_PARAM, 0.f, 1.f, 0.1f, "Frequency", "Hz", 1.f, 0.f);
         configParam(ATTN_PARAM, 0.f, 1.f, 1.f, "Attenuation", "%", 0.f, 100.f);
         configSwitch(RANGE_PARAM, 0.f, 1.f, 0.f, "Range", {"\u00B15V", "0\u201310V"});
         configParam(PHASE_PARAM, 0.f, 1.f, 0.f, "Phase shift");
@@ -107,7 +107,10 @@ struct RaUlfoModule : Module {
             phaseB -= 1.f;
 
         float formula = ((2.f - a) * (s + cosf(2.f * M_PI * (phaseB + phaseOffset * b)) * a)) / 2.f;
-        outputs[FORMULA_OUTPUT].setVoltage(formula * 5.f);
+        if (params[RANGE_PARAM].getValue() == 0.f)
+            outputs[FORMULA_OUTPUT].setVoltage((formula + 1.f) * 5.f);
+        else
+            outputs[FORMULA_OUTPUT].setVoltage(formula * 5.f);
     }
 };
 
@@ -116,9 +119,9 @@ struct RaUlfoWidget : ModuleWidget {
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-ulfo.svg")));
 
-        addChild(createWidget<ScrewSilver>(Vec(0, 0)));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         addParam(createParamCentered<RoundBlackKnob>(Vec(box.size.x / 2, 24), module, RaUlfoModule::FREQ_PARAM));

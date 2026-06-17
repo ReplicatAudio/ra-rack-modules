@@ -9,6 +9,6 @@
   <text x="2.5" y="109" fill="#888" font-size="1.1" font-family="sans-serif" text-anchor="middle">RNG</text>
   <text x="10.16" y="109" fill="#888" font-size="1.1" font-family="sans-serif" text-anchor="middle">PWR</text>
   <text x="17.82" y="109" fill="#888" font-size="1.1" font-family="sans-serif" text-anchor="middle">MODE</text>
-  <line x1="3" y1="140" x2="17.32" y2="140" stroke="#444" stroke-width="0.3"/>
-  <text x="10.16" y="152" fill="#888" font-size="1.5" font-family="sans-serif" text-anchor="middle">OUT</text>
+  <line x1="3" y1="118" x2="17.32" y2="118" stroke="#444" stroke-width="0.3"/>
+  <text x="10.16" y="126" fill="#888" font-size="1.5" font-family="sans-serif" text-anchor="middle">OUT</text>
 </svg>

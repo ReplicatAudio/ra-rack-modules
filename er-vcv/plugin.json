@@ -34,6 +34,12 @@
       "name": "ra-scaler",
       "description": "Signal scaler with power scaling, multi-mode clipping, and wave folding",
       "tags": ["Utility", "Waveshaper", "Distortion"]
+    },
+    {
+      "slug": "ra-endless",
+      "name": "ra-endless",
+      "description": "OP-1 style endless sequencer — record and play back sequences of CV notes/rests",
+      "tags": ["Sequencer", "Utility"]
     }
   ]
 }

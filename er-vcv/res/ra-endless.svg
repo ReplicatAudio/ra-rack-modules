@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50.8 128.5" width="50.8mm" height="128.5mm">
+  <rect width="50.8" height="128.5" fill="#222"/>
+  <text x="25.4" y="4" fill="#ddd" font-size="2.5" font-family="sans-serif" text-anchor="middle" font-weight="bold">ENDLESS</text>
+  <line x1="3" y1="6" x2="47.8" y2="6" stroke="#444" stroke-width="0.3"/>
+  <rect x="4" y="2" width="42.7" height="32.5" rx="0.8" fill="#111" stroke="#555" stroke-width="0.3"/>
+  <text x="16.9" y="40" fill="#888" font-size="1.2" font-family="sans-serif" text-anchor="middle">CV</text>
+  <line x1="3" y1="43" x2="47.8" y2="43" stroke="#444" stroke-width="0.3"/>
+  <text x="13.6" y="53" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">WRT</text>
+  <text x="36.6" y="53" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">REST</text>
+  <text x="13.6" y="67" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">CLR</text>
+  <text x="36.6" y="67" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">RST</text>
+  <text x="13.6" y="80" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">FWD</text>
+  <text x="36.6" y="80" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">BACK</text>
+  <line x1="3" y1="88" x2="47.8" y2="88" stroke="#444" stroke-width="0.3"/>
+  <text x="9.2" y="96" fill="#888" font-size="1.1" font-family="sans-serif" text-anchor="middle">CV</text>
+  <text x="20" y="96" fill="#888" font-size="1.1" font-family="sans-serif" text-anchor="middle">TRIG</text>
+  <text x="30.8" y="96" fill="#888" font-size="1.1" font-family="sans-serif" text-anchor="middle">END</text>
+  <text x="41.7" y="96" fill="#888" font-size="1.1" font-family="sans-serif" text-anchor="middle">STRT</text>
+</svg>
