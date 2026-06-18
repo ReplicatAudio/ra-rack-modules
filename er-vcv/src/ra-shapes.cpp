@@ -4,9 +4,24 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 
+static constexpr float SHAPES_MIN_FREQ = 2.f;
+static constexpr float SHAPES_MAX_FREQ = 8000.f;
+static constexpr int SHAPES_SLOW_PARAM = 1;
+
+struct RaShapesFreqQuantity : ParamQuantity {
+    float getDisplayValue() override {
+        float v = getValue();
+        float freq = SHAPES_MIN_FREQ * powf(SHAPES_MAX_FREQ / SHAPES_MIN_FREQ, v);
+        if (module && module->params[SHAPES_SLOW_PARAM].getValue() > 0.5f)
+            freq /= 8.f;
+        return freq;
+    }
+};
+
 struct RaShapesModule : Module {
     enum ParamIds {
         FREQ_PARAM,
+        SLOW_PARAM,
         FM1_ATTN_PARAM,
         FM2_ATTN_PARAM,
         FM3_ATTN_PARAM,
@@ -35,12 +50,13 @@ struct RaShapesModule : Module {
 
     float phase = 0.f;
 
-    static constexpr float MIN_FREQ = 2.f;
-    static constexpr float MAX_FREQ = 8000.f;
+    static constexpr float MIN_FREQ = SHAPES_MIN_FREQ;
+    static constexpr float MAX_FREQ = SHAPES_MAX_FREQ;
 
     RaShapesModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(FREQ_PARAM, 0.f, 1.f, 0.2f, "Frequency", " Hz", MAX_FREQ / MIN_FREQ, MIN_FREQ, 0.f);
+        configParam<RaShapesFreqQuantity>(FREQ_PARAM, 0.f, 1.f, 0.2f, "Frequency", " Hz");
+        configSwitch(SLOW_PARAM, 0.f, 1.f, 0.f, "Slow mode", {"Normal", "/8"});
         configParam(FM1_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 1 attenuation", "%", 0.f, 100.f);
         configParam(FM2_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 2 attenuation", "%", 0.f, 100.f);
         configParam(FM3_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 3 attenuation", "%", 0.f, 100.f);
@@ -66,6 +82,9 @@ struct RaShapesModule : Module {
             + inputs[FM4_INPUT].getVoltage() * params[FM4_ATTN_PARAM].getValue();
         freq *= powf(2.f, pitch);
         freq = clamp(freq, 0.1f, 20000.f);
+
+        if (params[SLOW_PARAM].getValue() > 0.5f)
+            freq /= 8.f;
 
         phase += freq * args.sampleTime;
         if (phase >= 1.f)
@@ -98,8 +117,9 @@ struct RaShapesWidget : ModuleWidget {
         addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RoundBlackKnob>(Vec(30, 24), module, RaShapesModule::FREQ_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(30, 54), module, RaShapesModule::PITCH_INPUT));
+        addParam(createParamCentered<RoundLargeBlackKnob>(Vec(30, 24), module, RaShapesModule::FREQ_PARAM));
+        addParam(createParamCentered<CKSS>(Vec(46, 52), module, RaShapesModule::SLOW_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(14, 52), module, RaShapesModule::PITCH_INPUT));
 
         addParam(createParamCentered<RoundSmallBlackKnob>(Vec(14, 82), module, RaShapesModule::FM1_ATTN_PARAM));
         addInput(createInputCentered<PJ301MPort>(Vec(46, 82), module, RaShapesModule::FM1_INPUT));
