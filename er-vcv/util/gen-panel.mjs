@@ -10,10 +10,15 @@ import path from 'node:path';
 // ============================================================
 const SW = 1.0;  // base stroke width
 
+// Background gradient (override via --bg-start, --bg-end, --bg-mid)
+let BG_START = '#631D64';
+let BG_END = '#371038';
+let BG_MID = 80;
+
 // Widget colour by role (override via --input-color / --output-color)
 let ROLE_COLORS = {
-  input: '#EE88AA',
-  output: '#AA88FF',
+  input: '#62a0ea',
+  output: '#CF5DD0',
 };
 
 const ru2mm = (ru) => ru * 5.08 / 15;
@@ -458,7 +463,14 @@ function generateSVG(info) {
   const HW = HP * 15;
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W.toFixed(2)} ${H}" width="${W.toFixed(2)}mm" height="${H}mm">
-  <rect width="${W.toFixed(2)}" height="${H}" fill="#1a1a1a"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="${BG_START}"/>
+      <stop offset="${BG_MID}%" stop-color="${BG_END}"/>
+      <stop offset="100%" stop-color="${BG_END}"/>
+    </linearGradient>
+  </defs>
+  <rect width="${W.toFixed(2)}" height="${H}" fill="url(#bg)"/>
   <rect x="0.3" y="0.3" width="${(W - 0.6).toFixed(2)}" height="${H - 0.6}" fill="none" stroke="#333" stroke-width="${SW}"/>
 `;
 
@@ -598,6 +610,9 @@ for (let i = 2; i < process.argv.length; i++) {
   if (arg.startsWith('--hp=')) overrideHP = parseInt(arg.slice(5), 10);
   else if (arg.startsWith('--input-color=')) overrideColors.input = arg.slice(14);
   else if (arg.startsWith('--output-color=')) overrideColors.output = arg.slice(15);
+  else if (arg.startsWith('--bg-start=')) BG_START = arg.slice(11);
+  else if (arg.startsWith('--bg-end=')) BG_END = arg.slice(9);
+  else if (arg.startsWith('--bg-mid=')) BG_MID = Math.max(0, Math.min(100, parseInt(arg.slice(9), 10)));
   else if (!arg.startsWith('--')) filePath = arg;
 }
 if (overrideColors.input || overrideColors.output)
