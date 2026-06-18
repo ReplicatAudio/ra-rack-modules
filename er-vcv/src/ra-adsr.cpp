@@ -217,20 +217,47 @@ struct RaAdsrModule : Module {
 			lights[SUSTAIN_LIGHT].setBrightness(0);
 			lights[RELEASE_LIGHT].setBrightness(0);
 
-			for (int c = 0; c < channels; c += 4) {
-				const float epsilon = 0.01f;
-				float_4 sustaining = (sustain[c / 4] <= env[c / 4]) & (env[c / 4] < sustain[c / 4] + epsilon);
-				float_4 resting = (env[c / 4] < epsilon);
+		for (int c = 0; c < channels; c += 4) {
+			const float epsilon = 0.01f;
+			float_4 resting = (env[c / 4] < epsilon);
 
-				if (simd::movemask(gate[c / 4] & attacking[c / 4]))
-					lights[ATTACK_LIGHT].setBrightness(1);
-				if (simd::movemask(gate[c / 4] & ~attacking[c / 4] & ~sustaining))
-					lights[DECAY_LIGHT].setBrightness(1);
-				if (simd::movemask(gate[c / 4] & ~attacking[c / 4] & sustaining))
-					lights[SUSTAIN_LIGHT].setBrightness(1);
-				if (simd::movemask(~gate[c / 4] & ~resting))
-					lights[RELEASE_LIGHT].setBrightness(1);
+			float_4 attackLight, decayLight, sustainLight, releaseLight;
+
+			if (positionConnected) {
+				float_4 pos = inputs[POSITION_INPUT].getPolyVoltageSimd<float_4>(c) / 10.f;
+				pos = simd::clamp(pos, 0.f, 1.f);
+				float_4 attP = attProp[c / 4];
+				float_4 decEnd = attP + decProp[c / 4];
+
+				attackLight = pos <= attP;
+				float_4 inDecay = (pos > attP) & (pos <= decEnd);
+				float_4 inRelease = pos > decEnd;
+
+				sustainLight = inDecay & (env[c / 4] >= sustain[c / 4]) & (env[c / 4] < sustain[c / 4] + epsilon);
+				decayLight = inDecay & ~sustainLight;
+				releaseLight = inRelease;
 			}
+			else {
+				attackLight = gate[c / 4] & attacking[c / 4];
+
+				float_4 trigRelease = triggerActive[c / 4] & ~attacking[c / 4] & (env[c / 4] < sustain[c / 4]) & ~resting;
+				releaseLight = (~gate[c / 4] & ~resting) | trigRelease;
+
+				float_4 gateHighNotAttack = gate[c / 4] & ~attacking[c / 4] & ~trigRelease;
+				float_4 sustaining = (sustain[c / 4] <= env[c / 4]) & (env[c / 4] < sustain[c / 4] + epsilon);
+				sustainLight = gateHighNotAttack & sustaining;
+				decayLight = gateHighNotAttack & ~sustaining;
+			}
+
+			if (simd::movemask(attackLight))
+				lights[ATTACK_LIGHT].setBrightness(1);
+			if (simd::movemask(decayLight))
+				lights[DECAY_LIGHT].setBrightness(1);
+			if (simd::movemask(sustainLight))
+				lights[SUSTAIN_LIGHT].setBrightness(1);
+			if (simd::movemask(releaseLight))
+				lights[RELEASE_LIGHT].setBrightness(1);
+		}
 
 			bool anyGate = false;
 			for (int c = 0; c < channels; c += 4)
