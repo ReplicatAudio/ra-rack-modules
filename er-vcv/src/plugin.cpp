@@ -13,6 +13,7 @@ extern Model *modelRaYscope;
 extern Model *modelRaShapes;
 extern Model *modelRaChance;
 extern Model *modelRaAdd;
+extern Model *modelRaSeer;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -26,4 +27,5 @@ void init(Plugin *p) {
     p->addModel(modelRaShapes);
     p->addModel(modelRaChance);
     p->addModel(modelRaAdd);
+    p->addModel(modelRaSeer);
 }

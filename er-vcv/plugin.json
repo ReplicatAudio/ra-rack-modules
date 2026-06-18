@@ -62,8 +62,14 @@
     {
       "slug": "ra-add",
       "name": "ra-add",
-      "description": "Additive synth with 32 harmonics and even/odd balance",
+      "description": "Additive synth with 16 individual harmonic amplitudes",
       "tags": ["VCO", "Oscillator"]
+    },
+    {
+      "slug": "ra-seer",
+      "name": "ra-seer",
+      "description": "Signal meter — peak, RMS, and DC readouts",
+      "tags": ["Visual", "Utility"]
     }
   ]
 }
