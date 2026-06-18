@@ -14,6 +14,7 @@ extern Model *modelRaShapes;
 extern Model *modelRaChance;
 extern Model *modelRaAdd;
 extern Model *modelRaSeer;
+extern Model *modelRaBlank;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -28,4 +29,5 @@ void init(Plugin *p) {
     p->addModel(modelRaChance);
     p->addModel(modelRaAdd);
     p->addModel(modelRaSeer);
+    p->addModel(modelRaBlank);
 }

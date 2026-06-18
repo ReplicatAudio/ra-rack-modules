@@ -70,6 +70,12 @@
       "name": "ra-seer",
       "description": "Signal meter — peak, RMS, and DC readouts",
       "tags": ["Visual", "Utility"]
+    },
+    {
+      "slug": "ra-blank",
+      "name": "ra-blank",
+      "description": "Resizable blank panel to fill empty space",
+      "tags": ["Blank", "Utility"]
     }
   ]
 }
