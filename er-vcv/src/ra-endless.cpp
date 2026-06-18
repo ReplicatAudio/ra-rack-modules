@@ -365,17 +365,17 @@ struct RaEndlessWidget : ModuleWidget {
         addParam(createParamCentered<TL1105>(Vec(91, 162), module, RaEndlessModule::REST_PARAM));
         addInput(createInputCentered<PJ301MPort>(Vec(125, 162), module, RaEndlessModule::REST_TRIG_INPUT));
 
-        // Row 2: CLR / RST  at y=202
-        addParam(createParamCentered<TL1105>(Vec(23, 202), module, RaEndlessModule::CLEAR_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(57, 202), module, RaEndlessModule::CLEAR_TRIG_INPUT));
-        addParam(createParamCentered<TL1105>(Vec(91, 202), module, RaEndlessModule::RESET_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(125, 202), module, RaEndlessModule::RESET_TRIG_INPUT));
+        // Row 2: BACK / FWD  at y=202
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(23, 202), module, RaEndlessModule::STEP_BACK_PARAM, RaEndlessModule::STEP_BACK_LIGHT_R));
+        addInput(createInputCentered<PJ301MPort>(Vec(57, 202), module, RaEndlessModule::STEP_BACK_TRIG_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(91, 202), module, RaEndlessModule::STEP_FWD_PARAM, RaEndlessModule::STEP_FWD_LIGHT_R));
+        addInput(createInputCentered<PJ301MPort>(Vec(125, 202), module, RaEndlessModule::STEP_FWD_TRIG_INPUT));
 
-        // Row 3: FWD / BACK  at y=242
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(23, 242), module, RaEndlessModule::STEP_FWD_PARAM, RaEndlessModule::STEP_FWD_LIGHT_R));
-        addInput(createInputCentered<PJ301MPort>(Vec(57, 242), module, RaEndlessModule::STEP_FWD_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(91, 242), module, RaEndlessModule::STEP_BACK_PARAM, RaEndlessModule::STEP_BACK_LIGHT_R));
-        addInput(createInputCentered<PJ301MPort>(Vec(125, 242), module, RaEndlessModule::STEP_BACK_TRIG_INPUT));
+        // Row 3: CLR / RST  at y=242
+        addParam(createParamCentered<TL1105>(Vec(23, 242), module, RaEndlessModule::CLEAR_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(57, 242), module, RaEndlessModule::CLEAR_TRIG_INPUT));
+        addParam(createParamCentered<TL1105>(Vec(91, 242), module, RaEndlessModule::RESET_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(125, 242), module, RaEndlessModule::RESET_TRIG_INPUT));
 
         // Outputs — Track A at y=275, Track B at y=315
         // Each row: CV | TRIG | START | END  spaced 32 units apart
