@@ -1,27 +1,225 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50.8 128.5" width="50.8mm" height="128.5mm">
-  <rect width="50.8" height="128.5" fill="#222"/>
-  <text x="25.4" y="4" fill="#ddd" font-size="2.5" font-family="sans-serif" text-anchor="middle" font-weight="bold">ENDLESS</text>
-  <line x1="3" y1="6" x2="47.8" y2="6" stroke="#444" stroke-width="0.3"/>
-  <rect x="4" y="2" width="42.7" height="32.5" rx="0.8" fill="#111" stroke="#555" stroke-width="0.3"/>
-  <text x="13.6" y="40" fill="#888" font-size="1.2" font-family="sans-serif" text-anchor="middle">CV</text>
-  <text x="32" y="38" fill="#888" font-size="1" font-family="sans-serif" text-anchor="middle">A</text>
-  <text x="42" y="38" fill="#888" font-size="1" font-family="sans-serif" text-anchor="middle">B</text>
-  <line x1="3" y1="43" x2="47.8" y2="43" stroke="#444" stroke-width="0.3"/>
-  <text x="13.6" y="52" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">WRT</text>
-  <text x="36.6" y="52" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">REST</text>
-  <text x="13.6" y="65" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">CLR</text>
-  <text x="36.6" y="65" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">RST</text>
-  <text x="13.6" y="78" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">FWD</text>
-  <text x="36.6" y="78" fill="#aaa" font-size="1.1" font-family="sans-serif" text-anchor="middle">BACK</text>
-  <line x1="3" y1="84" x2="47.8" y2="84" stroke="#444" stroke-width="0.3"/>
-  <text x="7.8" y="91" fill="#888" font-size="0.9" font-family="sans-serif" text-anchor="middle">CV</text>
-  <text x="18.6" y="91" fill="#888" font-size="0.9" font-family="sans-serif" text-anchor="middle">TR</text>
-  <text x="29.5" y="91" fill="#888" font-size="0.9" font-family="sans-serif" text-anchor="middle">ST</text>
-  <text x="40.3" y="91" fill="#888" font-size="0.9" font-family="sans-serif" text-anchor="middle">EN</text>
-  <text x="2" y="94" fill="#888" font-size="0.8" font-family="sans-serif" text-anchor="middle">&#x25B2;</text>
-  <text x="7.8" y="105" fill="#888" font-size="0.9" font-family="sans-serif" text-anchor="middle">CV</text>
-  <text x="18.6" y="105" fill="#888" font-size="0.9" font-family="sans-serif" text-anchor="middle">TR</text>
-  <text x="29.5" y="105" fill="#888" font-size="0.9" font-family="sans-serif" text-anchor="middle">ST</text>
-  <text x="40.3" y="105" fill="#888" font-size="0.9" font-family="sans-serif" text-anchor="middle">EN</text>
-  <text x="2" y="108" fill="#888" font-size="0.8" font-family="sans-serif" text-anchor="middle">&#x25BC;</text>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 50.8 128.5"
+   width="50.8mm"
+   height="128.5mm"
+   version="1.1"
+   id="svg20"
+   sodipodi:docname="ra-endless.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs20" />
+  <sodipodi:namedview
+     id="namedview20"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="2.3719844"
+     inkscape:cx="96.122047"
+     inkscape:cy="242.83465"
+     inkscape:window-width="3440"
+     inkscape:window-height="1403"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg20" />
+  <rect
+     width="50.8"
+     height="128.5"
+     fill="#222"
+     id="rect1" />
+  <text
+     x="25.4"
+     y="4"
+     fill="#ddd"
+     font-size="2.5"
+     font-family="sans-serif"
+     text-anchor="middle"
+     font-weight="bold"
+     id="text1">ENDLESS</text>
+  <line
+     x1="3"
+     y1="6"
+     x2="47.8"
+     y2="6"
+     stroke="#444"
+     stroke-width="0.3"
+     id="line1" />
+  <text
+     x="13.6"
+     y="40"
+     fill="#888"
+     font-size="1.2"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text2">CV</text>
+  <text
+     x="32"
+     y="38"
+     fill="#888"
+     font-size="1"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text3">A</text>
+  <text
+     x="42"
+     y="38"
+     fill="#888"
+     font-size="1"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text4">B</text>
+  <line
+     x1="3"
+     y1="43"
+     x2="47.8"
+     y2="43"
+     stroke="#444"
+     stroke-width="0.3"
+     id="line4" />
+  <text
+     x="13.6"
+     y="52"
+     fill="#aaa"
+     font-size="1.1"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text5">WRT</text>
+  <text
+     x="36.6"
+     y="52"
+     fill="#aaa"
+     font-size="1.1"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text6">REST</text>
+  <text
+     x="13.6"
+     y="65"
+     fill="#aaa"
+     font-size="1.1"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text7">CLR</text>
+  <text
+     x="36.6"
+     y="65"
+     fill="#aaa"
+     font-size="1.1"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text8">RST</text>
+  <text
+     x="13.6"
+     y="78"
+     fill="#aaa"
+     font-size="1.1"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text9">FWD</text>
+  <text
+     x="36.6"
+     y="78"
+     fill="#aaa"
+     font-size="1.1"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text10">BACK</text>
+  <line
+     x1="3"
+     y1="84"
+     x2="47.8"
+     y2="84"
+     stroke="#444"
+     stroke-width="0.3"
+     id="line10" />
+  <text
+     x="7.8"
+     y="91"
+     fill="#888"
+     font-size="0.9"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text11">CV</text>
+  <text
+     x="18.6"
+     y="91"
+     fill="#888"
+     font-size="0.9"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text12">TR</text>
+  <text
+     x="29.5"
+     y="91"
+     fill="#888"
+     font-size="0.9"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text13">ST</text>
+  <text
+     x="40.3"
+     y="91"
+     fill="#888"
+     font-size="0.9"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text14">EN</text>
+  <text
+     x="2"
+     y="94"
+     fill="#888"
+     font-size="0.8"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text15">▲</text>
+  <text
+     x="7.8"
+     y="105"
+     fill="#888"
+     font-size="0.9"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text16">CV</text>
+  <text
+     x="18.6"
+     y="105"
+     fill="#888"
+     font-size="0.9"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text17">TR</text>
+  <text
+     x="29.5"
+     y="105"
+     fill="#888"
+     font-size="0.9"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text18">ST</text>
+  <text
+     x="40.3"
+     y="105"
+     fill="#888"
+     font-size="0.9"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text19">EN</text>
+  <text
+     x="2"
+     y="108"
+     fill="#888"
+     font-size="0.8"
+     font-family="sans-serif"
+     text-anchor="middle"
+     id="text20">▼</text>
 </svg>

@@ -373,49 +373,49 @@ struct RaEndlessWidget : ModuleWidget {
 
         // 4x taller display spanning nearly full width
         auto *display = new EndlessDisplay();
-        display->box.pos = Vec(12, 6);
+        display->box.pos = Vec(12, 21);
         display->box.size = Vec(126, 96);
         display->module = module;
         addChild(display);
 
-        // CV, Position, Run trigger, Run button, Track select at y=125
-        addInput(createInputCentered<RaPort>(Vec(24, 125), module, RaEndlessModule::CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(52, 125), module, RaEndlessModule::POSITION_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(80, 125), module, RaEndlessModule::RUN_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(106, 125), module, RaEndlessModule::RUN_PARAM, RaEndlessModule::RUN_LIGHT));
-        addParam(createParamCentered<RaButton>(Vec(130, 125), module, RaEndlessModule::TRACK_SELECT_PARAM));
+        // CV, Passthrough, Run trigger, Run button, Track select at y=140
+        addInput(createInputCentered<RaPort>(Vec(24, 140), module, RaEndlessModule::CV_INPUT));
+        addParam(createParamCentered<RaSwitch2>(Vec(52, 140), module, RaEndlessModule::PASSTHROUGH_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(80, 140), module, RaEndlessModule::RUN_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(106, 140), module, RaEndlessModule::RUN_PARAM, RaEndlessModule::RUN_LIGHT));
+        addParam(createParamCentered<RaButton>(Vec(130, 140), module, RaEndlessModule::TRACK_SELECT_PARAM));
 
         // Function controls — 3 rows, each with Btn (x=23|91) + Trig (x=57|125)
-        // Row 1: WRT / REST  at y=162
-        addParam(createParamCentered<RaButton>(Vec(23, 162), module, RaEndlessModule::WRITE_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(57, 162), module, RaEndlessModule::WRITE_TRIG_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(91, 162), module, RaEndlessModule::REST_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(125, 162), module, RaEndlessModule::REST_TRIG_INPUT));
+        // Row 1: WRT / REST  at y=177
+        addParam(createParamCentered<RaButton>(Vec(23, 177), module, RaEndlessModule::WRITE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(57, 177), module, RaEndlessModule::WRITE_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(91, 177), module, RaEndlessModule::REST_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(125, 177), module, RaEndlessModule::REST_TRIG_INPUT));
 
-        // Row 2: BACK / FWD  at y=202
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(23, 202), module, RaEndlessModule::STEP_BACK_PARAM, RaEndlessModule::STEP_BACK_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(57, 202), module, RaEndlessModule::STEP_BACK_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(91, 202), module, RaEndlessModule::STEP_FWD_PARAM, RaEndlessModule::STEP_FWD_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(125, 202), module, RaEndlessModule::STEP_FWD_TRIG_INPUT));
+        // Row 2: BACK / FWD  at y=217
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(23, 217), module, RaEndlessModule::STEP_BACK_PARAM, RaEndlessModule::STEP_BACK_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(57, 217), module, RaEndlessModule::STEP_BACK_TRIG_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(91, 217), module, RaEndlessModule::STEP_FWD_PARAM, RaEndlessModule::STEP_FWD_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(125, 217), module, RaEndlessModule::STEP_FWD_TRIG_INPUT));
 
-        // Row 3: CLR / RST  at y=242
-        addParam(createParamCentered<RaButton>(Vec(23, 242), module, RaEndlessModule::CLEAR_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(57, 242), module, RaEndlessModule::CLEAR_TRIG_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(91, 242), module, RaEndlessModule::RESET_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(125, 242), module, RaEndlessModule::RESET_TRIG_INPUT));
+        // Row 3: CLR / RST  at y=257
+        addParam(createParamCentered<RaButton>(Vec(23, 257), module, RaEndlessModule::CLEAR_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(57, 257), module, RaEndlessModule::CLEAR_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(91, 257), module, RaEndlessModule::RESET_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(125, 257), module, RaEndlessModule::RESET_TRIG_INPUT));
 
-        // Passthrough switch at y=262, above outputs
-        addParam(createParamCentered<RaSwitch2>(Vec(55, 262), module, RaEndlessModule::PASSTHROUGH_PARAM));
+        // Position input above Track A trigger output
+        addInput(createInputCentered<RaPort>(Vec(75, 277), module, RaEndlessModule::POSITION_INPUT));
 
-        // Outputs — Track A at y=290, Track B at y=330
+        // Outputs — Track A at y=305, Track B at y=345
         // Each row: CV | TRIG | END  spaced 45 units apart
         float outX[] = {30, 75, 120};
-        addOutput(createOutputCentered<RaPort>(Vec(outX[0], 290), module, RaEndlessModule::TRACK_A_CV_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(outX[1], 290), module, RaEndlessModule::TRACK_A_TRIG_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(outX[2], 290), module, RaEndlessModule::TRACK_A_END_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(outX[0], 330), module, RaEndlessModule::TRACK_B_CV_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(outX[1], 330), module, RaEndlessModule::TRACK_B_TRIG_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(outX[2], 330), module, RaEndlessModule::TRACK_B_END_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(outX[0], 305), module, RaEndlessModule::TRACK_A_CV_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(outX[1], 305), module, RaEndlessModule::TRACK_A_TRIG_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(outX[2], 305), module, RaEndlessModule::TRACK_A_END_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(outX[0], 345), module, RaEndlessModule::TRACK_B_CV_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(outX[1], 345), module, RaEndlessModule::TRACK_B_TRIG_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(outX[2], 345), module, RaEndlessModule::TRACK_B_END_OUTPUT));
     }
 };
 
