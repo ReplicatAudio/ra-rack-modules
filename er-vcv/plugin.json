@@ -52,6 +52,12 @@
       "name": "ra-shapes",
       "description": "VCO — sine, triangle, saw up, saw down, square outputs",
       "tags": ["VCO", "Oscillator"]
+    },
+    {
+      "slug": "ra-chance",
+      "name": "ra-chance",
+      "description": "Trigger chance — probabilistic trigger divider with bias CV",
+      "tags": ["Probability", "Utility", "Random"]
     }
   ]
 }
