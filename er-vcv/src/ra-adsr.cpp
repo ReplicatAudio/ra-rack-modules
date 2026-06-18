@@ -5,6 +5,16 @@ using simd::float_4;
 
 extern Plugin *pluginInstance;
 
+// Envelope curve constants matching RaAdsrDisplay curve rendering
+static constexpr float ENV_TARGET = 1.1f;
+static constexpr float ENV_LAMBDA = 2.3978952727983702f;
+static float envPhaseToEnv(float phase) {
+	return (1 - std::exp(-ENV_LAMBDA * phase)) * ENV_TARGET;
+}
+static float envEnvToPhase(float env) {
+	return -std::log(1 - env / ENV_TARGET) / ENV_LAMBDA;
+}
+
 struct RaAdsrModule : Module {
 	enum ParamIds {
 		ATTACK_PARAM,
@@ -25,6 +35,7 @@ struct RaAdsrModule : Module {
 		RELEASE_INPUT,
 		GATE_INPUT,
 		RETRIG_INPUT,
+		POSITION_INPUT,
 		NUM_INPUTS
 	};
 	enum OutputIds {
@@ -55,6 +66,11 @@ struct RaAdsrModule : Module {
 	float_4 decayLambda[4] = {};
 	float_4 releaseLambda[4] = {};
 	float_4 sustain[4] = {};
+	float_4 attProp[4] = {};
+	float_4 decProp[4] = {};
+	float_4 relProp[4] = {};
+	bool positionConnected = false;
+	float positionCv = 0.f;
 	dsp::ClockDivider lightDivider;
 
 	RaAdsrModule() {
@@ -77,6 +93,7 @@ struct RaAdsrModule : Module {
 		configInput(RELEASE_INPUT, "Release");
 		configInput(GATE_INPUT, "Gate");
 		configInput(RETRIG_INPUT, "Retrigger");
+		configInput(POSITION_INPUT, "Position");
 
 		configOutput(ENVELOPE_OUTPUT, "Envelope");
 
@@ -86,6 +103,9 @@ struct RaAdsrModule : Module {
 
 	void process(const ProcessArgs& args) override {
 		channels = std::max(1, inputs[GATE_INPUT].getChannels());
+
+		positionConnected = inputs[POSITION_INPUT].isConnected();
+		positionCv = inputs[POSITION_INPUT].getVoltage() / 10.f;
 
 		if (cvDivider.process()) {
 			float attackParam = params[ATTACK_PARAM].getValue();
@@ -113,37 +133,58 @@ struct RaAdsrModule : Module {
 				decayLambda[c / 4] = simd::pow(LAMBDA_BASE, -decay) / MIN_TIME;
 				releaseLambda[c / 4] = simd::pow(LAMBDA_BASE, -release) / MIN_TIME;
 				this->sustain[c / 4] = sustain;
+
+				float_4 invAtt = 1.f / attackLambda[c / 4];
+				float_4 invDec = 1.f / decayLambda[c / 4];
+				float_4 invRel = 1.f / releaseLambda[c / 4];
+				float_4 total = invAtt + invDec + invRel;
+				attProp[c / 4] = invAtt / total;
+				decProp[c / 4] = invDec / total;
+				relProp[c / 4] = invRel / total;
 			}
 		}
 
 		bool push = (params[PUSH_PARAM].getValue() > 0.f);
 
 		for (int c = 0; c < channels; c += 4) {
-			float_4 oldGate = gate[c / 4];
-			if (push) {
+			if (positionConnected) {
+				float_4 pos = inputs[POSITION_INPUT].getPolyVoltageSimd<float_4>(c) / 10.f;
+				pos = simd::clamp(pos, 0.f, 1.f);
+				float_4 result;
+				for (int j = 0; j < 4 && (c + j) < channels; j++) {
+					result[j] = computeEnvelope(pos[j], attProp[c / 4][j], decProp[c / 4][j], relProp[c / 4][j], sustain[c / 4][j]);
+				}
+				env[c / 4] = result;
 				gate[c / 4] = float_4::mask();
+				attacking[c / 4] = float_4::zero();
 			}
 			else {
-				gate[c / 4] = inputs[GATE_INPUT].getVoltageSimd<float_4>(c) >= 1.f;
+				float_4 oldGate = gate[c / 4];
+				if (push) {
+					gate[c / 4] = float_4::mask();
+				}
+				else {
+					gate[c / 4] = inputs[GATE_INPUT].getVoltageSimd<float_4>(c) >= 1.f;
+				}
+				attacking[c / 4] |= (gate[c / 4] & ~oldGate);
+
+				float_4 triggered = trigger[c / 4].process(inputs[RETRIG_INPUT].getPolyVoltageSimd<float_4>(c));
+				attacking[c / 4] |= triggered;
+
+				attacking[c / 4] &= gate[c / 4];
+
+				float_4 target = simd::ifelse(attacking[c / 4], ATT_TARGET, simd::ifelse(gate[c / 4], sustain[c / 4], 0.f));
+				float_4 lambda = simd::ifelse(attacking[c / 4], attackLambda[c / 4], simd::ifelse(gate[c / 4], decayLambda[c / 4], releaseLambda[c / 4]));
+
+				env[c / 4] += (target - env[c / 4]) * lambda * args.sampleTime;
+
+				attacking[c / 4] &= (env[c / 4] < 1.f);
 			}
-			attacking[c / 4] |= (gate[c / 4] & ~oldGate);
-
-			float_4 triggered = trigger[c / 4].process(inputs[RETRIG_INPUT].getPolyVoltageSimd<float_4>(c));
-			attacking[c / 4] |= triggered;
-
-			attacking[c / 4] &= gate[c / 4];
-
-			float_4 target = simd::ifelse(attacking[c / 4], ATT_TARGET, simd::ifelse(gate[c / 4], sustain[c / 4], 0.f));
-			float_4 lambda = simd::ifelse(attacking[c / 4], attackLambda[c / 4], simd::ifelse(gate[c / 4], decayLambda[c / 4], releaseLambda[c / 4]));
-
-			env[c / 4] += (target - env[c / 4]) * lambda * args.sampleTime;
-
-			attacking[c / 4] &= (env[c / 4] < 1.f);
 
 			outputs[ENVELOPE_OUTPUT].setVoltageSimd(10.f * env[c / 4], c);
 		}
 
-		outputs[ENVELOPE_OUTPUT].setChannels(channels);
+		outputs[ENVELOPE_OUTPUT].setChannels(positionConnected ? std::max(1, inputs[POSITION_INPUT].getChannels()) : channels);
 
 		if (lightDivider.process()) {
 			lights[ATTACK_LIGHT].setBrightness(0);
@@ -171,6 +212,18 @@ struct RaAdsrModule : Module {
 				anyGate = anyGate || simd::movemask(gate[c / 4]);
 			lights[PUSH_LIGHT].setBrightness(anyGate);
 		}
+	}
+
+	static float computeEnvelope(float t, float attP, float decP, float relP, float sus) {
+		if (t <= attP) {
+			return envPhaseToEnv(t / attP);
+		}
+		t -= attP;
+		if (t <= decP) {
+			return 1.f - envPhaseToEnv(t / decP) * (1.f - sus);
+		}
+		t -= decP;
+		return (1.f - envPhaseToEnv(t / relP)) * sus;
 	}
 
 	void paramsFromJson(json_t* rootJ) override {
@@ -253,7 +306,7 @@ struct RaAdsrDisplay : LedDisplay {
 			for (int i = 1; i <= I; i++) {
 				float phase = float(i) / I;
 				phase = std::pow(phase, 2);
-				float env = phaseToEnv(phase);
+				float env = envPhaseToEnv(phase);
 				p = r.interpolate(Vec(attTime * phase, 1 - env));
 				nvgLineTo(args.vg, VEC_ARGS(p));
 			}
@@ -261,7 +314,7 @@ struct RaAdsrDisplay : LedDisplay {
 			for (int i = 1; i <= I; i++) {
 				float phase = float(i) / I;
 				phase = std::pow(phase, 2);
-				float env = 1 - phaseToEnv(phase) * (1 - sustain);
+				float env = 1 - envPhaseToEnv(phase) * (1 - sustain);
 				p = r.interpolate(Vec(attTime + decTime * phase, 1 - env));
 				nvgLineTo(args.vg, VEC_ARGS(p));
 			}
@@ -269,7 +322,7 @@ struct RaAdsrDisplay : LedDisplay {
 			for (int i = 1; i <= I; i++) {
 				float phase = float(i) / I;
 				phase = std::pow(phase, 2);
-				float env = (1 - phaseToEnv(phase)) * sustain;
+				float env = (1 - envPhaseToEnv(phase)) * sustain;
 				p = r.interpolate(Vec(attTime + decTime + relTime * phase, 1 - env));
 				nvgLineTo(args.vg, VEC_ARGS(p));
 			}
@@ -286,45 +339,55 @@ struct RaAdsrDisplay : LedDisplay {
 				nvgStroke(args.vg);
 			}
 
-			for (int c = 0; c < channels; c++) {
-				float env = module ? module->env[c / 4][c % 4] : 0.f;
-				if (env > 0.01f) {
+			bool positionMode = module ? module->positionConnected : false;
+
+		if (positionMode) {
+			float cv = clamp(module->positionCv, 0.f, 1.f);
+			p = r.interpolate(Vec(cv, 0));
+			nvgStrokeColor(args.vg, nvgRGBAf(1, 1, 1, 0.25));
+			nvgStrokeWidth(args.vg, 1.0);
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, VEC_ARGS(p));
+			p = r.interpolate(Vec(cv, 1));
+			nvgLineTo(args.vg, VEC_ARGS(p));
+			nvgStroke(args.vg);
+		}
+
+		for (int c = 0; c < channels; c++) {
+			float env = module ? module->env[c / 4][c % 4] : 0.f;
+			if (env > 0.01f) {
+				if (positionMode) {
+					float cv = clamp(module->positionCv, 0.f, 1.f);
+					p = r.interpolate(Vec(cv, 1 - env));
+				} else {
 					bool attacking = module ? (simd::movemask(module->attacking[c / 4]) & (1 << (c % 4))) : false;
 					bool gate = module ? module->gate[c / 4][c % 4] : false;
 
 					if (attacking) {
-						float phase = envToPhase(env);
+						float phase = envEnvToPhase(env);
 						p = r.interpolate(Vec(attTime * phase, 1 - env));
 					}
 					else if (gate) {
-						float phase = envToPhase(1 - (env - sustain) / (1 - sustain));
+						float phase = envEnvToPhase(1 - (env - sustain) / (1 - sustain));
 						p = r.interpolate(Vec(attTime + decTime * phase, 1 - env));
 					}
 					else {
 						env = std::min(env, sustain);
-						float phase = envToPhase(1 - env / sustain);
+						float phase = envEnvToPhase(1 - env / sustain);
 						p = r.interpolate(Vec(attTime + decTime + relTime * phase, 1 - env));
 					}
-					nvgBeginPath(args.vg);
-					nvgCircle(args.vg, VEC_ARGS(p), 2.5);
-					nvgFillColor(args.vg, nvgRGBAf(1, 1, 1, 0.66));
-					nvgFill(args.vg);
 				}
+				nvgBeginPath(args.vg);
+				nvgCircle(args.vg, VEC_ARGS(p), 2.5);
+				nvgFillColor(args.vg, nvgRGBAf(1, 1, 1, 0.66));
+				nvgFill(args.vg);
 			}
+		}
 
 			nvgResetScissor(args.vg);
 		}
 
 		LedDisplay::drawLayer(args, layer);
-	}
-
-	static constexpr float TARGET = 1.1f;
-	static constexpr float LAMBDA = 2.3978952727983702f;
-	static float phaseToEnv(float phase) {
-		return (1 - std::exp(-LAMBDA * phase)) * TARGET;
-	}
-	static float envToPhase(float env) {
-		return -std::log(1 - env / TARGET) / LAMBDA;
 	}
 };
 
@@ -357,6 +420,8 @@ struct RaAdsrWidget : ModuleWidget {
 		addInput(createInputCentered<RaPort>(mm2px(Vec(28.279, 113.115)), module, RaAdsrModule::RETRIG_INPUT));
 
 		addOutput(createOutputCentered<RaPort>(mm2px(Vec(39.119, 113.115)), module, RaAdsrModule::ENVELOPE_OUTPUT));
+
+		addInput(createInputCentered<RaPort>(mm2px(Vec(28.279, 124.5)), module, RaAdsrModule::POSITION_INPUT));
 
 		RaAdsrDisplay* display = createWidget<RaAdsrDisplay>(mm2px(Vec(0.0, 13.039)));
 		display->box.size = mm2px(Vec(45.72, 21.219));
