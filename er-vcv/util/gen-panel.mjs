@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Generate a panel SVG from a VCV Rack module C++ source file.
-// Usage: node util/gen-panel.mjs [src/ra-xxxx.cpp]
+// Usage: node util/gen-panel.mjs [src/ra-xxxx.cpp] > out.svg
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -8,32 +8,32 @@ import path from 'node:path';
 // ============================================================
 // Configuration
 // ============================================================
-const SW = 0.6;  // base stroke width
+const SW = 1.0;  // base stroke width
+
+// Widget colour by role (override via --input-color / --output-color)
+let ROLE_COLORS = {
+  input: '#EE88AA',
+  output: '#AA88FF',
+};
 
 const ru2mm = (ru) => ru * 5.08 / 15;
 
 // Widget physical dimensions in rack units
 // rad = radius; hw = half-width; hh = half-height
 const WIDGET_INFO = {
-  RaPort:       { kind: 'jack',   rad: 11.85 },
-  RaKnob:       { kind: 'knob',   rad: 14.17 },
-  RaKnobLarge:  { kind: 'knob',   rad: 18    },
-  RaKnobSmall:  { kind: 'knob',   rad: 11.34 },
-  RaKnobTrim:   { kind: 'knob',   rad:  8.93 },
-  RaSwitch2:    { kind: 'switch', hw:  7,   hh: 10.32 },
-  RaSwitch3:    { kind: 'switch', hw:  6.73, hh: 14.17 },
-  RaButton:     { kind: 'button', rad:  9    },
-  VCVLightBezel:{ kind: 'bezel',  rad: 10.65 },
-  RaRGBLight:   { kind: 'bezel',  rad:  9    },
-  MediumLight:  { kind: 'bezel',  rad:  9    },
-  TinyLight:    { kind: 'bezel',  rad:  4    },
-  RaScrew:      { kind: 'screw',  rad:  7.5  },
-};
-
-// Widget colour by role
-const ROLE_COLORS = {
-  input:  '#3af',
-  output: '#fa3',
+  RaPort: { kind: 'jack', rad: 11.85 },
+  RaKnob: { kind: 'knob', rad: 14.17 },
+  RaKnobLarge: { kind: 'knob', rad: 18 },
+  RaKnobSmall: { kind: 'knob', rad: 11.34 },
+  RaKnobTrim: { kind: 'knob', rad: 8.93 },
+  RaSwitch2: { kind: 'switch', hw: 7, hh: 10.32 },
+  RaSwitch3: { kind: 'switch', hw: 6.73, hh: 14.17 },
+  RaButton: { kind: 'button', rad: 9 },
+  VCVLightBezel: { kind: 'bezel', rad: 10.65 },
+  RaRGBLight: { kind: 'bezel', rad: 9 },
+  MediumLight: { kind: 'bezel', rad: 9 },
+  TinyLight: { kind: 'bezel', rad: 4 },
+  RaScrew: { kind: 'screw', rad: 7.5 },
 };
 
 // Map a widget type string (possibly templated like "VCVLightBezel<WhiteLight>")
@@ -505,18 +505,18 @@ function generateSVG(info) {
     else if (w.role === 'output') color = ROLE_COLORS.output;
     else if (w.kind === 'screw') color = '#888';
 
-      // Determine label from config name or prettified enum
-      let label = '';
-      if (w.enum) {
-        // Strip module prefix and any + i suffix
-        let enumKey = w.enum.replace(/.*::/, '').replace(/\s*\+.*$/, '');
-        if (configNames[enumKey]) {
-          label = configNames[enumKey];
-        } else {
-          // Prettify enum name: remove trailing _INPUT/_OUTPUT/_PARAM, replace _ with space
-          label = enumKey.replace(/_(INPUT|OUTPUT|PARAM)$/, '').replace(/_/g, ' ');
-        }
+    // Determine label from config name or prettified enum
+    let label = '';
+    if (w.enum) {
+      // Strip module prefix and any + i suffix
+      let enumKey = w.enum.replace(/.*::/, '').replace(/\s*\+.*$/, '');
+      if (configNames[enumKey]) {
+        label = configNames[enumKey];
+      } else {
+        // Prettify enum name: remove trailing _INPUT/_OUTPUT/_PARAM, replace _ with space
+        label = enumKey.replace(/_(INPUT|OUTPUT|PARAM)$/, '').replace(/_/g, ' ');
       }
+    }
 
     switch (w.kind) {
       case 'jack': {
@@ -592,11 +592,16 @@ function generateSVG(info) {
 // ============================================================
 let filePath = 'src/ra-endless.cpp';
 let overrideHP = 0;
+let overrideColors = {};
 for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
   if (arg.startsWith('--hp=')) overrideHP = parseInt(arg.slice(5), 10);
+  else if (arg.startsWith('--input-color=')) overrideColors.input = arg.slice(14);
+  else if (arg.startsWith('--output-color=')) overrideColors.output = arg.slice(15);
   else if (!arg.startsWith('--')) filePath = arg;
 }
+if (overrideColors.input || overrideColors.output)
+  ROLE_COLORS = { ...ROLE_COLORS, ...overrideColors };
 const fullPath = path.resolve(filePath);
 
 if (!fs.existsSync(fullPath)) {
