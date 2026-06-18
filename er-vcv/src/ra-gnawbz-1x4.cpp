@@ -1,4 +1,4 @@
-#include "rack.hpp"
+#include "ra-widgets.hpp"
 
 using namespace rack;
 
@@ -65,13 +65,13 @@ struct RaGnawbz1x4Widget : ModuleWidget {
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-gnawbz-1x4.svg")));
 
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RoundLargeBlackKnob>(Vec(box.size.x / 2, 28), module, RaGnawbz1x4Module::MACRO_PARAM));
-        addParam(createParamCentered<CKSS>(Vec(box.size.x / 2, 56), module, RaGnawbz1x4Module::RANGE_PARAM));
+        addParam(createParamCentered<RaKnobLarge>(Vec(box.size.x / 2, 28), module, RaGnawbz1x4Module::MACRO_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 56), module, RaGnawbz1x4Module::RANGE_PARAM));
 
         float colX[] = {24, 66};
         float rowY[] = {92, 210};
@@ -81,9 +81,9 @@ struct RaGnawbz1x4Widget : ModuleWidget {
                 int i = r * 2 + c;
                 float cx = colX[c];
                 float cy = rowY[r];
-                addParam(createParamCentered<RoundBlackKnob>(Vec(cx, cy), module, RaGnawbz1x4Module::ATTN1_PARAM + i));
-                addParam(createParamCentered<RoundSmallBlackKnob>(Vec(cx, cy + 30), module, RaGnawbz1x4Module::OFFSET1_PARAM + i));
-                addOutput(createOutputCentered<PJ301MPort>(Vec(cx, cy + 56), module, RaGnawbz1x4Module::OUTPUT1 + i));
+                addParam(createParamCentered<RaKnob>(Vec(cx, cy), module, RaGnawbz1x4Module::ATTN1_PARAM + i));
+                addParam(createParamCentered<RaKnobSmall>(Vec(cx, cy + 30), module, RaGnawbz1x4Module::OFFSET1_PARAM + i));
+                addOutput(createOutputCentered<RaPort>(Vec(cx, cy + 56), module, RaGnawbz1x4Module::OUTPUT1 + i));
             }
         }
     }

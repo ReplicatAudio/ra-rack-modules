@@ -1,4 +1,4 @@
-#include "rack.hpp"
+#include "ra-widgets.hpp"
 #include <atomic>
 
 using namespace rack;
@@ -137,10 +137,10 @@ struct RaYscopeWidget : ModuleWidget {
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-yscope.svg")));
 
-        addChild(createWidget<ScrewSilver>(Vec(0, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         auto *display = new YscopeDisplay();
         display->box.pos = Vec(6, 60);
@@ -148,12 +148,12 @@ struct RaYscopeWidget : ModuleWidget {
         display->module = module;
         addChild(display);
 
-        addInput(createInputCentered<PJ301MPort>(Vec(14, 26), module, RaYscopeModule::CH1_INPUT));
-        addInput(createInputCentered<PJ301MPort>(Vec(46, 26), module, RaYscopeModule::CH2_INPUT));
-        addParam(createParamCentered<Trimpot>(Vec(30, 46), module, RaYscopeModule::TIME_PARAM));
-        addParam(createParamCentered<CKSS>(Vec(10, 48), module, RaYscopeModule::RANGE_PARAM));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(14, 358), module, RaYscopeModule::CH1_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(46, 358), module, RaYscopeModule::CH2_OUTPUT));
+        addInput(createInputCentered<RaPort>(Vec(14, 26), module, RaYscopeModule::CH1_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(46, 26), module, RaYscopeModule::CH2_INPUT));
+        addParam(createParamCentered<RaKnobTrim>(Vec(30, 46), module, RaYscopeModule::TIME_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(10, 48), module, RaYscopeModule::RANGE_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(14, 358), module, RaYscopeModule::CH1_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(46, 358), module, RaYscopeModule::CH2_OUTPUT));
     }
 };
 

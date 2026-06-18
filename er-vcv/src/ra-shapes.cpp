@@ -1,4 +1,4 @@
-#include "rack.hpp"
+#include "ra-widgets.hpp"
 
 using namespace rack;
 
@@ -112,29 +112,29 @@ struct RaShapesWidget : ModuleWidget {
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-shapes.svg")));
 
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RoundLargeBlackKnob>(Vec(30, 24), module, RaShapesModule::FREQ_PARAM));
-        addParam(createParamCentered<CKSS>(Vec(46, 52), module, RaShapesModule::SLOW_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(14, 52), module, RaShapesModule::PITCH_INPUT));
+        addParam(createParamCentered<RaKnobLarge>(Vec(30, 24), module, RaShapesModule::FREQ_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(46, 52), module, RaShapesModule::SLOW_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(14, 52), module, RaShapesModule::PITCH_INPUT));
 
-        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(14, 82), module, RaShapesModule::FM1_ATTN_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(46, 82), module, RaShapesModule::FM1_INPUT));
-        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(14, 110), module, RaShapesModule::FM2_ATTN_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(46, 110), module, RaShapesModule::FM2_INPUT));
-        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(14, 138), module, RaShapesModule::FM3_ATTN_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(46, 138), module, RaShapesModule::FM3_INPUT));
-        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(14, 166), module, RaShapesModule::FM4_ATTN_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(46, 166), module, RaShapesModule::FM4_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(14, 82), module, RaShapesModule::FM1_ATTN_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(46, 82), module, RaShapesModule::FM1_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(14, 110), module, RaShapesModule::FM2_ATTN_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(46, 110), module, RaShapesModule::FM2_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(14, 138), module, RaShapesModule::FM3_ATTN_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(46, 138), module, RaShapesModule::FM3_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(14, 166), module, RaShapesModule::FM4_ATTN_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(46, 166), module, RaShapesModule::FM4_INPUT));
 
-        addOutput(createOutputCentered<PJ301MPort>(Vec(16, 196), module, RaShapesModule::SINE_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(44, 196), module, RaShapesModule::TRI_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(16, 222), module, RaShapesModule::SAW_UP_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(44, 222), module, RaShapesModule::SAW_DOWN_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(30, 248), module, RaShapesModule::SQUARE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(16, 196), module, RaShapesModule::SINE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 196), module, RaShapesModule::TRI_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(16, 222), module, RaShapesModule::SAW_UP_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 222), module, RaShapesModule::SAW_DOWN_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(30, 248), module, RaShapesModule::SQUARE_OUTPUT));
     }
 };
 

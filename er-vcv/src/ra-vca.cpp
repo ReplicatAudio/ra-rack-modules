@@ -1,4 +1,4 @@
-#include "rack.hpp"
+#include "ra-widgets.hpp"
 
 using namespace rack;
 
@@ -42,15 +42,15 @@ struct RaVcaWidget : ModuleWidget {
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-vca.svg")));
 
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RoundBlackKnob>(Vec(box.size.x / 2, 30), module, RaVcaModule::GAIN_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(box.size.x / 2, 89), module, RaVcaModule::AUDIO_INPUT));
-        addInput(createInputCentered<PJ301MPort>(Vec(box.size.x / 2, 65), module, RaVcaModule::CV_INPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(box.size.x / 2, 113), module, RaVcaModule::AUDIO_OUTPUT));
+        addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, 30), module, RaVcaModule::GAIN_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(box.size.x / 2, 89), module, RaVcaModule::AUDIO_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(box.size.x / 2, 65), module, RaVcaModule::CV_INPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(box.size.x / 2, 113), module, RaVcaModule::AUDIO_OUTPUT));
     }
 };
 

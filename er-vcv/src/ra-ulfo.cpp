@@ -1,4 +1,4 @@
-#include "rack.hpp"
+#include "ra-widgets.hpp"
 
 using namespace rack;
 
@@ -119,32 +119,32 @@ struct RaUlfoWidget : ModuleWidget {
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-ulfo.svg")));
 
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RoundBlackKnob>(Vec(box.size.x / 2, 24), module, RaUlfoModule::FREQ_PARAM));
-        addParam(createParamCentered<CKSS>(Vec(box.size.x - 8, 46), module, RaUlfoModule::RANGE_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(14, 52), module, RaUlfoModule::RESET_INPUT));
-        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(box.size.x / 2, 72), module, RaUlfoModule::ATTN_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, 24), module, RaUlfoModule::FREQ_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x - 8, 46), module, RaUlfoModule::RANGE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(14, 52), module, RaUlfoModule::RESET_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(box.size.x / 2, 72), module, RaUlfoModule::ATTN_PARAM));
 
-        addOutput(createOutputCentered<PJ301MPort>(Vec(16, 106), module, RaUlfoModule::SINE_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(44, 106), module, RaUlfoModule::COSINE_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(16, 128), module, RaUlfoModule::INV_SINE_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(44, 128), module, RaUlfoModule::INV_COSINE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(16, 106), module, RaUlfoModule::SINE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 106), module, RaUlfoModule::COSINE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(16, 128), module, RaUlfoModule::INV_SINE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 128), module, RaUlfoModule::INV_COSINE_OUTPUT));
 
-        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(box.size.x / 2, 158), module, RaUlfoModule::PHASE_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(box.size.x / 2, 158), module, RaUlfoModule::PHASE_PARAM));
 
-        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(16, 194), module, RaUlfoModule::A_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(44, 190), module, RaUlfoModule::A_CV_INPUT));
-        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(44, 212), module, RaUlfoModule::A_ATTN_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(16, 194), module, RaUlfoModule::A_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(44, 190), module, RaUlfoModule::A_CV_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(44, 212), module, RaUlfoModule::A_ATTN_PARAM));
 
-        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(16, 242), module, RaUlfoModule::B_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(44, 238), module, RaUlfoModule::B_CV_INPUT));
-        addParam(createParamCentered<RoundSmallBlackKnob>(Vec(44, 260), module, RaUlfoModule::B_ATTN_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(16, 242), module, RaUlfoModule::B_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(44, 238), module, RaUlfoModule::B_CV_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(44, 260), module, RaUlfoModule::B_ATTN_PARAM));
 
-        addOutput(createOutputCentered<PJ301MPort>(Vec(box.size.x / 2, 290), module, RaUlfoModule::FORMULA_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(box.size.x / 2, 290), module, RaUlfoModule::FORMULA_OUTPUT));
     }
 };
 

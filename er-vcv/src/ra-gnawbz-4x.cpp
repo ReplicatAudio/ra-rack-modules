@@ -1,4 +1,4 @@
-#include "rack.hpp"
+#include "ra-widgets.hpp"
 
 using namespace rack;
 
@@ -111,19 +111,19 @@ struct RaGnawbz4xWidget : ModuleWidget {
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-gnawbz-4x.svg")));
 
-        addChild(createWidget<ScrewSilver>(Vec(0, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<ScrewSilver>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
-        addChild(createWidget<ScrewSilver>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
+        addChild(createWidget<RaScrew>(Vec(RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         float y[] = {32, 120, 208, 296};
 
         for (int i = 0; i < 4; i++) {
-            addParam(createParamCentered<RoundBlackKnob>(Vec(box.size.x / 2, y[i]), module, RaGnawbz4xModule::KNOB1_PARAM + i));
-            addParam(createParamCentered<CKSS>(Vec(box.size.x - 8, y[i] + 18), module, RaGnawbz4xModule::RANGE1_PARAM + i));
-            addParam(createParamCentered<RoundSmallBlackKnob>(Vec(box.size.x / 2, y[i] + 30), module, RaGnawbz4xModule::SCALE1_PARAM + i));
-            addOutput(createOutputCentered<PJ301MPort>(Vec(box.size.x / 2, y[i] + 54), module, RaGnawbz4xModule::OUTPUT1 + i));
-            addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(Vec(8, y[i] + 45), module, RaGnawbz4xModule::LIGHT1_R + i * 3));
+            addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, y[i]), module, RaGnawbz4xModule::KNOB1_PARAM + i));
+            addParam(createParamCentered<RaSwitch2>(Vec(box.size.x - 8, y[i] + 18), module, RaGnawbz4xModule::RANGE1_PARAM + i));
+            addParam(createParamCentered<RaKnobSmall>(Vec(box.size.x / 2, y[i] + 30), module, RaGnawbz4xModule::SCALE1_PARAM + i));
+            addOutput(createOutputCentered<RaPort>(Vec(box.size.x / 2, y[i] + 54), module, RaGnawbz4xModule::OUTPUT1 + i));
+            addChild(createLightCentered<RaRGBLight>(Vec(8, y[i] + 45), module, RaGnawbz4xModule::LIGHT1_R + i * 3));
         }
     }
 };
