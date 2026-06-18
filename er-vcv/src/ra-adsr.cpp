@@ -181,6 +181,7 @@ struct RaAdsrModule : Module {
 				gate[c / 4] |= triggerActive[c / 4];
 
 				attacking[c / 4] |= (gate[c / 4] & ~oldGate);
+				attacking[c / 4] |= trigEdge;
 
 				float_4 triggered = trigger[c / 4].process(inputs[RETRIG_INPUT].getPolyVoltageSimd<float_4>(c));
 				attacking[c / 4] |= triggered;
@@ -195,7 +196,7 @@ struct RaAdsrModule : Module {
 
 				attacking[c / 4] &= (env[c / 4] < 1.f);
 
-				triggerActive[c / 4] &= trigEdge | (env[c / 4] > 0.01f);
+				triggerActive[c / 4] &= trigEdge | attacking[c / 4] | (env[c / 4] > 0.01f);
 			}
 
 			outputs[ENVELOPE_OUTPUT].setVoltageSimd(10.f * env[c / 4], c);
