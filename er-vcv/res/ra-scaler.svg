@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.32 128.5" width="20.32mm" height="128.5mm">
-  <rect x="0.3" y="0.3" width="19.72" height="127.9" fill="none" stroke="#333" stroke-width="1"/>
+  <rect x="0.3" y="0.3" width="19.72" height="127.9" fill="none" stroke="#333" stroke-width="1.5"/>
   <rect x="0" y="0.000" width="20.32" height="1.295" fill="#443852"/>
   <rect x="0" y="1.285" width="20.32" height="1.295" fill="#433751"/>
   <rect x="0" y="2.570" width="20.32" height="1.295" fill="#42374f"/>
@@ -100,36 +100,36 @@
   <rect x="0" y="124.645" width="20.32" height="1.295" fill="#242425"/>
   <rect x="0" y="125.930" width="20.32" height="1.295" fill="#242425"/>
   <rect x="0" y="127.215" width="20.32" height="1.295" fill="#242425"/>
-  <circle cx="2.54" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <circle cx="2.54" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
   <circle cx="2.54" cy="2.54" r="0.8" fill="#444"/>
-  <circle cx="2.54" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <circle cx="2.54" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
   <circle cx="2.54" cy="125.96" r="0.8" fill="#444"/>
-  <circle cx="17.78" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <circle cx="17.78" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
   <circle cx="17.78" cy="2.54" r="0.8" fill="#444"/>
-  <circle cx="17.78" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <circle cx="17.78" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
   <circle cx="17.78" cy="125.96" r="0.8" fill="#444"/>
   <text x="10.16" y="3.39" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">Ra-scaler</text>
-  <circle cx="10.16" cy="7.45" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="10.16" cy="7.45" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
   <circle cx="10.16" cy="7.45" r="1.40" fill="#62a0ea" opacity="0.5"/>
   <text x="10.16" y="13.46" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Signal</text>
-  <circle cx="10.16" cy="18.97" r="4.80" fill="#222" stroke="#888" stroke-width="1" opacity="0.6"/>
+  <circle cx="10.16" cy="18.97" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
   <circle cx="10.16" cy="18.97" r="1.68" fill="#333" opacity="0.4"/>
   <line x1="10.16" y1="18.97" x2="13.28" y2="18.97" stroke="#666" stroke-width="0.5" opacity="0.6"/>
   <text x="10.16" y="25.76" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Scale amount</text>
-  <circle cx="10.16" cy="28.45" r="3.84" fill="#222" stroke="#888" stroke-width="1" opacity="0.6"/>
+  <circle cx="10.16" cy="28.45" r="3.84" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
   <circle cx="10.16" cy="28.45" r="1.34" fill="#333" opacity="0.4"/>
   <line x1="10.16" y1="28.45" x2="12.66" y2="28.45" stroke="#666" stroke-width="0.5" opacity="0.6"/>
   <text x="10.16" y="34.29" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Clip</text>
-  <rect x="3.14" y="35.16" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="0.9" opacity="0.5"/>
-  <line x1="5.42" y1="42.36" x2="5.42" y2="37.56" stroke="#888" stroke-width="1.2" opacity="0.6"/>
+  <rect x="3.14" y="35.16" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
+  <line x1="5.42" y1="42.36" x2="5.42" y2="37.56" stroke="#888" stroke-width="1.7" opacity="0.6"/>
   <text x="5.42" y="46.76" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">RANGE</text>
-  <rect x="7.79" y="36.47" width="4.74" height="6.99" rx="1" fill="none" stroke="#888" stroke-width="0.9" opacity="0.5"/>
-  <line x1="10.16" y1="41.71" x2="10.16" y2="38.22" stroke="#888" stroke-width="1.2" opacity="0.6"/>
+  <rect x="7.79" y="36.47" width="4.74" height="6.99" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
+  <line x1="10.16" y1="41.71" x2="10.16" y2="38.22" stroke="#888" stroke-width="1.7" opacity="0.6"/>
   <text x="10.16" y="45.46" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">POWER</text>
-  <rect x="12.62" y="35.16" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="0.9" opacity="0.5"/>
-  <line x1="14.90" y1="42.36" x2="14.90" y2="37.56" stroke="#888" stroke-width="1.2" opacity="0.6"/>
+  <rect x="12.62" y="35.16" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
+  <line x1="14.90" y1="42.36" x2="14.90" y2="37.56" stroke="#888" stroke-width="1.7" opacity="0.6"/>
   <text x="14.90" y="46.76" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">CLIP MODE</text>
-  <circle cx="10.16" cy="53.51" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="10.16" cy="53.51" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.6" opacity="0.7"/>
   <circle cx="10.16" cy="53.51" r="1.40" fill="#CF5DD0" opacity="0.5"/>
   <text x="10.16" y="59.52" fill="#CF5DD0" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Output</text>
 </svg>

@@ -8,9 +8,9 @@ import path from 'node:path';
 // ============================================================
 // Configuration
 // ============================================================
-const SW = 1.0;  // base stroke width
 
 let CFG = {
+  strokeWidth: 1.5,
   bg: {
     start: '#443852',
     end: '#242425',
@@ -528,7 +528,7 @@ function generateSVG(info) {
   };
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W.toFixed(2)} ${H}" width="${W.toFixed(2)}mm" height="${H}mm">
-  <rect x="0.3" y="0.3" width="${(W - 0.6).toFixed(2)}" height="${H - 0.6}" fill="none" stroke="#333" stroke-width="${SW}"/>
+  <rect x="0.3" y="0.3" width="${(W - 0.6).toFixed(2)}" height="${H - 0.6}" fill="none" stroke="#333" stroke-width="${CFG.strokeWidth}"/>
 `;
 
   // Background gradient — inline strips to avoid url(#id) issues in Rack
@@ -550,7 +550,7 @@ function generateSVG(info) {
   const screwY2 = H - sr;
   for (const sx of [screwX1, screwX2]) {
     for (const sy of [screwY1, screwY2]) {
-      svg += `  <circle cx="${sx.toFixed(2)}" cy="${sy.toFixed(2)}" r="${sr.toFixed(2)}" fill="#2a2a2a" stroke="#444" stroke-width="${SW}"/>\n`;
+      svg += `  <circle cx="${sx.toFixed(2)}" cy="${sy.toFixed(2)}" r="${sr.toFixed(2)}" fill="#2a2a2a" stroke="#444" stroke-width="${CFG.strokeWidth}"/>\n`;
       svg += `  <circle cx="${sx.toFixed(2)}" cy="${sy.toFixed(2)}" r="0.8" fill="#444"/>\n`;
     }
   }
@@ -570,7 +570,7 @@ function generateSVG(info) {
       const dy = ru2mm(d.pos.y);
       const dw = ru2mm(d.size.w);
       const dh = ru2mm(d.size.h);
-      svg += `  <rect x="${dx.toFixed(2)}" y="${dy.toFixed(2)}" width="${dw.toFixed(2)}" height="${dh.toFixed(2)}" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="${SW + 0.2}"/>\n`;
+      svg += `  <rect x="${dx.toFixed(2)}" y="${dy.toFixed(2)}" width="${dw.toFixed(2)}" height="${dh.toFixed(2)}" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="${CFG.strokeWidth + 0.2}"/>\n`;
     }
   }
 
@@ -601,7 +601,7 @@ function generateSVG(info) {
     switch (w.kind) {
       case 'jack': {
         const r = ru2mm(w.rad);
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#111" stroke="${color}" stroke-width="${SW + 0.1}" opacity="0.7"/>\n`;
+        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#111" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.7"/>\n`;
         svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="${color}" opacity="0.5"/>\n`;
         if (label) {
           const ly = my + r + 2.0;
@@ -611,7 +611,7 @@ function generateSVG(info) {
       }
       case 'knob': {
         const r = ru2mm(w.rad);
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#222" stroke="${color}" stroke-width="${SW}" opacity="0.6"/>\n`;
+        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#222" stroke="${color}" stroke-width="${CFG.strokeWidth}" opacity="0.6"/>\n`;
         svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="#333" opacity="0.4"/>\n`;
         // Indicator line
         const indX = mx + r * 0.65;
@@ -625,8 +625,8 @@ function generateSVG(info) {
       case 'switch': {
         const hw = ru2mm(w.hw || 7);
         const hh = ru2mm(w.hh || 10.32);
-        svg += `  <rect x="${(mx - hw).toFixed(2)}" y="${(my - hh).toFixed(2)}" width="${(hw * 2).toFixed(2)}" height="${(hh * 2).toFixed(2)}" rx="1" fill="none" stroke="${color}" stroke-width="${SW - 0.1}" opacity="0.5"/>\n`;
-        svg += `  <line x1="${mx.toFixed(2)}" y1="${(my + hh * 0.5).toFixed(2)}" x2="${mx.toFixed(2)}" y2="${(my - hh * 0.5).toFixed(2)}" stroke="${color}" stroke-width="${SW + 0.2}" opacity="0.6"/>\n`;
+        svg += `  <rect x="${(mx - hw).toFixed(2)}" y="${(my - hh).toFixed(2)}" width="${(hw * 2).toFixed(2)}" height="${(hh * 2).toFixed(2)}" rx="1" fill="none" stroke="${color}" stroke-width="${CFG.strokeWidth - 0.1}" opacity="0.5"/>\n`;
+        svg += `  <line x1="${mx.toFixed(2)}" y1="${(my + hh * 0.5).toFixed(2)}" x2="${mx.toFixed(2)}" y2="${(my - hh * 0.5).toFixed(2)}" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.2}" opacity="0.6"/>\n`;
         if (label) {
           const ly = my + hh + 2.0;
           svg += `  <text x="${mx.toFixed(2)}" y="${ly.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">${label}</text>\n`;
@@ -635,7 +635,7 @@ function generateSVG(info) {
       }
       case 'button': {
         const r = ru2mm(w.rad);
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#222" stroke="${color}" stroke-width="${SW}" opacity="0.6"/>\n`;
+        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#222" stroke="${color}" stroke-width="${CFG.strokeWidth}" opacity="0.6"/>\n`;
         svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.4).toFixed(2)}" fill="#444" opacity="0.4"/>\n`;
         if (label) {
           const ly = my + r + 2.0;
@@ -645,7 +645,7 @@ function generateSVG(info) {
       }
       case 'bezel': {
         const r = ru2mm(w.rad);
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#1a1a1a" stroke="${color}" stroke-width="${SW + 0.1}" opacity="0.6"/>\n`;
+        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#1a1a1a" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.6"/>\n`;
         svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="#333" opacity="0.5"/>\n`;
         if (label) {
           const ly = my + r + 2.0;

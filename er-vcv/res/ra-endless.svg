@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50.80 128.5" width="50.80mm" height="128.5mm">
-  <rect x="0.3" y="0.3" width="50.20" height="127.9" fill="none" stroke="#333" stroke-width="1"/>
+  <rect x="0.3" y="0.3" width="50.20" height="127.9" fill="none" stroke="#333" stroke-width="1.5"/>
   <rect x="0" y="0.000" width="50.80" height="1.295" fill="#443852"/>
   <rect x="0" y="1.285" width="50.80" height="1.295" fill="#433751"/>
   <rect x="0" y="2.570" width="50.80" height="1.295" fill="#42374f"/>
@@ -100,86 +100,86 @@
   <rect x="0" y="124.645" width="50.80" height="1.295" fill="#242425"/>
   <rect x="0" y="125.930" width="50.80" height="1.295" fill="#242425"/>
   <rect x="0" y="127.215" width="50.80" height="1.295" fill="#242425"/>
-  <circle cx="2.54" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <circle cx="2.54" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
   <circle cx="2.54" cy="2.54" r="0.8" fill="#444"/>
-  <circle cx="2.54" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <circle cx="2.54" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
   <circle cx="2.54" cy="125.96" r="0.8" fill="#444"/>
-  <circle cx="48.26" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <circle cx="48.26" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
   <circle cx="48.26" cy="2.54" r="0.8" fill="#444"/>
-  <circle cx="48.26" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <circle cx="48.26" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
   <circle cx="48.26" cy="125.96" r="0.8" fill="#444"/>
   <text x="25.40" y="3.39" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">Ra-endless</text>
-  <rect x="4.06" y="7.11" width="42.67" height="32.51" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.2"/>
-  <circle cx="8.13" cy="47.41" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.1" opacity="0.7"/>
+  <rect x="4.06" y="7.11" width="42.67" height="32.51" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
+  <circle cx="8.13" cy="47.41" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
   <circle cx="8.13" cy="47.41" r="1.40" fill="#62a0ea" opacity="0.5"/>
   <text x="8.13" y="53.43" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Pitch CV (1V/oct)</text>
-  <rect x="15.24" y="43.92" width="4.74" height="6.99" rx="1" fill="none" stroke="#888" stroke-width="0.9" opacity="0.5"/>
-  <line x1="17.61" y1="49.16" x2="17.61" y2="45.67" stroke="#888" stroke-width="1.2" opacity="0.6"/>
+  <rect x="15.24" y="43.92" width="4.74" height="6.99" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
+  <line x1="17.61" y1="49.16" x2="17.61" y2="45.67" stroke="#888" stroke-width="1.7" opacity="0.6"/>
   <text x="17.61" y="52.91" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">PASSTHROUGH</text>
-  <circle cx="27.09" cy="47.41" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="27.09" cy="47.41" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
   <circle cx="27.09" cy="47.41" r="1.40" fill="#62a0ea" opacity="0.5"/>
   <text x="27.09" y="53.43" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Run</text>
-  <circle cx="35.90" cy="47.41" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.1" opacity="0.6"/>
+  <circle cx="35.90" cy="47.41" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
   <circle cx="35.90" cy="47.41" r="1.26" fill="#333" opacity="0.5"/>
   <text x="35.90" y="53.02" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Run</text>
-  <circle cx="44.03" cy="47.41" r="3.05" fill="#222" stroke="#888" stroke-width="1" opacity="0.6"/>
+  <circle cx="44.03" cy="47.41" r="3.05" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
   <circle cx="44.03" cy="47.41" r="1.22" fill="#444" opacity="0.4"/>
   <text x="44.03" y="52.46" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Track select</text>
-  <circle cx="7.79" cy="59.94" r="3.05" fill="#222" stroke="#888" stroke-width="1" opacity="0.6"/>
+  <circle cx="7.79" cy="59.94" r="3.05" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
   <circle cx="7.79" cy="59.94" r="1.22" fill="#444" opacity="0.4"/>
   <text x="7.79" y="64.99" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Write</text>
-  <circle cx="19.30" cy="59.94" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="19.30" cy="59.94" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
   <circle cx="19.30" cy="59.94" r="1.40" fill="#62a0ea" opacity="0.5"/>
   <text x="19.30" y="65.96" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Write trigger</text>
-  <circle cx="30.82" cy="59.94" r="3.05" fill="#222" stroke="#888" stroke-width="1" opacity="0.6"/>
+  <circle cx="30.82" cy="59.94" r="3.05" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
   <circle cx="30.82" cy="59.94" r="1.22" fill="#444" opacity="0.4"/>
   <text x="30.82" y="64.99" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Rest</text>
-  <circle cx="42.33" cy="59.94" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="42.33" cy="59.94" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
   <circle cx="42.33" cy="59.94" r="1.40" fill="#62a0ea" opacity="0.5"/>
   <text x="42.33" y="65.96" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Rest trigger</text>
-  <circle cx="7.79" cy="73.49" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.1" opacity="0.6"/>
+  <circle cx="7.79" cy="73.49" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
   <circle cx="7.79" cy="73.49" r="1.26" fill="#333" opacity="0.5"/>
   <text x="7.79" y="79.10" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Step back</text>
-  <circle cx="19.30" cy="73.49" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="19.30" cy="73.49" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
   <circle cx="19.30" cy="73.49" r="1.40" fill="#62a0ea" opacity="0.5"/>
   <text x="19.30" y="79.50" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Step back trigger</text>
-  <circle cx="30.82" cy="73.49" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.1" opacity="0.6"/>
+  <circle cx="30.82" cy="73.49" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
   <circle cx="30.82" cy="73.49" r="1.26" fill="#333" opacity="0.5"/>
   <text x="30.82" y="79.10" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Step forward</text>
-  <circle cx="42.33" cy="73.49" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="42.33" cy="73.49" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
   <circle cx="42.33" cy="73.49" r="1.40" fill="#62a0ea" opacity="0.5"/>
   <text x="42.33" y="79.50" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Step forward trigger</text>
-  <circle cx="7.79" cy="87.04" r="3.05" fill="#222" stroke="#888" stroke-width="1" opacity="0.6"/>
+  <circle cx="7.79" cy="87.04" r="3.05" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
   <circle cx="7.79" cy="87.04" r="1.22" fill="#444" opacity="0.4"/>
   <text x="7.79" y="92.09" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Clear</text>
-  <circle cx="19.30" cy="87.04" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="19.30" cy="87.04" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
   <circle cx="19.30" cy="87.04" r="1.40" fill="#62a0ea" opacity="0.5"/>
   <text x="19.30" y="93.05" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Clear trigger</text>
-  <circle cx="30.82" cy="87.04" r="3.05" fill="#222" stroke="#888" stroke-width="1" opacity="0.6"/>
+  <circle cx="30.82" cy="87.04" r="3.05" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
   <circle cx="30.82" cy="87.04" r="1.22" fill="#444" opacity="0.4"/>
   <text x="30.82" y="92.09" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Reset position</text>
-  <circle cx="42.33" cy="87.04" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="42.33" cy="87.04" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
   <circle cx="42.33" cy="87.04" r="1.40" fill="#62a0ea" opacity="0.5"/>
   <text x="42.33" y="93.05" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Reset trigger</text>
-  <circle cx="25.40" cy="93.81" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="25.40" cy="93.81" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
   <circle cx="25.40" cy="93.81" r="1.40" fill="#62a0ea" opacity="0.5"/>
   <text x="25.40" y="99.82" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Position CV (0-10V)</text>
-  <circle cx="10.16" cy="103.29" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="10.16" cy="103.29" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.6" opacity="0.7"/>
   <circle cx="10.16" cy="103.29" r="1.40" fill="#CF5DD0" opacity="0.5"/>
   <text x="10.16" y="109.31" fill="#CF5DD0" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Track A pitch CV</text>
-  <circle cx="25.40" cy="103.29" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="25.40" cy="103.29" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.6" opacity="0.7"/>
   <circle cx="25.40" cy="103.29" r="1.40" fill="#CF5DD0" opacity="0.5"/>
   <text x="25.40" y="109.31" fill="#CF5DD0" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Track A step trigger</text>
-  <circle cx="40.64" cy="103.29" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="40.64" cy="103.29" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.6" opacity="0.7"/>
   <circle cx="40.64" cy="103.29" r="1.40" fill="#CF5DD0" opacity="0.5"/>
   <text x="40.64" y="109.31" fill="#CF5DD0" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Track A sequence end</text>
-  <circle cx="10.16" cy="116.84" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="10.16" cy="116.84" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.6" opacity="0.7"/>
   <circle cx="10.16" cy="116.84" r="1.40" fill="#CF5DD0" opacity="0.5"/>
   <text x="10.16" y="122.85" fill="#CF5DD0" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Track B pitch CV</text>
-  <circle cx="25.40" cy="116.84" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="25.40" cy="116.84" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.6" opacity="0.7"/>
   <circle cx="25.40" cy="116.84" r="1.40" fill="#CF5DD0" opacity="0.5"/>
   <text x="25.40" y="122.85" fill="#CF5DD0" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Track B step trigger</text>
-  <circle cx="40.64" cy="116.84" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.1" opacity="0.7"/>
+  <circle cx="40.64" cy="116.84" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.6" opacity="0.7"/>
   <circle cx="40.64" cy="116.84" r="1.40" fill="#CF5DD0" opacity="0.5"/>
   <text x="40.64" y="122.85" fill="#CF5DD0" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Track B sequence end</text>
 </svg>

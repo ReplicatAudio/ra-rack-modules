@@ -65,6 +65,8 @@ struct YscopeDisplay : Widget {
     RaYscopeModule *module;
     float local[RaYscopeModule::MAX_HISTORY];
     float local2[RaYscopeModule::MAX_HISTORY];
+    PortWidget *ch1Input = nullptr;
+    PortWidget *ch2Input = nullptr;
 
     void drawTrace(NVGcontext *vg, const float *buf, int len, int rows, double samplesPerRow, float hScale, float offset, float h, NVGcolor color) {
         nvgBeginPath(vg);
@@ -127,8 +129,22 @@ struct YscopeDisplay : Widget {
         int rows = (int)h;
         double samplesPerRow = (double)(len - 1) / std::max(rows - 1, 1);
 
-        drawTrace(args.vg, local2, len, rows, samplesPerRow, hScale, offset, h, nvgRGB(0x00, 0xcc, 0xff));
-        drawTrace(args.vg, local, len, rows, samplesPerRow, hScale, offset, h, nvgRGB(0xff, 0xcc, 0x00));
+        NVGcolor col1 = nvgRGB(0xff, 0xcc, 0x00);
+        NVGcolor col2 = nvgRGB(0x00, 0xcc, 0xff);
+
+        if (ch1Input) {
+            auto cables = APP->scene->rack->getCompleteCablesOnPort(ch1Input);
+            if (!cables.empty())
+                col1 = cables[0]->color;
+        }
+        if (ch2Input) {
+            auto cables = APP->scene->rack->getCompleteCablesOnPort(ch2Input);
+            if (!cables.empty())
+                col2 = cables[0]->color;
+        }
+
+        drawTrace(args.vg, local2, len, rows, samplesPerRow, hScale, offset, h, col2);
+        drawTrace(args.vg, local, len, rows, samplesPerRow, hScale, offset, h, col1);
     }
 };
 
@@ -148,8 +164,10 @@ struct RaYscopeWidget : ModuleWidget {
         display->module = module;
         addChild(display);
 
-        addInput(createInputCentered<RaPort>(Vec(14, 26), module, RaYscopeModule::CH1_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(46, 26), module, RaYscopeModule::CH2_INPUT));
+        display->ch1Input = createInputCentered<RaPort>(Vec(14, 26), module, RaYscopeModule::CH1_INPUT);
+        addChild(display->ch1Input);
+        display->ch2Input = createInputCentered<RaPort>(Vec(46, 26), module, RaYscopeModule::CH2_INPUT);
+        addChild(display->ch2Input);
         addParam(createParamCentered<RaKnobTrim>(Vec(30, 46), module, RaYscopeModule::TIME_PARAM));
         addParam(createParamCentered<RaSwitch2>(Vec(10, 48), module, RaYscopeModule::RANGE_PARAM));
         addOutput(createOutputCentered<RaPort>(Vec(14, 358), module, RaYscopeModule::CH1_OUTPUT));
