@@ -76,6 +76,12 @@
       "name": "ra-blank",
       "description": "Resizable blank panel to fill empty space",
       "tags": ["Blank", "Utility"]
+    },
+    {
+      "slug": "ra-adsr",
+      "name": "ra-adsr",
+      "description": "Polyphonic ADSR envelope generator with CV control over all parameters and visual envelope display",
+      "tags": ["Envelope generator", "Polyphonic"]
     }
   ]
 }
