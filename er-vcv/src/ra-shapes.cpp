@@ -25,7 +25,6 @@ struct RaShapesModule : Module {
         FM1_ATTN_PARAM,
         FM2_ATTN_PARAM,
         FM3_ATTN_PARAM,
-        FM4_ATTN_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -33,7 +32,6 @@ struct RaShapesModule : Module {
         FM1_INPUT,
         FM2_INPUT,
         FM3_INPUT,
-        FM4_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -60,12 +58,10 @@ struct RaShapesModule : Module {
         configParam(FM1_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 1 attenuation", "%", 0.f, 100.f);
         configParam(FM2_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 2 attenuation", "%", 0.f, 100.f);
         configParam(FM3_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 3 attenuation", "%", 0.f, 100.f);
-        configParam(FM4_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 4 attenuation", "%", 0.f, 100.f);
         configInput(PITCH_INPUT, "1V/Oct");
         configInput(FM1_INPUT, "FM 1");
         configInput(FM2_INPUT, "FM 2");
         configInput(FM3_INPUT, "FM 3");
-        configInput(FM4_INPUT, "FM 4");
         configOutput(SINE_OUTPUT, "Sine");
         configOutput(TRI_OUTPUT, "Triangle");
         configOutput(SAW_UP_OUTPUT, "Saw up");
@@ -78,8 +74,7 @@ struct RaShapesModule : Module {
         float pitch = inputs[PITCH_INPUT].getVoltage()
             + inputs[FM1_INPUT].getVoltage() * params[FM1_ATTN_PARAM].getValue()
             + inputs[FM2_INPUT].getVoltage() * params[FM2_ATTN_PARAM].getValue()
-            + inputs[FM3_INPUT].getVoltage() * params[FM3_ATTN_PARAM].getValue()
-            + inputs[FM4_INPUT].getVoltage() * params[FM4_ATTN_PARAM].getValue();
+            + inputs[FM3_INPUT].getVoltage() * params[FM3_ATTN_PARAM].getValue();
         freq *= powf(2.f, pitch);
         freq = clamp(freq, 0.1f, 20000.f);
 
@@ -127,14 +122,12 @@ struct RaShapesWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(46, 178), module, RaShapesModule::FM2_INPUT));
         addParam(createParamCentered<RaKnobSmall>(Vec(14, 210), module, RaShapesModule::FM3_ATTN_PARAM));
         addInput(createInputCentered<RaPort>(Vec(46, 210), module, RaShapesModule::FM3_INPUT));
-        addParam(createParamCentered<RaKnobSmall>(Vec(14, 242), module, RaShapesModule::FM4_ATTN_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(46, 242), module, RaShapesModule::FM4_INPUT));
 
-        addOutput(createOutputCentered<RaPort>(Vec(16, 274), module, RaShapesModule::SINE_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 274), module, RaShapesModule::TRI_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(16, 306), module, RaShapesModule::SAW_UP_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 306), module, RaShapesModule::SAW_DOWN_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(30, 340), module, RaShapesModule::SQUARE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(14, 274), module, RaShapesModule::SINE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(46, 274), module, RaShapesModule::TRI_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(14, 306), module, RaShapesModule::SAW_UP_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(46, 306), module, RaShapesModule::SAW_DOWN_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(14, 340), module, RaShapesModule::SQUARE_OUTPUT));
     }
 };
 
