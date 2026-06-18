@@ -114,15 +114,14 @@ struct RaButtonsWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        float ys[4] = {55, 148, 241, 334};
+        float ys[] = {55, 148, 241, 334};
         float switchX = 20;
         float buttonX = 60;
         float outputX = 100;
 
         for (int i = 0; i < 4; i++) {
             addParam(createParamCentered<RaSwitch3>(Vec(switchX, ys[i]), module, RaButtonsModule::MODE1_PARAM + i));
-            addChild(createLightParamCentered<VCVLightBezel<WhiteLight>>(
-                Vec(buttonX, ys[i]), module, RaButtonsModule::BUTTON1_PARAM + i, RaButtonsModule::LIGHT1 + i));
+            addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(buttonX, ys[i]), module, RaButtonsModule::BUTTON1_PARAM + i, RaButtonsModule::LIGHT1 + i));
             addOutput(createOutputCentered<RaPort>(Vec(outputX, ys[i]), module, RaButtonsModule::OUTPUT1 + i));
         }
     }
