@@ -25,6 +25,7 @@ struct RaEndlessModule : Module {
     dsp::SchmittTrigger stepBackBtnTrigger;
     dsp::SchmittTrigger runBtnTrigger;
     bool running = false;
+    float lastCvValue[NUM_TRACKS] = {0.f, 0.f};
     dsp::PulseGenerator trigPulse[NUM_TRACKS];
     dsp::PulseGenerator endPulse[NUM_TRACKS];
     dsp::PulseGenerator startPulse[NUM_TRACKS];
@@ -112,6 +113,7 @@ struct RaEndlessModule : Module {
 
     void writeStep(int t) {
         float v = inputs[CV_INPUT].getVoltage();
+        lastCvValue[t] = v;
         if (currentPos[t] >= (int)steps[t].size())
             steps[t].push_back(v);
         else
@@ -126,7 +128,6 @@ struct RaEndlessModule : Module {
         else
             steps[t][currentPos[t]] = REST_VALUE;
         currentPos[t]++;
-        trigPulse[t].trigger(1e-3f);
     }
 
     void stepFwd(int t) {
@@ -164,6 +165,7 @@ struct RaEndlessModule : Module {
             clearExtTrigger.process(inputs[CLEAR_TRIG_INPUT].getVoltage())) {
             steps[t].clear();
             currentPos[t] = 0;
+            running = false;
         }
 
         // Reset: both tracks
@@ -228,7 +230,7 @@ struct RaEndlessModule : Module {
                 if (!steps[i].empty() && pos < (int)steps[i].size()) {
                     float v = steps[i][pos];
                     if (v == REST_VALUE) {
-                        outputs[cvOutId].setVoltage(0.f);
+                        outputs[cvOutId].setVoltage(lastCvValue[i]);
                         trigPulse[i].reset();
                     } else {
                         outputs[cvOutId].setVoltage(v);
