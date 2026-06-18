@@ -138,9 +138,9 @@ struct RaScalerWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(cx, 22), module, RaScalerModule::CV_INPUT));
         addParam(createParamCentered<RaKnob>(Vec(cx, 56), module, RaScalerModule::SCALE_PARAM));
         addParam(createParamCentered<RaKnobSmall>(Vec(cx, 84), module, RaScalerModule::CLIP_PARAM));
-        addParam(createParamCentered<RaSwitch3>(Vec(cx - 12, 118), module, RaScalerModule::RANGE_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(cx, 118), module, RaScalerModule::POWER_PARAM));
-        addParam(createParamCentered<RaSwitch3>(Vec(cx + 12, 118), module, RaScalerModule::CLIP_MODE_PARAM));
+        addParam(createParamCentered<RaSwitch3>(Vec(16, 118), module, RaScalerModule::RANGE_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(30, 118), module, RaScalerModule::POWER_PARAM));
+        addParam(createParamCentered<RaSwitch3>(Vec(44, 118), module, RaScalerModule::CLIP_MODE_PARAM));
         addOutput(createOutputCentered<RaPort>(Vec(cx, 158), module, RaScalerModule::OUTPUT));
     }
 };

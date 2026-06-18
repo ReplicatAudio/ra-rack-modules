@@ -15,7 +15,7 @@ using RaPort = ThemedPJ301MPort;
 
 // Switches
 using RaSwitch2 = CKSS;
-using RaSwitch3 = NKK;
+using RaSwitch3 = CKSSThree;
 
 // Buttons
 using RaButton = VCVButton;
