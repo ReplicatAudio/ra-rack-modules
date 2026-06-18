@@ -10,15 +10,16 @@ import path from 'node:path';
 // ============================================================
 const SW = 1.0;  // base stroke width
 
-// Background gradient (override via --bg-start, --bg-end, --bg-mid)
-let BG_START = '#443852';
-let BG_END = '#242425';
-let BG_MID = 33;
-
-// Widget colour by role (override via --input-color / --output-color)
-let ROLE_COLORS = {
-  input: '#62a0ea',
-  output: '#CF5DD0',
+let CFG = {
+  bg: {
+    start: '#443852',
+    end: '#242425',
+    mid: 33,
+  },
+  colors: {
+    input: '#62a0ea',
+    output: '#CF5DD0',
+  },
 };
 
 const ru2mm = (ru) => ru * 5.08 / 15;
@@ -349,6 +350,55 @@ function processBlock(lines, ctx, components, loopVars = {}) {
       continue;
     }
 
+    // Multi-line array: detect start of `static const int NAME[] = {`
+    const arrStart = line.match(/^\s*(?:static\s+)?const\s+(?:int|float)\s+(\w+)\[\]\s*=\s*\{\s*$/);
+    if (arrStart) {
+      const arrName = arrStart[1];
+      const values = [];
+      let j = i + 1;
+      while (j < lines.length) {
+        const sub = lines[j].trim();
+        if (sub === '};' || sub === '}') break;
+        const end = sub.match(/^\s*(.+?)\s*\};?\s*$/);
+        if (end) {
+          const last = end[1].trim();
+          const enumMatch = last.match(/::(\w+)/);
+          values.push(enumMatch ? enumMatch[1] : ctx.resolve(last));
+          break;
+        }
+        const item = sub.replace(/,$/, '').trim();
+        if (item) {
+          const enumMatch = item.match(/::(\w+)/);
+          values.push(enumMatch ? enumMatch[1] : ctx.resolve(item));
+        }
+        j++;
+      }
+      ctx.setArray(arrName, values);
+      i = j + 1;
+      continue;
+    }
+
+    // Assignment: y += 28, y -= 5
+    const assignMatch = line.match(/^\s*(\w+)\s*(\+=|-=)\s*(.+?);\s*$/);
+    if (assignMatch) {
+      const varName = assignMatch[1];
+      const op = assignMatch[2];
+      const val = ctx.resolve(assignMatch[3]);
+      if (ctx.vars[varName] !== undefined) {
+        ctx.setVar(varName, op === '+=' ? ctx.vars[varName] + val : ctx.vars[varName] - val);
+      }
+      i++;
+      continue;
+    }
+
+    // Simple assignment (no type keyword): y = expr;
+    const simpleAssign = line.match(/^\s*(\w+)\s*=\s*(.+?);\s*$/);
+    if (simpleAssign && ctx.vars[simpleAssign[1]] !== undefined) {
+      ctx.setVar(simpleAssign[1], ctx.resolve(simpleAssign[2]));
+      i++;
+      continue;
+    }
+
     // ---- Component creation calls ----
     const compMatch = parseComponentLine(line, ctx);
     if (compMatch) {
@@ -418,8 +468,12 @@ function parseComponentLine(line, ctx) {
       const enumName = m[4] || '';
       const lightEnum = m[5] || '';
 
+      // Resolve array accesses in enum (e.g. outIds[i] → OUT_1_2)
+      const resolved = ctx.resolve(enumName);
+      const resolvedEnum = (typeof resolved === 'string' && /^[A-Z]/.test(resolved)) ? resolved : '';
+
       // Strip module:: prefix and + i suffix from enum names for cleaner labels
-      const labelEnum = enumName.replace(/.*::/, '').replace(/\s*\+.*$/, '');
+      const labelEnum = resolvedEnum || enumName.replace(/.*::/, '').replace(/\s*\+.*$/, '');
       const lightLabel = lightEnum.replace(/.*::/, '').replace(/\s*\+.*$/, '');
 
       // Determine base info
@@ -434,7 +488,7 @@ function parseComponentLine(line, ctx) {
         x,
         y,
         role: pat.role,
-        enum: enumName,
+        enum: resolvedEnum || enumName,
         label: labelEnum,
         lightEnum: lightLabel,
       };
@@ -482,9 +536,9 @@ function generateSVG(info) {
   const stripH = H / STRIPS;
   for (let i = 0; i < STRIPS; i++) {
     const yPos = i / STRIPS;  // 0..1 from top to bottom
-    const mid = BG_MID / 100;
+    const mid = CFG.bg.mid / 100;
     const t = Math.min(yPos / mid, 1);
-    const color = lerpColor(BG_START, BG_END, t);
+    const color = lerpColor(CFG.bg.start, CFG.bg.end, t);
     svg += `  <rect x="0" y="${(i * stripH).toFixed(3)}" width="${W.toFixed(2)}" height="${(stripH + 0.01).toFixed(3)}" fill="${color}"/>\n`;
   }
 
@@ -527,8 +581,8 @@ function generateSVG(info) {
 
     // Determine colour
     let color = '#888';
-    if (w.role === 'input') color = ROLE_COLORS.input;
-    else if (w.role === 'output') color = ROLE_COLORS.output;
+    if (w.role === 'input') color = CFG.colors.input;
+    else if (w.role === 'output') color = CFG.colors.output;
     else if (w.kind === 'screw') color = '#888';
 
     // Determine label from config name or prettified enum
@@ -618,21 +672,18 @@ function generateSVG(info) {
 // ============================================================
 let filePath = 'src/ra-endless.cpp';
 let overrideHP = 0;
-let overrideColors = {};
 let allFlag = false;
 for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
   if (arg === '--all') allFlag = true;
   else if (arg.startsWith('--hp=')) overrideHP = parseInt(arg.slice(5), 10);
-  else if (arg.startsWith('--input-color=')) overrideColors.input = arg.slice(14);
-  else if (arg.startsWith('--output-color=')) overrideColors.output = arg.slice(15);
-  else if (arg.startsWith('--bg-start=')) BG_START = arg.slice(11);
-  else if (arg.startsWith('--bg-end=')) BG_END = arg.slice(9);
-  else if (arg.startsWith('--bg-mid=')) BG_MID = Math.max(0, Math.min(100, parseInt(arg.slice(9), 10)));
+  else if (arg.startsWith('--input-color=')) CFG.colors.input = arg.slice(14);
+  else if (arg.startsWith('--output-color=')) CFG.colors.output = arg.slice(15);
+  else if (arg.startsWith('--bg-start=')) CFG.bg.start = arg.slice(11);
+  else if (arg.startsWith('--bg-end=')) CFG.bg.end = arg.slice(9);
+  else if (arg.startsWith('--bg-mid=')) CFG.bg.mid = Math.max(0, Math.min(100, parseInt(arg.slice(9), 10)));
   else if (!arg.startsWith('--')) filePath = arg;
 }
-if (overrideColors.input || overrideColors.output)
-  ROLE_COLORS = { ...ROLE_COLORS, ...overrideColors };
 
 if (allFlag) {
   const files = fs.readdirSync('src').filter(f => f.startsWith('ra-') && f.endsWith('.cpp'));
