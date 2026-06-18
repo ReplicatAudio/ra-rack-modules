@@ -46,6 +46,12 @@
       "name": "ra-yscope",
       "description": "Vertical oscilloscope — signal trace displayed top-to-bottom",
       "tags": ["Visual", "Utility"]
+    },
+    {
+      "slug": "ra-shapes",
+      "name": "ra-shapes",
+      "description": "VCO — sine, triangle, saw up, saw down, square outputs",
+      "tags": ["VCO", "Oscillator"]
     }
   ]
 }
