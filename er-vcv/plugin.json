@@ -40,6 +40,12 @@
       "name": "ra-endless",
       "description": "OP-1 style endless sequencer — record and play back sequences of CV notes/rests",
       "tags": ["Sequencer", "Utility"]
+    },
+    {
+      "slug": "ra-yscope",
+      "name": "ra-yscope",
+      "description": "Vertical oscilloscope — signal trace displayed top-to-bottom",
+      "tags": ["Visual", "Utility"]
     }
   ]
 }

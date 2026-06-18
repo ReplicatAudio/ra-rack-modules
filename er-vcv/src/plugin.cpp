@@ -9,6 +9,7 @@ extern Model *modelRaGnawbz1x4;
 extern Model *modelRaUlfo;
 extern Model *modelRaScaler;
 extern Model *modelRaEndless;
+extern Model *modelRaYscope;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -18,4 +19,5 @@ void init(Plugin *p) {
     p->addModel(modelRaUlfo);
     p->addModel(modelRaScaler);
     p->addModel(modelRaEndless);
+    p->addModel(modelRaYscope);
 }
