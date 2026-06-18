@@ -58,6 +58,12 @@
       "name": "ra-chance",
       "description": "Trigger chance — probabilistic trigger divider with bias CV",
       "tags": ["Probability", "Utility", "Random"]
+    },
+    {
+      "slug": "ra-add",
+      "name": "ra-add",
+      "description": "Additive synth with 32 harmonics and even/odd balance",
+      "tags": ["VCO", "Oscillator"]
     }
   ]
 }
