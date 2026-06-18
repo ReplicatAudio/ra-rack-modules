@@ -45,6 +45,7 @@ struct RaEndlessModule : Module {
     };
     enum InputIds {
         CV_INPUT,
+        POSITION_INPUT,
         WRITE_TRIG_INPUT,
         REST_TRIG_INPUT,
         CLEAR_TRIG_INPUT,
@@ -84,6 +85,7 @@ struct RaEndlessModule : Module {
         configParam(STEP_FWD_PARAM, 0.f, 1.f, 0.f, "Step forward");
         configParam(STEP_BACK_PARAM, 0.f, 1.f, 0.f, "Step back");
         configInput(CV_INPUT, "Pitch CV (1V/oct)");
+        configInput(POSITION_INPUT, "Position CV (0-10V)");
         configInput(WRITE_TRIG_INPUT, "Write trigger");
         configInput(REST_TRIG_INPUT, "Rest trigger");
         configInput(CLEAR_TRIG_INPUT, "Clear trigger");
@@ -185,27 +187,47 @@ struct RaEndlessModule : Module {
         lights[STEP_BACK_LIGHT_G].setBrightness(glow);
         lights[STEP_BACK_LIGHT_B].setBrightness(0.f);
 
-        // Step fwd button: both tracks
-        if (stepFwdBtnTrigger.process(params[STEP_FWD_PARAM].getValue() * 10.f)) {
-            stepFwd(0);
-            stepFwd(1);
-        }
+        float posVoltage = inputs[POSITION_INPUT].getVoltage();
+        bool posActive = inputs[POSITION_INPUT].isConnected() && fabsf(posVoltage) >= 0.001f && runActive;
 
-        // Step back: both tracks
-        if (stepBackBtnTrigger.process(params[STEP_BACK_PARAM].getValue() * 10.f)) {
-            stepBack(0);
-            stepBack(1);
-        }
-
-        // Step fwd/back trigger inputs: both tracks (only when run is active)
-        if (runActive) {
-            if (stepFwdExtTrigger.process(inputs[STEP_FWD_TRIG_INPUT].getVoltage())) {
+        // Step fwd/back only when position CV is not active
+        if (!posActive) {
+            // Step fwd button: both tracks
+            if (stepFwdBtnTrigger.process(params[STEP_FWD_PARAM].getValue() * 10.f)) {
                 stepFwd(0);
                 stepFwd(1);
             }
-            if (stepBackExtTrigger.process(inputs[STEP_BACK_TRIG_INPUT].getVoltage())) {
+
+            // Step back: both tracks
+            if (stepBackBtnTrigger.process(params[STEP_BACK_PARAM].getValue() * 10.f)) {
                 stepBack(0);
                 stepBack(1);
+            }
+
+            // Step fwd/back trigger inputs: both tracks (only when run is active)
+            if (runActive) {
+                if (stepFwdExtTrigger.process(inputs[STEP_FWD_TRIG_INPUT].getVoltage())) {
+                    stepFwd(0);
+                    stepFwd(1);
+                }
+                if (stepBackExtTrigger.process(inputs[STEP_BACK_TRIG_INPUT].getVoltage())) {
+                    stepBack(0);
+                    stepBack(1);
+                }
+            }
+        }
+
+        // Position CV overrides forward/back
+        if (posActive) {
+            float posNorm = clamp(posVoltage / 10.f, 0.f, 1.f);
+            for (int i = 0; i < NUM_TRACKS; i++) {
+                if (!steps[i].empty()) {
+                    int newPos = (int)roundf(posNorm * (steps[i].size() - 1));
+                    if (newPos != currentPos[i]) {
+                        currentPos[i] = newPos;
+                        trigPulse[i].trigger(1e-3f);
+                    }
+                }
             }
         }
 
@@ -356,11 +378,12 @@ struct RaEndlessWidget : ModuleWidget {
         display->module = module;
         addChild(display);
 
-        // CV, Run trigger, Run button, Track select at y=125
+        // CV, Position, Run trigger, Run button, Track select at y=125
         addInput(createInputCentered<RaPort>(Vec(24, 125), module, RaEndlessModule::CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(52, 125), module, RaEndlessModule::RUN_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(80, 125), module, RaEndlessModule::RUN_PARAM, RaEndlessModule::RUN_LIGHT));
-        addParam(createParamCentered<RaButton>(Vec(108, 125), module, RaEndlessModule::TRACK_SELECT_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(52, 125), module, RaEndlessModule::POSITION_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(80, 125), module, RaEndlessModule::RUN_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(106, 125), module, RaEndlessModule::RUN_PARAM, RaEndlessModule::RUN_LIGHT));
+        addParam(createParamCentered<RaButton>(Vec(130, 125), module, RaEndlessModule::TRACK_SELECT_PARAM));
 
         // Function controls — 3 rows, each with Btn (x=23|91) + Trig (x=57|125)
         // Row 1: WRT / REST  at y=162
