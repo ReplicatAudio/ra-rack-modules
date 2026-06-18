@@ -5,9 +5,12 @@ using namespace rack;
 extern Plugin *pluginInstance;
 
 struct RaEndlessModule : Module {
-    std::vector<float> steps;
-    int currentPos = 0;
+    static constexpr int NUM_TRACKS = 2;
+    std::vector<float> steps[NUM_TRACKS];
+    int currentPos[NUM_TRACKS] = {0, 0};
+    int selectedTrack = 0;
 
+    dsp::SchmittTrigger trackSelTrigger;
     dsp::SchmittTrigger writeExtTrigger;
     dsp::SchmittTrigger restExtTrigger;
     dsp::SchmittTrigger clearExtTrigger;
@@ -20,13 +23,14 @@ struct RaEndlessModule : Module {
     dsp::SchmittTrigger resetBtnTrigger;
     dsp::SchmittTrigger stepFwdBtnTrigger;
     dsp::SchmittTrigger stepBackBtnTrigger;
-    dsp::PulseGenerator trigPulse;
-    dsp::PulseGenerator endPulse;
-    dsp::PulseGenerator startPulse;
+    dsp::PulseGenerator trigPulse[NUM_TRACKS];
+    dsp::PulseGenerator endPulse[NUM_TRACKS];
+    dsp::PulseGenerator startPulse[NUM_TRACKS];
 
     static constexpr float REST_VALUE = -20.f;
 
     enum ParamIds {
+        TRACK_SELECT_PARAM,
         WRITE_PARAM,
         REST_PARAM,
         CLEAR_PARAM,
@@ -46,10 +50,14 @@ struct RaEndlessModule : Module {
         NUM_INPUTS
     };
     enum OutputIds {
-        CV_OUTPUT,
-        TRIG_OUTPUT,
-        END_TRIG_OUTPUT,
-        START_TRIG_OUTPUT,
+        TRACK_A_CV_OUTPUT,
+        TRACK_A_TRIG_OUTPUT,
+        TRACK_A_START_OUTPUT,
+        TRACK_A_END_OUTPUT,
+        TRACK_B_CV_OUTPUT,
+        TRACK_B_TRIG_OUTPUT,
+        TRACK_B_START_OUTPUT,
+        TRACK_B_END_OUTPUT,
         NUM_OUTPUTS
     };
     enum LightIds {
@@ -58,6 +66,7 @@ struct RaEndlessModule : Module {
 
     RaEndlessModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+        configParam(TRACK_SELECT_PARAM, 0.f, 1.f, 0.f, "Track select");
         configParam(WRITE_PARAM, 0.f, 1.f, 0.f, "Write");
         configParam(REST_PARAM, 0.f, 1.f, 0.f, "Rest");
         configParam(CLEAR_PARAM, 0.f, 1.f, 0.f, "Clear");
@@ -71,96 +80,122 @@ struct RaEndlessModule : Module {
         configInput(RESET_TRIG_INPUT, "Reset trigger");
         configInput(STEP_FWD_TRIG_INPUT, "Step forward trigger");
         configInput(STEP_BACK_TRIG_INPUT, "Step back trigger");
-        configOutput(CV_OUTPUT, "Pitch CV");
-        configOutput(TRIG_OUTPUT, "Step trigger");
-        configOutput(END_TRIG_OUTPUT, "Sequence end trigger");
-        configOutput(START_TRIG_OUTPUT, "Sequence start trigger");
+        configOutput(TRACK_A_CV_OUTPUT, "Track A pitch CV");
+        configOutput(TRACK_A_TRIG_OUTPUT, "Track A step trigger");
+        configOutput(TRACK_A_START_OUTPUT, "Track A sequence start");
+        configOutput(TRACK_A_END_OUTPUT, "Track A sequence end");
+        configOutput(TRACK_B_CV_OUTPUT, "Track B pitch CV");
+        configOutput(TRACK_B_TRIG_OUTPUT, "Track B step trigger");
+        configOutput(TRACK_B_START_OUTPUT, "Track B sequence start");
+        configOutput(TRACK_B_END_OUTPUT, "Track B sequence end");
     }
 
-    void writeStep() {
+    void writeStep(int t) {
         float v = inputs[CV_INPUT].getVoltage();
-        if (currentPos >= (int)steps.size())
-            steps.push_back(v);
+        if (currentPos[t] >= (int)steps[t].size())
+            steps[t].push_back(v);
         else
-            steps[currentPos] = v;
-        advance();
+            steps[t][currentPos[t]] = v;
+        currentPos[t]++;
+        trigPulse[t].trigger(1e-3f);
     }
 
-    void insertRest() {
-        if (currentPos >= (int)steps.size())
-            steps.push_back(REST_VALUE);
+    void insertRest(int t) {
+        if (currentPos[t] >= (int)steps[t].size())
+            steps[t].push_back(REST_VALUE);
         else
-            steps[currentPos] = REST_VALUE;
-        advance();
+            steps[t][currentPos[t]] = REST_VALUE;
+        currentPos[t]++;
+        trigPulse[t].trigger(1e-3f);
     }
 
-    void advance() {
-        currentPos++;
-        trigPulse.trigger(1e-3f);
-    }
-
-    void stepFwd() {
-        if (steps.empty()) return;
-        currentPos++;
-        trigPulse.trigger(1e-3f);
-        if (currentPos >= (int)steps.size()) {
-            currentPos = 0;
-            endPulse.trigger(1e-3f);
+    void stepFwd(int t) {
+        if (steps[t].empty()) return;
+        currentPos[t]++;
+        trigPulse[t].trigger(1e-3f);
+        if (currentPos[t] >= (int)steps[t].size()) {
+            currentPos[t] = 0;
+            endPulse[t].trigger(1e-3f);
         }
     }
 
-    void stepBack() {
-        if (steps.empty()) return;
-        currentPos--;
-        if (currentPos < 0)
-            currentPos = (int)steps.size() - 1;
-        trigPulse.trigger(1e-3f);
+    void stepBack(int t) {
+        if (steps[t].empty()) return;
+        currentPos[t]--;
+        if (currentPos[t] < 0)
+            currentPos[t] = (int)steps[t].size() - 1;
+        trigPulse[t].trigger(1e-3f);
     }
 
     void process(const ProcessArgs &args) override {
+        if (trackSelTrigger.process(params[TRACK_SELECT_PARAM].getValue() * 10.f))
+            selectedTrack = 1 - selectedTrack;
+        int t = selectedTrack;
+
         if (writeBtnTrigger.process(params[WRITE_PARAM].getValue() * 10.f) ||
             writeExtTrigger.process(inputs[WRITE_TRIG_INPUT].getVoltage()))
-            writeStep();
+            writeStep(t);
 
         if (restBtnTrigger.process(params[REST_PARAM].getValue() * 10.f) ||
             restExtTrigger.process(inputs[REST_TRIG_INPUT].getVoltage()))
-            insertRest();
+            insertRest(t);
 
         if (clearBtnTrigger.process(params[CLEAR_PARAM].getValue() * 10.f) ||
             clearExtTrigger.process(inputs[CLEAR_TRIG_INPUT].getVoltage())) {
-            steps.clear();
-            currentPos = 0;
+            steps[t].clear();
+            currentPos[t] = 0;
         }
 
+        // Reset: both tracks
         if (resetBtnTrigger.process(params[RESET_PARAM].getValue() * 10.f) ||
             resetExtTrigger.process(inputs[RESET_TRIG_INPUT].getVoltage())) {
-            currentPos = 0;
-            startPulse.trigger(1e-3f);
-        }
-
-        if (stepFwdBtnTrigger.process(params[STEP_FWD_PARAM].getValue() * 10.f) ||
-            stepFwdExtTrigger.process(inputs[STEP_FWD_TRIG_INPUT].getVoltage()))
-            stepFwd();
-
-        if (stepBackBtnTrigger.process(params[STEP_BACK_PARAM].getValue() * 10.f) ||
-            stepBackExtTrigger.process(inputs[STEP_BACK_TRIG_INPUT].getVoltage()))
-            stepBack();
-
-        if (!steps.empty() && currentPos < (int)steps.size()) {
-            float v = steps[currentPos];
-            if (v == REST_VALUE) {
-                outputs[CV_OUTPUT].setVoltage(0.f);
-                trigPulse.reset();
-            } else {
-                outputs[CV_OUTPUT].setVoltage(v);
+            for (int i = 0; i < NUM_TRACKS; i++) {
+                currentPos[i] = 0;
+                startPulse[i].trigger(1e-3f);
             }
-        } else {
-            outputs[CV_OUTPUT].setVoltage(0.f);
         }
 
-        outputs[TRIG_OUTPUT].setVoltage(trigPulse.process(args.sampleTime) ? 10.f : 0.f);
-        outputs[END_TRIG_OUTPUT].setVoltage(endPulse.process(args.sampleTime) ? 10.f : 0.f);
-        outputs[START_TRIG_OUTPUT].setVoltage(startPulse.process(args.sampleTime) ? 10.f : 0.f);
+        // Step fwd button: selected track only
+        if (stepFwdBtnTrigger.process(params[STEP_FWD_PARAM].getValue() * 10.f))
+            stepFwd(t);
+
+        // Step back: both tracks
+        if (stepBackBtnTrigger.process(params[STEP_BACK_PARAM].getValue() * 10.f)) {
+            stepBack(0);
+            stepBack(1);
+        }
+
+        // Step fwd/back trigger inputs: both tracks
+        if (stepFwdExtTrigger.process(inputs[STEP_FWD_TRIG_INPUT].getVoltage())) {
+            stepFwd(0);
+            stepFwd(1);
+        }
+        if (stepBackExtTrigger.process(inputs[STEP_BACK_TRIG_INPUT].getVoltage())) {
+            stepBack(0);
+            stepBack(1);
+        }
+
+        for (int i = 0; i < NUM_TRACKS; i++) {
+            int pos = currentPos[i];
+            int cvOutId = (i == 0) ? TRACK_A_CV_OUTPUT : TRACK_B_CV_OUTPUT;
+            int trigOutId = (i == 0) ? TRACK_A_TRIG_OUTPUT : TRACK_B_TRIG_OUTPUT;
+            int startOutId = (i == 0) ? TRACK_A_START_OUTPUT : TRACK_B_START_OUTPUT;
+            int endOutId = (i == 0) ? TRACK_A_END_OUTPUT : TRACK_B_END_OUTPUT;
+            if (!steps[i].empty() && pos < (int)steps[i].size()) {
+                float v = steps[i][pos];
+                if (v == REST_VALUE) {
+                    outputs[cvOutId].setVoltage(0.f);
+                    trigPulse[i].reset();
+                } else {
+                    outputs[cvOutId].setVoltage(v);
+                }
+            } else {
+                outputs[cvOutId].setVoltage(0.f);
+            }
+            outputs[trigOutId].setVoltage(trigPulse[i].process(args.sampleTime) ? 10.f : 0.f);
+            outputs[startOutId].setVoltage(startPulse[i].process(args.sampleTime) ? 10.f : 0.f);
+            outputs[endOutId].setVoltage(endPulse[i].process(args.sampleTime) ? 10.f : 0.f);
+        }
     }
 };
 
@@ -186,24 +221,34 @@ struct EndlessDisplay : LedDisplay {
         if (!module) return;
 
         float inV = module->inputs[RaEndlessModule::CV_INPUT].getVoltage();
-        float outV = module->outputs[RaEndlessModule::CV_OUTPUT].getVoltage();
-        int stepCount = (int)module->steps.size();
-        int displayPos = (stepCount > 0) ? clamp(module->currentPos, 0, stepCount - 1) + 1 : 0;
-        std::string stepStr = (stepCount == 0) ? "0" : rack::string::f("%d/%d", displayPos, stepCount);
+        int t = module->selectedTrack;
+
+        auto trackInfo = [&](int i) -> std::string {
+            int sc = (int)module->steps[i].size();
+            int pos = module->currentPos[i];
+            int dp = (sc > 0) ? clamp(pos, 0, sc - 1) + 1 : 0;
+            char label = (i == 0) ? 'A' : 'B';
+            int cvId = (i == 0) ? RaEndlessModule::TRACK_A_CV_OUTPUT : RaEndlessModule::TRACK_B_CV_OUTPUT;
+            float outV = module->outputs[cvId].getVoltage();
+            if (sc == 0) return rack::string::f("%c  0.00  0", label);
+            return rack::string::f("%c %+.2f %d/%d", label, outV, dp, sc);
+        };
 
         if (font) {
             nvgFontFaceId(args.vg, font->handle);
-            nvgFontSize(args.vg, 18);
+            nvgFontSize(args.vg, 16);
             nvgFillColor(args.vg, nvgRGB(0xaa, 0xcc, 0x88));
             nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
 
             std::string line1 = rack::string::f("IN  %+.2fV", inV);
-            std::string line2 = rack::string::f("OUT %+.2fV", outV);
-            std::string line3 = rack::string::f("STEP %s", stepStr.c_str());
+            std::string line2 = trackInfo(0);
+            std::string line3 = trackInfo(1);
 
-            nvgText(args.vg, box.size.x / 2, box.size.y * 0.25, line1.c_str(), nullptr);
+            nvgText(args.vg, box.size.x / 2, box.size.y * 0.2, line1.c_str(), nullptr);
+            nvgFillColor(args.vg, t == 0 ? nvgRGB(0xaa, 0xcc, 0x88) : nvgRGB(0x55, 0x77, 0x44));
             nvgText(args.vg, box.size.x / 2, box.size.y * 0.5, line2.c_str(), nullptr);
-            nvgText(args.vg, box.size.x / 2, box.size.y * 0.75, line3.c_str(), nullptr);
+            nvgFillColor(args.vg, t == 1 ? nvgRGB(0xaa, 0xcc, 0x88) : nvgRGB(0x55, 0x77, 0x44));
+            nvgText(args.vg, box.size.x / 2, box.size.y * 0.8, line3.c_str(), nullptr);
         }
     }
 };
@@ -226,32 +271,41 @@ struct RaEndlessWidget : ModuleWidget {
         addChild(display);
 
         // CV input at y=125
-        addInput(createInputCentered<PJ301MPort>(Vec(50, 125), module, RaEndlessModule::CV_INPUT));
+        addInput(createInputCentered<PJ301MPort>(Vec(40, 125), module, RaEndlessModule::CV_INPUT));
+
+        // Track select button at y=125, right of CV
+        addParam(createParamCentered<TL1105>(Vec(110, 125), module, RaEndlessModule::TRACK_SELECT_PARAM));
 
         // Function controls — 3 rows, each with Btn (x=23|91) + Trig (x=57|125)
-        // Row 1: WRT / REST  at y=165
-        addParam(createParamCentered<TL1105>(Vec(23, 165), module, RaEndlessModule::WRITE_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(57, 165), module, RaEndlessModule::WRITE_TRIG_INPUT));
-        addParam(createParamCentered<TL1105>(Vec(91, 165), module, RaEndlessModule::REST_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(125, 165), module, RaEndlessModule::REST_TRIG_INPUT));
+        // Row 1: WRT / REST  at y=162
+        addParam(createParamCentered<TL1105>(Vec(23, 162), module, RaEndlessModule::WRITE_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(57, 162), module, RaEndlessModule::WRITE_TRIG_INPUT));
+        addParam(createParamCentered<TL1105>(Vec(91, 162), module, RaEndlessModule::REST_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(125, 162), module, RaEndlessModule::REST_TRIG_INPUT));
 
-        // Row 2: CLR / RST  at y=205
-        addParam(createParamCentered<TL1105>(Vec(23, 205), module, RaEndlessModule::CLEAR_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(57, 205), module, RaEndlessModule::CLEAR_TRIG_INPUT));
-        addParam(createParamCentered<TL1105>(Vec(91, 205), module, RaEndlessModule::RESET_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(125, 205), module, RaEndlessModule::RESET_TRIG_INPUT));
+        // Row 2: CLR / RST  at y=202
+        addParam(createParamCentered<TL1105>(Vec(23, 202), module, RaEndlessModule::CLEAR_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(57, 202), module, RaEndlessModule::CLEAR_TRIG_INPUT));
+        addParam(createParamCentered<TL1105>(Vec(91, 202), module, RaEndlessModule::RESET_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(125, 202), module, RaEndlessModule::RESET_TRIG_INPUT));
 
-        // Row 3: FWD / BACK  at y=245
-        addParam(createParamCentered<TL1105>(Vec(23, 245), module, RaEndlessModule::STEP_FWD_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(57, 245), module, RaEndlessModule::STEP_FWD_TRIG_INPUT));
-        addParam(createParamCentered<TL1105>(Vec(91, 245), module, RaEndlessModule::STEP_BACK_PARAM));
-        addInput(createInputCentered<PJ301MPort>(Vec(125, 245), module, RaEndlessModule::STEP_BACK_TRIG_INPUT));
+        // Row 3: FWD / BACK  at y=242
+        addParam(createParamCentered<TL1105>(Vec(23, 242), module, RaEndlessModule::STEP_FWD_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(57, 242), module, RaEndlessModule::STEP_FWD_TRIG_INPUT));
+        addParam(createParamCentered<TL1105>(Vec(91, 242), module, RaEndlessModule::STEP_BACK_PARAM));
+        addInput(createInputCentered<PJ301MPort>(Vec(125, 242), module, RaEndlessModule::STEP_BACK_TRIG_INPUT));
 
-        // Outputs at y=290
-        addOutput(createOutputCentered<PJ301MPort>(Vec(27, 290), module, RaEndlessModule::CV_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(59, 290), module, RaEndlessModule::TRIG_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(91, 290), module, RaEndlessModule::END_TRIG_OUTPUT));
-        addOutput(createOutputCentered<PJ301MPort>(Vec(123, 290), module, RaEndlessModule::START_TRIG_OUTPUT));
+        // Outputs — Track A at y=275, Track B at y=315
+        // Each row: CV | TRIG | START | END  spaced 32 units apart
+        float outX[] = {23, 55, 87, 119};
+        addOutput(createOutputCentered<PJ301MPort>(Vec(outX[0], 275), module, RaEndlessModule::TRACK_A_CV_OUTPUT));
+        addOutput(createOutputCentered<PJ301MPort>(Vec(outX[1], 275), module, RaEndlessModule::TRACK_A_TRIG_OUTPUT));
+        addOutput(createOutputCentered<PJ301MPort>(Vec(outX[2], 275), module, RaEndlessModule::TRACK_A_START_OUTPUT));
+        addOutput(createOutputCentered<PJ301MPort>(Vec(outX[3], 275), module, RaEndlessModule::TRACK_A_END_OUTPUT));
+        addOutput(createOutputCentered<PJ301MPort>(Vec(outX[0], 315), module, RaEndlessModule::TRACK_B_CV_OUTPUT));
+        addOutput(createOutputCentered<PJ301MPort>(Vec(outX[1], 315), module, RaEndlessModule::TRACK_B_TRIG_OUTPUT));
+        addOutput(createOutputCentered<PJ301MPort>(Vec(outX[2], 315), module, RaEndlessModule::TRACK_B_START_OUTPUT));
+        addOutput(createOutputCentered<PJ301MPort>(Vec(outX[3], 315), module, RaEndlessModule::TRACK_B_END_OUTPUT));
     }
 };
 
