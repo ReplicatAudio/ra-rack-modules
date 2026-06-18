@@ -35,11 +35,13 @@ struct RaAdsrModule : Module {
 		RELEASE_INPUT,
 		GATE_INPUT,
 		RETRIG_INPUT,
+		TRIGGER_INPUT,
 		POSITION_INPUT,
 		NUM_INPUTS
 	};
 	enum OutputIds {
 		ENVELOPE_OUTPUT,
+		EOC_OUTPUT,
 		NUM_OUTPUTS
 	};
 	enum LightIds {
@@ -61,6 +63,8 @@ struct RaAdsrModule : Module {
 	float_4 attacking[4] = {};
 	float_4 env[4] = {};
 	dsp::TSchmittTrigger<float_4> trigger[4];
+	dsp::TSchmittTrigger<float_4> triggerInput[4];
+	float_4 triggerActive[4] = {};
 	dsp::ClockDivider cvDivider;
 	float_4 attackLambda[4] = {};
 	float_4 decayLambda[4] = {};
@@ -69,6 +73,7 @@ struct RaAdsrModule : Module {
 	float_4 attProp[4] = {};
 	float_4 decProp[4] = {};
 	float_4 relProp[4] = {};
+	float_4 wasResting[4] = {float_4::mask(), float_4::mask(), float_4::mask(), float_4::mask()};
 	bool positionConnected = false;
 	float positionCv = 0.f;
 	dsp::ClockDivider lightDivider;
@@ -93,9 +98,11 @@ struct RaAdsrModule : Module {
 		configInput(RELEASE_INPUT, "Release");
 		configInput(GATE_INPUT, "Gate");
 		configInput(RETRIG_INPUT, "Retrigger");
+		configInput(TRIGGER_INPUT, "Trigger");
 		configInput(POSITION_INPUT, "Position");
 
 		configOutput(ENVELOPE_OUTPUT, "Envelope");
+		configOutput(EOC_OUTPUT, "End of cycle");
 
 		cvDivider.setDivision(16);
 		lightDivider.setDivision(128);
@@ -160,12 +167,19 @@ struct RaAdsrModule : Module {
 			}
 			else {
 				float_4 oldGate = gate[c / 4];
+
+				// Trigger input: rising edge forces gate high, restarts attack
+				float_4 trigEdge = triggerInput[c / 4].process(inputs[TRIGGER_INPUT].getPolyVoltageSimd<float_4>(c));
+				triggerActive[c / 4] |= trigEdge;
+
 				if (push) {
 					gate[c / 4] = float_4::mask();
 				}
 				else {
 					gate[c / 4] = inputs[GATE_INPUT].getVoltageSimd<float_4>(c) >= 1.f;
 				}
+				gate[c / 4] |= triggerActive[c / 4];
+
 				attacking[c / 4] |= (gate[c / 4] & ~oldGate);
 
 				float_4 triggered = trigger[c / 4].process(inputs[RETRIG_INPUT].getPolyVoltageSimd<float_4>(c));
@@ -173,18 +187,28 @@ struct RaAdsrModule : Module {
 
 				attacking[c / 4] &= gate[c / 4];
 
-				float_4 target = simd::ifelse(attacking[c / 4], ATT_TARGET, simd::ifelse(gate[c / 4], sustain[c / 4], 0.f));
+				float_4 decayTarget = simd::ifelse(triggerActive[c / 4], float_4(0.f), sustain[c / 4]);
+				float_4 target = simd::ifelse(attacking[c / 4], ATT_TARGET, simd::ifelse(gate[c / 4], decayTarget, 0.f));
 				float_4 lambda = simd::ifelse(attacking[c / 4], attackLambda[c / 4], simd::ifelse(gate[c / 4], decayLambda[c / 4], releaseLambda[c / 4]));
 
 				env[c / 4] += (target - env[c / 4]) * lambda * args.sampleTime;
 
 				attacking[c / 4] &= (env[c / 4] < 1.f);
+
+				triggerActive[c / 4] &= trigEdge | (env[c / 4] > 0.01f);
 			}
 
 			outputs[ENVELOPE_OUTPUT].setVoltageSimd(10.f * env[c / 4], c);
+
+			float_4 resting = env[c / 4] < 0.01f;
+			float_4 eocTriggered = simd::ifelse(wasResting[c / 4], float_4(0.f), resting);
+			float_4 eoc = simd::ifelse(eocTriggered, float_4(10.f), float_4(0.f));
+			wasResting[c / 4] = resting;
+			outputs[EOC_OUTPUT].setVoltageSimd(eoc, c);
 		}
 
 		outputs[ENVELOPE_OUTPUT].setChannels(positionConnected ? std::max(1, inputs[POSITION_INPUT].getChannels()) : channels);
+		outputs[EOC_OUTPUT].setChannels(positionConnected ? std::max(1, inputs[POSITION_INPUT].getChannels()) : channels);
 
 		if (lightDivider.process()) {
 			lights[ATTACK_LIGHT].setBrightness(0);
@@ -421,6 +445,8 @@ struct RaAdsrWidget : ModuleWidget {
 
 		addOutput(createOutputCentered<RaPort>(mm2px(Vec(39.119, 113.115)), module, RaAdsrModule::ENVELOPE_OUTPUT));
 
+		addOutput(createOutputCentered<RaPort>(mm2px(Vec(6.604, 124.5)), module, RaAdsrModule::EOC_OUTPUT));
+		addInput(createInputCentered<RaPort>(mm2px(Vec(17.441, 124.5)), module, RaAdsrModule::TRIGGER_INPUT));
 		addInput(createInputCentered<RaPort>(mm2px(Vec(28.279, 124.5)), module, RaAdsrModule::POSITION_INPUT));
 
 		RaAdsrDisplay* display = createWidget<RaAdsrDisplay>(mm2px(Vec(0.0, 13.039)));

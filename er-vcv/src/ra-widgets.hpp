@@ -19,6 +19,8 @@ using RaSwitch3 = CKSSThree;
 
 // Buttons
 using RaButton = VCVButton;
+using RaLightButton = VCVLightButton<WhiteLight>;
+using RaLightBezel = VCVLightBezel<WhiteLight>;
 
 // Lights
 using RaRGBLight = MediumLight<RedGreenBlueLight>;
