@@ -11,9 +11,9 @@ import path from 'node:path';
 const SW = 1.0;  // base stroke width
 
 // Background gradient (override via --bg-start, --bg-end, --bg-mid)
-let BG_START = '#631D64';
-let BG_END = '#371038';
-let BG_MID = 80;
+let BG_START = '#443852';
+let BG_END = '#242425';
+let BG_MID = 33;
 
 // Widget colour by role (override via --input-color / --output-color)
 let ROLE_COLORS = {
@@ -462,17 +462,31 @@ function generateSVG(info) {
   const cx = W / 2;
   const HW = HP * 15;
 
+  // Interpolate between two hex colors: t=0 → a, t=1 → b
+  const lerpColor = (a, b, t) => {
+    const ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
+    const ar = (ah >> 16) & 0xff, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
+    const br = (bh >> 16) & 0xff, bg = (bh >> 8) & 0xff, bb = bh & 0xff;
+    const rr = Math.round(ar + (br - ar) * t);
+    const rg = Math.round(ag + (bg - ag) * t);
+    const rb = Math.round(ab + (bb - ab) * t);
+    return '#' + ((1 << 24) | (rr << 16) | (rg << 8) | rb).toString(16).slice(1);
+  };
+
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W.toFixed(2)} ${H}" width="${W.toFixed(2)}mm" height="${H}mm">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="${BG_START}"/>
-      <stop offset="${BG_MID}%" stop-color="${BG_END}"/>
-      <stop offset="100%" stop-color="${BG_END}"/>
-    </linearGradient>
-  </defs>
-  <rect width="${W.toFixed(2)}" height="${H}" fill="url(#bg)"/>
   <rect x="0.3" y="0.3" width="${(W - 0.6).toFixed(2)}" height="${H - 0.6}" fill="none" stroke="#333" stroke-width="${SW}"/>
 `;
+
+  // Background gradient — inline strips to avoid url(#id) issues in Rack
+  const STRIPS = 100;
+  const stripH = H / STRIPS;
+  for (let i = 0; i < STRIPS; i++) {
+    const yPos = i / STRIPS;  // 0..1 from top to bottom
+    const mid = BG_MID / 100;
+    const t = Math.min(yPos / mid, 1);
+    const color = lerpColor(BG_START, BG_END, t);
+    svg += `  <rect x="0" y="${(i * stripH).toFixed(3)}" width="${W.toFixed(2)}" height="${(stripH + 0.01).toFixed(3)}" fill="${color}"/>\n`;
+  }
 
   // Screws — always at corners
   const sr = ru2mm(7.5);
@@ -605,9 +619,11 @@ function generateSVG(info) {
 let filePath = 'src/ra-endless.cpp';
 let overrideHP = 0;
 let overrideColors = {};
+let allFlag = false;
 for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
-  if (arg.startsWith('--hp=')) overrideHP = parseInt(arg.slice(5), 10);
+  if (arg === '--all') allFlag = true;
+  else if (arg.startsWith('--hp=')) overrideHP = parseInt(arg.slice(5), 10);
   else if (arg.startsWith('--input-color=')) overrideColors.input = arg.slice(14);
   else if (arg.startsWith('--output-color=')) overrideColors.output = arg.slice(15);
   else if (arg.startsWith('--bg-start=')) BG_START = arg.slice(11);
@@ -617,6 +633,23 @@ for (let i = 2; i < process.argv.length; i++) {
 }
 if (overrideColors.input || overrideColors.output)
   ROLE_COLORS = { ...ROLE_COLORS, ...overrideColors };
+
+if (allFlag) {
+  const files = fs.readdirSync('src').filter(f => f.startsWith('ra-') && f.endsWith('.cpp'));
+  const dir = path.resolve('res');
+  fs.mkdirSync(dir, { recursive: true });
+  for (const f of files) {
+    const fp = path.resolve('src', f);
+    const info = parseModule(fp);
+    if (overrideHP) info.HP = overrideHP;
+    const svg = generateSVG(info);
+    const outName = f.replace(/\.cpp$/, '.svg');
+    fs.writeFileSync(path.join(dir, outName), svg);
+    console.error(`${outName} (${info.HP}hp)`);
+  }
+  process.exit(0);
+}
+
 const fullPath = path.resolve(filePath);
 
 if (!fs.existsSync(fullPath)) {
