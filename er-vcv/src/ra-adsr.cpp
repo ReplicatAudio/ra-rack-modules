@@ -385,14 +385,20 @@ struct RaAdsrDisplay : LedDisplay {
 					float cv = clamp(module->positionCv, 0.f, 1.f);
 					p = r.interpolate(Vec(cv, 1 - env));
 				} else {
-					bool attacking = module ? (simd::movemask(module->attacking[c / 4]) & (1 << (c % 4))) : false;
-					bool gate = module ? module->gate[c / 4][c % 4] : false;
+				bool attacking = module ? (simd::movemask(module->attacking[c / 4]) & (1 << (c % 4))) : false;
+				bool gate = module ? module->gate[c / 4][c % 4] : false;
+				bool trigActive = module ? (simd::movemask(module->triggerActive[c / 4]) & (1 << (c % 4))) : false;
 
-					if (attacking) {
-						float phase = envEnvToPhase(env);
-						p = r.interpolate(Vec(attTime * phase, 1 - env));
-					}
-					else if (gate) {
+				if (attacking) {
+					float phase = envEnvToPhase(env);
+					p = r.interpolate(Vec(attTime * phase, 1 - env));
+				}
+				else if (trigActive) {
+					float displayEnv = std::min(env, sustain);
+					float phase = sustain > 0.f ? envEnvToPhase(1.f - displayEnv / sustain) : 0.f;
+					p = r.interpolate(Vec(attTime + decTime + relTime * phase, 1.f - displayEnv));
+				}
+				else if (gate) {
 						float phase = envEnvToPhase(1 - (env - sustain) / (1 - sustain));
 						p = r.interpolate(Vec(attTime + decTime * phase, 1 - env));
 					}
