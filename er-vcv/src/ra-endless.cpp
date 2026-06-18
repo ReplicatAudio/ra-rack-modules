@@ -23,6 +23,8 @@ struct RaEndlessModule : Module {
     dsp::SchmittTrigger resetBtnTrigger;
     dsp::SchmittTrigger stepFwdBtnTrigger;
     dsp::SchmittTrigger stepBackBtnTrigger;
+    dsp::SchmittTrigger runBtnTrigger;
+    bool running = false;
     dsp::PulseGenerator trigPulse[NUM_TRACKS];
     dsp::PulseGenerator endPulse[NUM_TRACKS];
     dsp::PulseGenerator startPulse[NUM_TRACKS];
@@ -37,6 +39,7 @@ struct RaEndlessModule : Module {
         RESET_PARAM,
         STEP_FWD_PARAM,
         STEP_BACK_PARAM,
+        RUN_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -47,6 +50,7 @@ struct RaEndlessModule : Module {
         RESET_TRIG_INPUT,
         STEP_FWD_TRIG_INPUT,
         STEP_BACK_TRIG_INPUT,
+        RUN_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -61,6 +65,13 @@ struct RaEndlessModule : Module {
         NUM_OUTPUTS
     };
     enum LightIds {
+        RUN_LIGHT,
+        STEP_FWD_LIGHT_R,
+        STEP_FWD_LIGHT_G,
+        STEP_FWD_LIGHT_B,
+        STEP_BACK_LIGHT_R,
+        STEP_BACK_LIGHT_G,
+        STEP_BACK_LIGHT_B,
         NUM_LIGHTS
     };
 
@@ -80,6 +91,13 @@ struct RaEndlessModule : Module {
         configInput(RESET_TRIG_INPUT, "Reset trigger");
         configInput(STEP_FWD_TRIG_INPUT, "Step forward trigger");
         configInput(STEP_BACK_TRIG_INPUT, "Step back trigger");
+        configParam(RUN_PARAM, 0.f, 1.f, 0.f, "Run");
+        configInput(RUN_INPUT, "Run");
+        configLight(RUN_LIGHT, "Run");
+        for (int c = 0; c < 3; c++) {
+            configLight(STEP_FWD_LIGHT_R + c, "Step forward light");
+            configLight(STEP_BACK_LIGHT_R + c, "Step back light");
+        }
         configOutput(TRACK_A_CV_OUTPUT, "Track A pitch CV");
         configOutput(TRACK_A_TRIG_OUTPUT, "Track A step trigger");
         configOutput(TRACK_A_START_OUTPUT, "Track A sequence start");
@@ -155,6 +173,19 @@ struct RaEndlessModule : Module {
             }
         }
 
+        if (runBtnTrigger.process(params[RUN_PARAM].getValue() * 10.f))
+            running = !running;
+        bool runActive = running || inputs[RUN_INPUT].getVoltage() > 1.f;
+        lights[RUN_LIGHT].setBrightness(runActive ? 1.f : 0.f);
+
+        float glow = !runActive ? 1.f : 0.f;
+        lights[STEP_FWD_LIGHT_R].setBrightness(glow);
+        lights[STEP_FWD_LIGHT_G].setBrightness(glow);
+        lights[STEP_FWD_LIGHT_B].setBrightness(0.f);
+        lights[STEP_BACK_LIGHT_R].setBrightness(glow);
+        lights[STEP_BACK_LIGHT_G].setBrightness(glow);
+        lights[STEP_BACK_LIGHT_B].setBrightness(0.f);
+
         // Step fwd button: selected track only
         if (stepFwdBtnTrigger.process(params[STEP_FWD_PARAM].getValue() * 10.f))
             stepFwd(t);
@@ -165,14 +196,16 @@ struct RaEndlessModule : Module {
             stepBack(1);
         }
 
-        // Step fwd/back trigger inputs: both tracks
-        if (stepFwdExtTrigger.process(inputs[STEP_FWD_TRIG_INPUT].getVoltage())) {
-            stepFwd(0);
-            stepFwd(1);
-        }
-        if (stepBackExtTrigger.process(inputs[STEP_BACK_TRIG_INPUT].getVoltage())) {
-            stepBack(0);
-            stepBack(1);
+        // Step fwd/back trigger inputs: both tracks (only when run is active)
+        if (runActive) {
+            if (stepFwdExtTrigger.process(inputs[STEP_FWD_TRIG_INPUT].getVoltage())) {
+                stepFwd(0);
+                stepFwd(1);
+            }
+            if (stepBackExtTrigger.process(inputs[STEP_BACK_TRIG_INPUT].getVoltage())) {
+                stepBack(0);
+                stepBack(1);
+            }
         }
 
         for (int i = 0; i < NUM_TRACKS; i++) {
@@ -195,6 +228,51 @@ struct RaEndlessModule : Module {
             outputs[trigOutId].setVoltage(trigPulse[i].process(args.sampleTime) ? 10.f : 0.f);
             outputs[startOutId].setVoltage(startPulse[i].process(args.sampleTime) ? 10.f : 0.f);
             outputs[endOutId].setVoltage(endPulse[i].process(args.sampleTime) ? 10.f : 0.f);
+        }
+    }
+
+    json_t *dataToJson() override {
+        json_t *rootJ = json_object();
+        json_object_set_new(rootJ, "running", json_boolean(running));
+        json_object_set_new(rootJ, "selectedTrack", json_integer(selectedTrack));
+
+        json_t *tracksJ = json_array();
+        for (int t = 0; t < NUM_TRACKS; t++) {
+            json_t *trackJ = json_object();
+            json_object_set_new(trackJ, "currentPos", json_integer(currentPos[t]));
+            json_t *stepsJ = json_array();
+            for (float v : steps[t])
+                json_array_append_new(stepsJ, json_real(v));
+            json_object_set_new(trackJ, "steps", stepsJ);
+            json_array_append_new(tracksJ, trackJ);
+        }
+        json_object_set_new(rootJ, "tracks", tracksJ);
+        return rootJ;
+    }
+
+    void dataFromJson(json_t *rootJ) override {
+        json_t *runJ = json_object_get(rootJ, "running");
+        if (runJ) running = json_boolean_value(runJ);
+
+        json_t *selJ = json_object_get(rootJ, "selectedTrack");
+        if (selJ) selectedTrack = json_integer_value(selJ);
+
+        json_t *tracksJ = json_object_get(rootJ, "tracks");
+        if (tracksJ) {
+            for (int t = 0; t < NUM_TRACKS; t++) {
+                json_t *trackJ = json_array_get(tracksJ, t);
+                if (!trackJ) continue;
+                json_t *posJ = json_object_get(trackJ, "currentPos");
+                if (posJ) currentPos[t] = json_integer_value(posJ);
+                steps[t].clear();
+                json_t *stepsJ = json_object_get(trackJ, "steps");
+                if (stepsJ) {
+                    size_t i;
+                    json_t *vJ;
+                    json_array_foreach(stepsJ, i, vJ)
+                        steps[t].push_back((float)json_real_value(vJ));
+                }
+            }
         }
     }
 };
@@ -273,8 +351,12 @@ struct RaEndlessWidget : ModuleWidget {
         // CV input at y=125
         addInput(createInputCentered<PJ301MPort>(Vec(40, 125), module, RaEndlessModule::CV_INPUT));
 
+        // Run input + illuminated button at y=125
+        addInput(createInputCentered<PJ301MPort>(Vec(72, 125), module, RaEndlessModule::RUN_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(102, 125), module, RaEndlessModule::RUN_PARAM, RaEndlessModule::RUN_LIGHT));
+
         // Track select button at y=125, right of CV
-        addParam(createParamCentered<TL1105>(Vec(110, 125), module, RaEndlessModule::TRACK_SELECT_PARAM));
+        addParam(createParamCentered<TL1105>(Vec(130, 125), module, RaEndlessModule::TRACK_SELECT_PARAM));
 
         // Function controls — 3 rows, each with Btn (x=23|91) + Trig (x=57|125)
         // Row 1: WRT / REST  at y=162
@@ -290,9 +372,9 @@ struct RaEndlessWidget : ModuleWidget {
         addInput(createInputCentered<PJ301MPort>(Vec(125, 202), module, RaEndlessModule::RESET_TRIG_INPUT));
 
         // Row 3: FWD / BACK  at y=242
-        addParam(createParamCentered<TL1105>(Vec(23, 242), module, RaEndlessModule::STEP_FWD_PARAM));
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(23, 242), module, RaEndlessModule::STEP_FWD_PARAM, RaEndlessModule::STEP_FWD_LIGHT_R));
         addInput(createInputCentered<PJ301MPort>(Vec(57, 242), module, RaEndlessModule::STEP_FWD_TRIG_INPUT));
-        addParam(createParamCentered<TL1105>(Vec(91, 242), module, RaEndlessModule::STEP_BACK_PARAM));
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(91, 242), module, RaEndlessModule::STEP_BACK_PARAM, RaEndlessModule::STEP_BACK_LIGHT_R));
         addInput(createInputCentered<PJ301MPort>(Vec(125, 242), module, RaEndlessModule::STEP_BACK_TRIG_INPUT));
 
         // Outputs — Track A at y=275, Track B at y=315
