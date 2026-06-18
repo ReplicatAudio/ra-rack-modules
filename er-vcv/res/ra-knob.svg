@@ -9,7 +9,7 @@
   <circle cx="17.78" cy="2.54" r="0.8" fill="#444"/>
   <circle cx="17.78" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="0.6"/>
   <circle cx="17.78" cy="125.96" r="0.8" fill="#444"/>
-  <text x="10.16" y="3.39" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">Ra-gnawbz-4x</text>
+  <text x="10.16" y="3.39" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">Ra-knob</text>
   <circle cx="10.16" cy="10.84" r="4.80" fill="#222" stroke="#888" stroke-width="0.6" opacity="0.6"/>
   <circle cx="10.16" cy="10.84" r="1.68" fill="#333" opacity="0.4"/>
   <line x1="10.16" y1="10.84" x2="13.28" y2="10.84" stroke="#666" stroke-width="0.5" opacity="0.6"/>

@@ -1,0 +1,10 @@
+=== Pre-script SVG check ===
+length: 158
+content: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20.32 128.5\" width=\"20.32mm\" height=\"128.5mm\">\n  <rect width=\"20.32\" height=\"128.5\" fill=\"#222\"/>"
+has 20.32? true
+panelSvg: res/ra-shapes.svg
+svgFull: /run/media/mathieu/ea89ff92-4b39-4070-bc0c-1267fc838a90/Lab/er/er-vcv/res/ra-shapes.svg
+Read length: 158
+Read preview: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20.32 128.5\" width=\"20.32mm\" height=\"128.5mm\">\n  <rect width=\"20.32\" height=\"128.5\" fill=\"#222\"/>"
+vbParts: ["viewBox=\"0 0 20.32 128.5","0","0","20.32","128.5"]
+mmWidth: 20.32 HP: 4

@@ -1,0 +1,3 @@
+DEBUG panelSvg: "res/ra-shapes.svg"
+DEBUG svgFull: /run/media/mathieu/ea89ff92-4b39-4070-bc0c-1267fc838a90/Lab/er/er-vcv/res/ra-shapes.svg exists: true
+DEBUG vbMatch: null

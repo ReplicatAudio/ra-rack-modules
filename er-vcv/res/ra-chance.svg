@@ -1,3 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20.32 128.5" width="20.32mm" height="128.5mm">
-  <rect width="20.32" height="128.5" fill="#222"/>
+  <rect width="20.32" height="128.5" fill="#1a1a1a"/>
+  <rect x="0.3" y="0.3" width="19.72" height="127.9" fill="none" stroke="#333" stroke-width="0.6"/>
+  <circle cx="2.54" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="0.6"/>
+  <circle cx="2.54" cy="2.54" r="0.8" fill="#444"/>
+  <circle cx="2.54" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="0.6"/>
+  <circle cx="2.54" cy="125.96" r="0.8" fill="#444"/>
+  <circle cx="17.78" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="0.6"/>
+  <circle cx="17.78" cy="2.54" r="0.8" fill="#444"/>
+  <circle cx="17.78" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="0.6"/>
+  <circle cx="17.78" cy="125.96" r="0.8" fill="#444"/>
+  <text x="10.16" y="3.39" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">Ra-chance</text>
+  <circle cx="10.16" cy="11.85" r="3.02" fill="#222" stroke="#888" stroke-width="0.6" opacity="0.6"/>
+  <circle cx="10.16" cy="11.85" r="1.06" fill="#333" opacity="0.4"/>
+  <line x1="10.16" y1="11.85" x2="12.13" y2="11.85" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+  <text x="10.16" y="16.88" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Bias</text>
+  <circle cx="10.16" cy="23.03" r="4.01" fill="#111" stroke="#3af" stroke-width="0.7" opacity="0.7"/>
+  <circle cx="10.16" cy="23.03" r="1.40" fill="#3af" opacity="0.5"/>
+  <text x="10.16" y="29.04" fill="#3af" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Bias CV</text>
+  <circle cx="10.16" cy="34.21" r="4.01" fill="#111" stroke="#3af" stroke-width="0.7" opacity="0.7"/>
+  <circle cx="10.16" cy="34.21" r="1.40" fill="#3af" opacity="0.5"/>
+  <text x="10.16" y="40.22" fill="#3af" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Trigger</text>
+  <circle cx="10.16" cy="46.74" r="4.01" fill="#111" stroke="#fa3" stroke-width="0.7" opacity="0.7"/>
+  <circle cx="10.16" cy="46.74" r="1.40" fill="#fa3" opacity="0.5"/>
+  <text x="10.16" y="52.75" fill="#fa3" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">outIds[i]</text>
+  <circle cx="10.16" cy="46.74" r="4.01" fill="#111" stroke="#fa3" stroke-width="0.7" opacity="0.7"/>
+  <circle cx="10.16" cy="46.74" r="1.40" fill="#fa3" opacity="0.5"/>
+  <text x="10.16" y="52.75" fill="#fa3" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">outIds[i]</text>
+  <circle cx="10.16" cy="46.74" r="4.01" fill="#111" stroke="#fa3" stroke-width="0.7" opacity="0.7"/>
+  <circle cx="10.16" cy="46.74" r="1.40" fill="#fa3" opacity="0.5"/>
+  <text x="10.16" y="52.75" fill="#fa3" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">outIds[i]</text>
+  <circle cx="10.16" cy="46.74" r="4.01" fill="#111" stroke="#fa3" stroke-width="0.7" opacity="0.7"/>
+  <circle cx="10.16" cy="46.74" r="1.40" fill="#fa3" opacity="0.5"/>
+  <text x="10.16" y="52.75" fill="#fa3" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">outIds[i]</text>
+  <circle cx="10.16" cy="46.74" r="4.01" fill="#111" stroke="#fa3" stroke-width="0.7" opacity="0.7"/>
+  <circle cx="10.16" cy="46.74" r="1.40" fill="#fa3" opacity="0.5"/>
+  <text x="10.16" y="52.75" fill="#fa3" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">outIds[i]</text>
+  <circle cx="10.16" cy="46.74" r="4.01" fill="#111" stroke="#fa3" stroke-width="0.7" opacity="0.7"/>
+  <circle cx="10.16" cy="46.74" r="1.40" fill="#fa3" opacity="0.5"/>
+  <text x="10.16" y="52.75" fill="#fa3" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">outIds[i]</text>
+  <circle cx="10.16" cy="46.74" r="4.01" fill="#111" stroke="#fa3" stroke-width="0.7" opacity="0.7"/>
+  <circle cx="10.16" cy="46.74" r="1.40" fill="#fa3" opacity="0.5"/>
+  <text x="10.16" y="52.75" fill="#fa3" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">outIds[i]</text>
+  <circle cx="10.16" cy="46.74" r="4.01" fill="#111" stroke="#fa3" stroke-width="0.7" opacity="0.7"/>
+  <circle cx="10.16" cy="46.74" r="1.40" fill="#fa3" opacity="0.5"/>
+  <text x="10.16" y="52.75" fill="#fa3" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">outIds[i]</text>
 </svg>
