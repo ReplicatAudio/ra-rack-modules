@@ -192,6 +192,7 @@ struct RaSchemeModule : Module {
 
 struct SchemeTextField : LedDisplayTextField {
     RaSchemeModule *schemeModule;
+    float lineHeight;
 
     SchemeTextField() {
         textOffset = Vec(8, 8);
@@ -199,6 +200,19 @@ struct SchemeTextField : LedDisplayTextField {
         bgColor = nvgRGBA(0x0a, 0x0a, 0x0a, 220);
         placeholder = "Enter Scheme expression...";
         multiline = true;
+
+        {
+            math::Vec ws = APP->window->getSize();
+            nvgBeginFrame(APP->window->vg, ws.x, ws.y, APP->window->pixelRatio);
+            nvgFontSize(APP->window->vg, 13);
+            nvgFontFaceId(APP->window->vg, APP->window->uiFont->handle);
+            nvgTextAlign(APP->window->vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+            float asc, desc;
+            nvgTextMetrics(APP->window->vg, &asc, &desc, &lineHeight);
+            nvgEndFrame(APP->window->vg);
+        }
+        if (lineHeight < 1.f)
+            lineHeight = 15.f;
     }
 
     void draw(const DrawArgs &args) override {
@@ -233,6 +247,43 @@ struct SchemeTextField : LedDisplayTextField {
         LedDisplayTextField::onSelectKey(e);
     }
 
+    void step() override {
+        int lineNum = 0;
+        for (int i = 0; i < cursor && i < (int)text.size(); i++) {
+            if (text[i] == '\n') lineNum++;
+        }
+
+        int totalLines = 1;
+        for (char c : text) {
+            if (c == '\n') totalLines++;
+        }
+
+        float contentHeight = totalLines * lineHeight;
+        float maxOffset = 8;
+        float minOffset = -(contentHeight - box.size.y);
+
+        if (contentHeight <= box.size.y - 8) {
+            textOffset.y = 8;
+            LedDisplayTextField::step();
+            return;
+        }
+
+        float cursorTop = textOffset.y + lineNum * lineHeight;
+        float cursorBottom = cursorTop + lineHeight;
+
+        if (cursorTop < 0) {
+            textOffset.y = -lineNum * lineHeight;
+        } else if (cursorBottom > box.size.y) {
+            textOffset.y = box.size.y - (lineNum + 1) * lineHeight;
+        }
+
+        if (textOffset.y > maxOffset)
+            textOffset.y = maxOffset;
+        if (textOffset.y < minOffset)
+            textOffset.y = minOffset;
+
+        LedDisplayTextField::step();
+    }
 };
 
 
