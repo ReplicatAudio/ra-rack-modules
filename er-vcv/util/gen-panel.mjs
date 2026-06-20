@@ -9,11 +9,14 @@ import path from 'node:path';
 // Configuration
 // ============================================================
 
+
+//start: '#443852',
+//242425
 let CFG = {
   strokeWidth: 1.5,
   bg: {
     start: '#443852',
-    end: '#242425',
+    end: '#221421',
     mid: 33,
   },
   colors: {
@@ -551,14 +554,18 @@ function generateSVG(info) {
 `;
 
   // Background gradient — inline strips to avoid url(#id) issues in Rack
-  const STRIPS = 100;
-  const stripH = H / STRIPS;
-  for (let i = 0; i < STRIPS; i++) {
-    const yPos = i / STRIPS;  // 0..1 from top to bottom
-    const mid = CFG.bg.mid / 100;
-    const t = Math.min(yPos / mid, 1);
-    const color = lerpColor(CFG.bg.start, CFG.bg.end, t);
-    svg += `  <rect x="0" y="${(i * stripH).toFixed(3)}" width="${W.toFixed(2)}" height="${(stripH + 0.01).toFixed(3)}" fill="${color}"/>\n`;
+  if (CFG.bg.start === CFG.bg.end) {
+    svg += `  <rect x="0" y="0" width="${W.toFixed(2)}" height="${H}" fill="${CFG.bg.start}"/>\n`;
+  } else {
+    const STRIPS = 100;
+    const stripH = H / STRIPS;
+    for (let i = 0; i < STRIPS; i++) {
+      const yPos = i / STRIPS;  // 0..1 from top to bottom
+      const mid = CFG.bg.mid / 100;
+      const t = Math.min(yPos / mid, 1);
+      const color = lerpColor(CFG.bg.start, CFG.bg.end, t);
+      svg += `  <rect x="0" y="${(i * stripH).toFixed(3)}" width="${W.toFixed(2)}" height="${(stripH + 0.01).toFixed(3)}" fill="${color}"/>\n`;
+    }
   }
 
   // Screws — always at corners

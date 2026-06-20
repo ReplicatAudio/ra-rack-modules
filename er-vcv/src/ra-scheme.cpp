@@ -40,6 +40,7 @@ struct RaSchemeModule : Module {
 
     std::atomic<float> outputValue{0.f};
     bool evalError = false;
+    int expressionVersion = 0;
     float lastA = 0.f, lastB = 0.f, lastC = 0.f, lastD = 0.f;
     int evalCounter = 0;
     static const int EVAL_INTERVAL = 64;
@@ -74,6 +75,7 @@ struct RaSchemeModule : Module {
         if (exprText != text) {
             exprText = text;
             textChanged = true;
+            expressionVersion++;
         }
     }
 
@@ -205,12 +207,6 @@ struct SchemeTextField : LedDisplayTextField {
         LedDisplayTextField::onSelectKey(e);
     }
 
-    void onDeselect(const DeselectEvent &e) override {
-        if (schemeModule) {
-            schemeModule->setExpression(text);
-        }
-        LedDisplayTextField::onDeselect(e);
-    }
 };
 
 
@@ -245,8 +241,43 @@ struct OutputValueDisplay : LedDisplay {
 };
 
 
+struct ActionButton : Widget {
+    std::string label;
+    std::function<void()> onClick;
+
+    void draw(const DrawArgs &args) override {
+        nvgBeginPath(args.vg);
+        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 3);
+        nvgFillColor(args.vg, nvgRGB(0x33, 0x33, 0x33));
+        nvgFill(args.vg);
+
+        nvgBeginPath(args.vg);
+        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 3);
+        nvgStrokeWidth(args.vg, 1.f);
+        nvgStrokeColor(args.vg, nvgRGB(0x55, 0x55, 0x55));
+        nvgStroke(args.vg);
+
+        nvgFontFaceId(args.vg, APP->window->uiFont->handle);
+        nvgFontSize(args.vg, 10);
+        nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+        nvgFillColor(args.vg, nvgRGB(0xbb, 0xbb, 0xbb));
+        nvgText(args.vg, box.size.x / 2, box.size.y / 2, label.c_str(), NULL);
+    }
+
+    void onButton(const ButtonEvent &e) override {
+        if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS) {
+            if (onClick) onClick();
+            e.consume(this);
+        }
+        Widget::onButton(e);
+    }
+};
+
+
 struct RaSchemeWidget : ModuleWidget {
     SchemeTextField *textField;
+    bool resetRequested = false;
+    int lastExpressionVersion = -1;
 
     RaSchemeWidget(RaSchemeModule *module) {
         setModule(module);
@@ -290,13 +321,36 @@ struct RaSchemeWidget : ModuleWidget {
         display->box.size = Vec(74, 28);
         display->module = module;
         addChild(display);
+
+        auto *saveBtn = new ActionButton();
+        saveBtn->box.pos = Vec(12, 275);
+        saveBtn->box.size = Vec(44, 22);
+        saveBtn->label = "Save";
+        saveBtn->onClick = [this]() {
+            if (this->module) ((RaSchemeModule*)this->module)->setExpression(textField->text);
+        };
+        addChild(saveBtn);
+
+        auto *resetBtn = new ActionButton();
+        resetBtn->box.pos = Vec(154, 275);
+        resetBtn->box.size = Vec(44, 22);
+        resetBtn->label = "Reset";
+        resetBtn->onClick = [this]() {
+            resetRequested = true;
+        };
+        addChild(resetBtn);
     }
 
     void step() override {
-        if (module && textField && (APP->event->getSelectedWidget() != textField)) {
-            std::string expr = ((RaSchemeModule*)module)->getExpression();
-            if (textField->text != expr) {
-                textField->text = expr;
+        if (module && textField) {
+            auto *m = (RaSchemeModule*)module;
+            if (resetRequested) {
+                resetRequested = false;
+                lastExpressionVersion = m->expressionVersion;
+                textField->text = m->getExpression();
+            } else if (m->expressionVersion != lastExpressionVersion) {
+                lastExpressionVersion = m->expressionVersion;
+                textField->text = m->getExpression();
             }
         }
         ModuleWidget::step();
