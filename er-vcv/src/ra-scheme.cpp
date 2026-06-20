@@ -28,6 +28,8 @@ struct RaSchemeModule : Module {
         NUM_OUTPUTS
     };
     enum LightIds {
+        STATUS_GREEN_LIGHT,
+        STATUS_RED_LIGHT,
         NUM_LIGHTS
     };
 
@@ -37,6 +39,7 @@ struct RaSchemeModule : Module {
     bool textChanged = true;
 
     std::atomic<float> outputValue{0.f};
+    bool evalError = false;
     float lastA = 0.f, lastB = 0.f, lastC = 0.f, lastD = 0.f;
     int evalCounter = 0;
     static const int EVAL_INTERVAL = 64;
@@ -52,6 +55,8 @@ struct RaSchemeModule : Module {
         configInput(C_INPUT, "C");
         configInput(D_INPUT, "D");
         configOutput(OUT_OUTPUT, "Out");
+        configLight(STATUS_GREEN_LIGHT, "Status green");
+        configLight(STATUS_RED_LIGHT, "Status red");
 
         sc = s7_init();
         exprText = "(+ a b c d)";
@@ -114,18 +119,32 @@ struct RaSchemeModule : Module {
                     expr = exprText;
                 }
 
+                bool error = false;
                 if (!expr.empty()) {
                     s7_pointer result = s7_eval_c_string(sc, expr.c_str());
                     if (s7_is_real(result)) {
-                        outputValue = (float)s7_real(result);
+                        float v = (float)s7_real(result);
+                        if (std::isnan(v)) {
+                            error = true;
+                        } else {
+                            outputValue = v;
+                        }
                     } else if (s7_is_integer(result)) {
                         outputValue = (float)s7_integer(result);
+                    } else {
+                        error = true;
                     }
+                } else {
+                    error = true;
                 }
+                evalError = error;
             }
         }
 
         outputs[OUT_OUTPUT].setVoltage(outputValue);
+
+        lights[STATUS_GREEN_LIGHT].setBrightness(evalError ? 0.f : 1.f);
+        lights[STATUS_RED_LIGHT].setBrightness(evalError ? 1.f : 0.f);
     }
 
     json_t *dataToJson() override {
@@ -260,6 +279,11 @@ struct RaSchemeWidget : ModuleWidget {
         addChild(textField);
 
         addOutput(createOutputCentered<RaPort>(Vec(105, 250), module, RaSchemeModule::OUT_OUTPUT));
+
+        addChild(createLightCentered<TinyLight<GreenLight>>(
+            Vec(185, 250), module, RaSchemeModule::STATUS_GREEN_LIGHT));
+        addChild(createLightCentered<TinyLight<RedLight>>(
+            Vec(185, 250), module, RaSchemeModule::STATUS_RED_LIGHT));
 
         auto *display = new OutputValueDisplay();
         display->box.pos = Vec(68, 272);
