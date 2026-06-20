@@ -196,7 +196,7 @@ struct SchemeTextField : LedDisplayTextField {
 
     SchemeTextField() {
         textOffset = Vec(8, 8);
-        color = nvgRGB(0x88, 0xcc, 0x44);
+        color = nvgRGB(0x33, 0xcc, 0x33);
         bgColor = nvgRGBA(0x0a, 0x0a, 0x0a, 220);
         placeholder = "Enter Scheme expression...";
         multiline = true;
@@ -312,7 +312,7 @@ struct OutputValueDisplay : LedDisplay {
         char text[16];
         snprintf(text, sizeof(text), "%.2fV", v);
 
-        nvgFillColor(args.vg, nvgRGB(0x88, 0xcc, 0x44));
+        nvgFillColor(args.vg, nvgRGB(0x33, 0xcc, 0x33));
         nvgText(args.vg, box.size.x / 2, box.size.y / 2, text, NULL);
     }
 };
