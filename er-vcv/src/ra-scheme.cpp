@@ -59,7 +59,7 @@ struct RaSchemeModule : Module {
         configOutput(OUT_OUTPUT, "Out");
 
         sc = s7_init();
-        exprText = "(+ a b c d)";
+        exprText = "; ra-scheme module\n; s7 scheme interpreter\n+ a b c d";
     }
 
     ~RaSchemeModule() {
