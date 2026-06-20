@@ -16,6 +16,7 @@ extern Model *modelRaAdd;
 extern Model *modelRaSeer;
 extern Model *modelRaBlank;
 extern Model *modelRaAdsr;
+extern Model *modelRaKlock;
 extern Model *modelRaButtons;
 
 void init(Plugin *p) {
@@ -33,5 +34,6 @@ void init(Plugin *p) {
     p->addModel(modelRaSeer);
     p->addModel(modelRaBlank);
     p->addModel(modelRaAdsr);
+    p->addModel(modelRaKlock);
     p->addModel(modelRaButtons);
 }

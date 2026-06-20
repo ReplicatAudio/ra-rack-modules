@@ -39,6 +39,7 @@ const WIDGET_INFO = {
   RaRGBLight: { kind: 'bezel', rad: 9 },
   MediumLight: { kind: 'bezel', rad: 9 },
   TinyLight: { kind: 'bezel', rad: 4 },
+  VCVLightSlider: { kind: 'slider', hw: 7.5, hh: 20 },
   RaScrew: { kind: 'screw', rad: 7.5 },
 };
 
@@ -291,21 +292,33 @@ function processBlock(lines, ctx, components, loopVars = {}) {
     }
 
     // Detect display creation: auto *display = new SomeDisplay();
-    const dispMatch = line.match(/^\s*(?:auto\s*)?\*?\s*\w+\s*=\s*new\s+(\w+Display)\(/);
+    // or: SomeDisplay* display = createWidget<SomeDisplay>(...)
+    const dispMatch = line.match(/^\s*(?:\w+\s*\*?\s+)?\w+\s*=\s*(?:new\s+|createWidget<)(\w+Display)\s*[^(]*\(/);
     if (dispMatch) {
       // Look at next lines for ->box.pos = Vec(x, y) and ->box.size = Vec(w, h)
       let pos = null, size = null;
       for (let k = i; k < Math.min(i + 5, lines.length); k++) {
         const sub = lines[k].trim();
-        const posM = sub.match(/->box\.pos\s*=\s*Vec\(([^)]+)\)/);
-        const szM = sub.match(/->box\.size\s*=\s*Vec\(([^)]+)\)/);
+        const posM = sub.match(/->box\.pos\s*=\s*(?:mm2px\()?\s*Vec\(([^)]+)\)\s*\)?/);
+        const szM = sub.match(/->box\.size\s*=\s*(?:mm2px\()?\s*Vec\(([^)]+)\)\s*\)?/);
         if (posM) {
           const [px, py] = posM[1].split(',').map(s => ctx.resolve(s.trim()));
-          pos = { x: px, y: py };
+          const isMM = posM[0].includes('mm2px(');
+          pos = { x: isMM && isFinite(px) ? px * 15 / 5.08 : px, y: isMM && isFinite(py) ? py * 15 / 5.08 : py };
         }
         if (szM) {
           const [sw, sh] = szM[1].split(',').map(s => ctx.resolve(s.trim()));
-          size = { w: sw, h: sh };
+          const isMM = szM[0].includes('mm2px(');
+          size = { w: isMM && isFinite(sw) ? sw * 15 / 5.08 : sw, h: isMM && isFinite(sh) ? sh * 15 / 5.08 : sh };
+        }
+      }
+      // If no separate ->box.pos line, extract position from createWidget args
+      if (!pos) {
+        const createPosM = line.match(/createWidget<\w+Display>\s*\(\s*(?:mm2px\()?\s*Vec\(([^)]+)\)/);
+        if (createPosM) {
+          const [px, py] = createPosM[1].split(',').map(s => ctx.resolve(s.trim()));
+          const isMM = createPosM[0].includes('mm2px(');
+          pos = { x: isMM && isFinite(px) ? px * 15 / 5.08 : px, y: isMM && isFinite(py) ? py * 15 / 5.08 : py };
         }
       }
       components.push({ kind: 'display', pos, size });
@@ -428,33 +441,33 @@ function parseComponentLine(line, ctx) {
   const patterns = [
     // createLightParamCentered<Type>(Vec(x, y), module, PARAM, LIGHT)
     {
-      re: /addParam\(createLightParamCentered<([^>]+(?:<[^>]+>)?)>\s*\(Vec\(([^,]+),\s*([^)]+)\),\s*module,\s*([^,]+),\s*([^)]+)\)\)/,
+      re: /addParam\(createLightParamCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^,]+),\s*([^)]+)\)\)/,
       role: 'param',
       isBezel: true,
     },
     // createParamCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /addParam\(createParamCentered<([^>]+(?:<[^>]+>)?)>\s*\(Vec\(([^,]+),\s*([^)]+)\),\s*module,\s*([^)]+)\)\)/,
+      re: /addParam\(createParamCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)\)/,
       role: 'param',
     },
     // createInputCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /addInput\(createInputCentered<([^>]+(?:<[^>]+>)?)>\s*\(Vec\(([^,]+),\s*([^)]+)\),\s*module,\s*([^)]+)\)\)/,
+      re: /addInput\(createInputCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)\)/,
       role: 'input',
     },
     // createOutputCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /addOutput\(createOutputCentered<([^>]+(?:<[^>]+>)?)>\s*\(Vec\(([^,]+),\s*([^)]+)\),\s*module,\s*([^)]+)\)\)/,
+      re: /addOutput\(createOutputCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)\)/,
       role: 'output',
     },
     // createLightCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /addChild\(createLightCentered<([^>]+(?:<[^>]+>)?)>\s*\(Vec\(([^,]+),\s*([^)]+)\),\s*module,\s*([^)]+)\)\)/,
+      re: /addChild\(createLightCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)\)/,
       role: 'light',
     },
     // createWidget<Type>(Vec(x, y)) — screws
     {
-      re: /addChild\(createWidget<([^>]+)>\(Vec\(([^,]+),\s*([^)]+)\)\)\)/,
+      re: /addChild\(createWidget<([^>]+)>\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?\)\)/,
       role: 'widget',
     },
   ];
@@ -463,8 +476,13 @@ function parseComponentLine(line, ctx) {
     const m = line.match(pat.re);
     if (m) {
       const typeStr = m[1];
-      const x = ctx.resolve(m[2]);
-      const y = ctx.resolve(m[3]);
+      const isMM = m[0].includes('mm2px(');
+      let x = ctx.resolve(m[2]);
+      let y = ctx.resolve(m[3]);
+      if (isMM && isFinite(x) && isFinite(y)) {
+        x = x * 15 / 5.08;
+        y = y * 15 / 5.08;
+      }
       const enumName = m[4] || '';
       const lightEnum = m[5] || '';
 
@@ -479,8 +497,9 @@ function parseComponentLine(line, ctx) {
       // Determine base info
       const wi = resolveBaseType(typeStr);
 
-      // For VCVLightBezel used as param (createLightParamCentered), it's a bezel
-      const finalKind = pat.isBezel ? 'bezel' : (wi ? wi.kind : 'unknown');
+      // For VCVLightBezel used as param (createLightParamCentered), default to bezel
+      // if no widget info found; prefer resolved kind otherwise
+      const finalKind = wi ? wi.kind : (pat.isBezel ? 'bezel' : 'unknown');
 
       const component = {
         kind: finalKind,
@@ -599,6 +618,16 @@ function generateSVG(info) {
     }
 
     switch (w.kind) {
+      case 'slider': {
+        const sw = ru2mm(w.hw || 5);
+        const sh = ru2mm(w.hh || 15);
+        svg += `  <rect x="${(mx - sw).toFixed(2)}" y="${(my - sh).toFixed(2)}" width="${(sw * 2).toFixed(2)}" height="${(sh * 2).toFixed(2)}" rx="1.5" fill="#1a1a1a" stroke="${color}" stroke-width="${CFG.strokeWidth}" opacity="0.5"/>\n`;
+        if (label) {
+          const ly = my + sh + 2.0;
+          svg += `  <text x="${mx.toFixed(2)}" y="${ly.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">${label}</text>\n`;
+        }
+        break;
+      }
       case 'jack': {
         const r = ru2mm(w.rad);
         svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#111" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.7"/>\n`;

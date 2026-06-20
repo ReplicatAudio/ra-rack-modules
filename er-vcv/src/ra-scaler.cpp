@@ -42,12 +42,10 @@ struct RaScalerModule : Module {
         float in = inputs[CV_INPUT].getVoltage();
         float scale = params[SCALE_PARAM].getValue();
 
-        float scaled;
         if (params[POWER_PARAM].getValue() > 0.5f) {
-            scaled = (in >= 0.f) ? powf(in, scale) : -powf(-in, scale);
-        } else {
-            scaled = in * scale;
+            scale = scale * scale;
         }
+        float scaled = in * scale;
 
         int range = (int)std::round(params[RANGE_PARAM].getValue());
         float fullScale;

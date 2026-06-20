@@ -109,4 +109,62 @@
   <circle cx="43.18" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
   <circle cx="43.18" cy="125.96" r="0.8" fill="#444"/>
   <text x="22.86" y="3.39" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">Ra-adsr</text>
+  <rect x="0.00" y="13.04" width="45.72" height="21.22" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
+  <rect x="4.06" y="48.68" width="5.08" height="13.55" rx="1.5" fill="#1a1a1a" stroke="#888" stroke-width="1.5" opacity="0.5"/>
+  <text x="6.60" y="64.23" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Attack</text>
+  <rect x="14.90" y="48.68" width="5.08" height="13.55" rx="1.5" fill="#1a1a1a" stroke="#888" stroke-width="1.5" opacity="0.5"/>
+  <text x="17.44" y="64.23" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Decay</text>
+  <rect x="25.74" y="48.68" width="5.08" height="13.55" rx="1.5" fill="#1a1a1a" stroke="#888" stroke-width="1.5" opacity="0.5"/>
+  <text x="28.28" y="64.23" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Sustain</text>
+  <rect x="36.58" y="48.68" width="5.08" height="13.55" rx="1.5" fill="#1a1a1a" stroke="#888" stroke-width="1.5" opacity="0.5"/>
+  <text x="39.12" y="64.23" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Release</text>
+  <circle cx="6.60" cy="80.60" r="3.02" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="6.60" cy="80.60" r="1.06" fill="#333" opacity="0.4"/>
+  <line x1="6.60" y1="80.60" x2="8.57" y2="80.60" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+  <text x="6.60" y="85.63" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Attack CV</text>
+  <circle cx="17.44" cy="80.63" r="3.02" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="17.44" cy="80.63" r="1.06" fill="#333" opacity="0.4"/>
+  <line x1="17.44" y1="80.63" x2="19.41" y2="80.63" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+  <text x="17.44" y="85.65" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Decay CV</text>
+  <circle cx="28.28" cy="80.60" r="3.02" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="28.28" cy="80.60" r="1.06" fill="#333" opacity="0.4"/>
+  <line x1="28.28" y1="80.60" x2="30.24" y2="80.60" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+  <text x="28.28" y="85.63" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Sustain CV</text>
+  <circle cx="39.12" cy="80.60" r="3.02" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="39.12" cy="80.60" r="1.06" fill="#333" opacity="0.4"/>
+  <line x1="39.12" y1="80.60" x2="41.08" y2="80.60" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+  <text x="39.12" y="85.63" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Release CV</text>
+  <circle cx="6.60" cy="113.11" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+  <circle cx="6.60" cy="113.11" r="1.26" fill="#333" opacity="0.5"/>
+  <text x="6.60" y="118.72" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">PUSH</text>
+  <circle cx="6.60" cy="96.88" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="6.60" cy="96.88" r="1.40" fill="#62a0ea" opacity="0.5"/>
+  <text x="6.60" y="102.90" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Attack</text>
+  <circle cx="17.44" cy="96.86" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="17.44" cy="96.86" r="1.40" fill="#62a0ea" opacity="0.5"/>
+  <text x="17.44" y="102.87" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Decay</text>
+  <circle cx="28.28" cy="96.89" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="28.28" cy="96.89" r="1.40" fill="#62a0ea" opacity="0.5"/>
+  <text x="28.28" y="102.90" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Sustain</text>
+  <circle cx="39.12" cy="96.89" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="39.12" cy="96.89" r="1.40" fill="#62a0ea" opacity="0.5"/>
+  <text x="39.12" y="102.90" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Release</text>
+  <circle cx="17.44" cy="113.11" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="17.44" cy="113.11" r="1.40" fill="#62a0ea" opacity="0.5"/>
+  <text x="17.44" y="119.13" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Gate</text>
+  <circle cx="28.28" cy="113.11" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="28.28" cy="113.11" r="1.40" fill="#62a0ea" opacity="0.5"/>
+  <text x="28.28" y="119.13" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Retrigger</text>
+  <circle cx="39.12" cy="113.11" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="39.12" cy="113.11" r="1.40" fill="#CF5DD0" opacity="0.5"/>
+  <text x="39.12" y="119.13" fill="#CF5DD0" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Envelope</text>
+  <circle cx="6.60" cy="124.50" r="4.01" fill="#111" stroke="#CF5DD0" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="6.60" cy="124.50" r="1.40" fill="#CF5DD0" opacity="0.5"/>
+  <text x="6.60" y="130.51" fill="#CF5DD0" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">End of cycle</text>
+  <circle cx="17.44" cy="124.50" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="17.44" cy="124.50" r="1.40" fill="#62a0ea" opacity="0.5"/>
+  <text x="17.44" y="130.51" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Trigger</text>
+  <circle cx="28.28" cy="124.50" r="4.01" fill="#111" stroke="#62a0ea" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="28.28" cy="124.50" r="1.40" fill="#62a0ea" opacity="0.5"/>
+  <text x="28.28" y="130.51" fill="#62a0ea" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Position</text>
 </svg>
