@@ -15,13 +15,13 @@ import path from 'node:path';
 let CFG = {
   strokeWidth: 1.5,
   bg: {
-    start: '#443852',
+    start: '#423558',
     end: '#221421',
     mid: 33,
   },
   colors: {
-    input: '#62a0ea',
-    output: '#CF5DD0',
+    input: '#14B274',
+    output: '#FFB93D',
   },
 };
 
