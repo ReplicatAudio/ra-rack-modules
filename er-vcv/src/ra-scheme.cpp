@@ -2,6 +2,7 @@
 #include "s7.h"
 #include <mutex>
 #include <cmath>
+#include <atomic>
 
 using namespace rack;
 
@@ -9,6 +10,10 @@ extern Plugin *pluginInstance;
 
 struct RaSchemeModule : Module {
     enum ParamIds {
+        A_PARAM,
+        B_PARAM,
+        C_PARAM,
+        D_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -31,13 +36,17 @@ struct RaSchemeModule : Module {
     std::mutex textMutex;
     bool textChanged = true;
 
-    float outputValue = 0.f;
+    std::atomic<float> outputValue{0.f};
     float lastA = 0.f, lastB = 0.f, lastC = 0.f, lastD = 0.f;
     int evalCounter = 0;
     static const int EVAL_INTERVAL = 64;
 
     RaSchemeModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+        configParam(A_PARAM, -10.f, 10.f, 0.f, "A", " V");
+        configParam(B_PARAM, -10.f, 10.f, 0.f, "B", " V");
+        configParam(C_PARAM, -10.f, 10.f, 0.f, "C", " V");
+        configParam(D_PARAM, -10.f, 10.f, 0.f, "D", " V");
         configInput(A_INPUT, "A");
         configInput(B_INPUT, "B");
         configInput(C_INPUT, "C");
@@ -72,10 +81,10 @@ struct RaSchemeModule : Module {
         if (++evalCounter >= EVAL_INTERVAL) {
             evalCounter = 0;
 
-            float a = inputs[A_INPUT].getVoltage();
-            float b = inputs[B_INPUT].getVoltage();
-            float c = inputs[C_INPUT].getVoltage();
-            float d = inputs[D_INPUT].getVoltage();
+            float a = inputs[A_INPUT].isConnected() ? inputs[A_INPUT].getVoltage() : params[A_PARAM].getValue();
+            float b = inputs[B_INPUT].isConnected() ? inputs[B_INPUT].getVoltage() : params[B_PARAM].getValue();
+            float c = inputs[C_INPUT].isConnected() ? inputs[C_INPUT].getVoltage() : params[C_PARAM].getValue();
+            float d = inputs[D_INPUT].isConnected() ? inputs[D_INPUT].getVoltage() : params[D_PARAM].getValue();
 
             bool inputsChanged = (std::abs(a - lastA) > 0.001f) ||
                                  (std::abs(b - lastB) > 0.001f) ||
@@ -186,6 +195,37 @@ struct SchemeTextField : LedDisplayTextField {
 };
 
 
+struct OutputValueDisplay : LedDisplay {
+    RaSchemeModule *module;
+
+    void draw(const DrawArgs &args) override {
+        if (!module) return;
+
+        nvgBeginPath(args.vg);
+        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 3);
+        nvgFillColor(args.vg, nvgRGB(0x0a, 0x0a, 0x0a));
+        nvgFill(args.vg);
+
+        nvgBeginPath(args.vg);
+        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 3);
+        nvgStrokeWidth(args.vg, 1.f);
+        nvgStrokeColor(args.vg, nvgRGB(0x33, 0x33, 0x33));
+        nvgStroke(args.vg);
+
+        nvgFontFaceId(args.vg, APP->window->uiFont->handle);
+        nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+        nvgFontSize(args.vg, 14);
+
+        float v = module->outputValue.load(std::memory_order_relaxed);
+        char text[16];
+        snprintf(text, sizeof(text), "%.2fV", v);
+
+        nvgFillColor(args.vg, nvgRGB(0x88, 0xcc, 0x44));
+        nvgText(args.vg, box.size.x / 2, box.size.y / 2, text, NULL);
+    }
+};
+
+
 struct RaSchemeWidget : ModuleWidget {
     SchemeTextField *textField;
 
@@ -198,16 +238,21 @@ struct RaSchemeWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        float inX[] = {26, 67, 108, 149};
-        float inY = 45;
-        addInput(createInputCentered<RaPort>(Vec(inX[0], inY), module, RaSchemeModule::A_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(inX[1], inY), module, RaSchemeModule::B_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(inX[2], inY), module, RaSchemeModule::C_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(inX[3], inY), module, RaSchemeModule::D_INPUT));
+        float colX[] = {26, 67, 108, 149};
+        float inY = 38;
+        for (int i = 0; i < 4; i++) {
+            addInput(createInputCentered<RaPort>(Vec(colX[i], inY), module, RaSchemeModule::A_INPUT + i));
+        }
+
+        float knobY = 66;
+        addParam(createParamCentered<RaKnobSmall>(Vec(colX[0], knobY), module, RaSchemeModule::A_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(colX[1], knobY), module, RaSchemeModule::B_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(colX[2], knobY), module, RaSchemeModule::C_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(colX[3], knobY), module, RaSchemeModule::D_PARAM));
 
         textField = new SchemeTextField();
-        textField->box.pos = Vec(12, 70);
-        textField->box.size = Vec(186, 145);
+        textField->box.pos = Vec(12, 92);
+        textField->box.size = Vec(186, 130);
         textField->schemeModule = module;
         if (module) {
             textField->text = module->getExpression();
@@ -215,6 +260,12 @@ struct RaSchemeWidget : ModuleWidget {
         addChild(textField);
 
         addOutput(createOutputCentered<RaPort>(Vec(105, 250), module, RaSchemeModule::OUT_OUTPUT));
+
+        auto *display = new OutputValueDisplay();
+        display->box.pos = Vec(68, 272);
+        display->box.size = Vec(74, 28);
+        display->module = module;
+        addChild(display);
     }
 
     void step() override {
