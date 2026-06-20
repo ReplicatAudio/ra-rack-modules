@@ -28,10 +28,11 @@ struct RaSchemeModule : Module {
         NUM_OUTPUTS
     };
     enum LightIds {
-        STATUS_GREEN_LIGHT,
-        STATUS_RED_LIGHT,
         NUM_LIGHTS
     };
+
+    std::string errorMessage;
+    mutable std::mutex errorMutex;
 
     s7_scheme *sc = nullptr;
     std::string exprText;
@@ -56,8 +57,6 @@ struct RaSchemeModule : Module {
         configInput(C_INPUT, "C");
         configInput(D_INPUT, "D");
         configOutput(OUT_OUTPUT, "Out");
-        configLight(STATUS_GREEN_LIGHT, "Status green");
-        configLight(STATUS_RED_LIGHT, "Status red");
 
         sc = s7_init();
         exprText = "(+ a b c d)";
@@ -131,20 +130,42 @@ struct RaSchemeModule : Module {
                         && evalExpr.find_first_of(" \t\n\r", start + 1) != std::string::npos) {
                         evalExpr = "(" + evalExpr + ")";
                     }
+
+                    s7_pointer errorPort = s7_open_output_string(sc);
+                    s7_pointer oldErrorPort = s7_set_current_error_port(sc, errorPort);
+
                     s7_pointer result = s7_eval_c_string(sc, evalExpr.c_str());
-                    if (s7_is_real(result)) {
-                        float v = (float)s7_real(result);
-                        if (std::isnan(v)) {
-                            error = true;
-                        } else {
-                            outputValue = v;
-                        }
-                    } else if (s7_is_integer(result)) {
-                        outputValue = (float)s7_integer(result);
-                    } else {
+
+                    s7_set_current_error_port(sc, oldErrorPort);
+
+                    const char *errMsg = s7_get_output_string(sc, errorPort);
+                    bool hadError = (errMsg && strlen(errMsg) > 0);
+                    if (hadError) {
+                        std::lock_guard<std::mutex> lock(errorMutex);
+                        errorMessage = errMsg;
                         error = true;
                     }
+                    s7_close_output_port(sc, errorPort);
+
+                    if (!hadError) {
+                        if (s7_is_real(result)) {
+                            float v = (float)s7_real(result);
+                            if (std::isnan(v)) {
+                                error = true;
+                            } else {
+                                outputValue = v;
+                            }
+                        } else if (s7_is_integer(result)) {
+                            outputValue = (float)s7_integer(result);
+                        } else {
+                            error = true;
+                        }
+                    }
                 } else {
+                    {
+                        std::lock_guard<std::mutex> lock(errorMutex);
+                        errorMessage = "Empty expression";
+                    }
                     error = true;
                 }
                 evalError = error;
@@ -152,9 +173,6 @@ struct RaSchemeModule : Module {
         }
 
         outputs[OUT_OUTPUT].setVoltage(outputValue);
-
-        lights[STATUS_GREEN_LIGHT].setBrightness(evalError ? 0.f : 1.f);
-        lights[STATUS_RED_LIGHT].setBrightness(evalError ? 1.f : 0.f);
     }
 
     json_t *dataToJson() override {
@@ -237,7 +255,7 @@ struct OutputValueDisplay : LedDisplay {
 
         nvgFontFaceId(args.vg, APP->window->uiFont->handle);
         nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-        nvgFontSize(args.vg, 14);
+        nvgFontSize(args.vg, 12);
 
         float v = module->outputValue.load(std::memory_order_relaxed);
         char text[16];
@@ -282,8 +300,58 @@ struct ActionButton : Widget {
 };
 
 
+struct StatusButton : Widget {
+    RaSchemeModule *module;
+    bool *showError;
+    bool *dirty;
+
+    void draw(const DrawArgs &args) override {
+        if (!module) return;
+
+        float cx = box.size.x / 2;
+        float cy = box.size.y / 2;
+        float r = box.size.x / 2 - 2;
+
+        NVGcolor color;
+        if (showError && *showError) {
+            color = nvgRGB(0xff, 0xcc, 0x00);
+        } else if (dirty && *dirty) {
+            color = nvgRGB(0x33, 0x99, 0xff);
+        } else if (module->evalError) {
+            color = nvgRGB(0xff, 0x33, 0x33);
+        } else {
+            color = nvgRGB(0x33, 0xcc, 0x33);
+        }
+
+        nvgBeginPath(args.vg);
+        nvgCircle(args.vg, cx, cy, r);
+        nvgFillColor(args.vg, color);
+        nvgFill(args.vg);
+
+        nvgBeginPath(args.vg);
+        nvgCircle(args.vg, cx, cy, r);
+        nvgStrokeWidth(args.vg, 1.5f);
+        nvgStrokeColor(args.vg, nvgRGB(0x55, 0x55, 0x55));
+        nvgStroke(args.vg);
+    }
+
+    void onButton(const ButtonEvent &e) override {
+        if (e.button == GLFW_MOUSE_BUTTON_LEFT && e.action == GLFW_PRESS) {
+            if (module && module->evalError && showError && !(dirty && *dirty)) {
+                *showError = !(*showError);
+            }
+            e.consume(this);
+        }
+        Widget::onButton(e);
+    }
+};
+
+
 struct RaSchemeWidget : ModuleWidget {
     SchemeTextField *textField;
+    bool showError = false;
+    bool dirty = false;
+    bool needRestore = false;
     int lastExpressionVersion = -1;
 
     RaSchemeWidget(RaSchemeModule *module) {
@@ -318,10 +386,13 @@ struct RaSchemeWidget : ModuleWidget {
 
         addOutput(createOutputCentered<RaPort>(Vec(105, 250), module, RaSchemeModule::OUT_OUTPUT));
 
-        addChild(createLightCentered<TinyLight<GreenLight>>(
-            Vec(185, 250), module, RaSchemeModule::STATUS_GREEN_LIGHT));
-        addChild(createLightCentered<TinyLight<RedLight>>(
-            Vec(185, 250), module, RaSchemeModule::STATUS_RED_LIGHT));
+        auto *statusBtn = new StatusButton();
+        statusBtn->box.pos = Vec(176, 241);
+        statusBtn->box.size = Vec(18, 18);
+        statusBtn->module = module;
+        statusBtn->showError = &showError;
+        statusBtn->dirty = &dirty;
+        addChild(statusBtn);
 
         auto *display = new OutputValueDisplay();
         display->box.pos = Vec(68, 272);
@@ -351,9 +422,21 @@ struct RaSchemeWidget : ModuleWidget {
     void step() override {
         if (module && textField) {
             auto *m = (RaSchemeModule*)module;
-            if (m->expressionVersion != lastExpressionVersion) {
+            if (!m->evalError) {
+                showError = false;
+            }
+            if (showError) {
+                std::lock_guard<std::mutex> lock(m->errorMutex);
+                textField->text = m->errorMessage;
+                needRestore = true;
+                dirty = false;
+            } else if (needRestore || m->expressionVersion != lastExpressionVersion) {
+                needRestore = false;
                 lastExpressionVersion = m->expressionVersion;
                 textField->text = m->getExpression();
+                dirty = false;
+            } else {
+                dirty = (textField->text != m->getExpression());
             }
         }
         ModuleWidget::step();
