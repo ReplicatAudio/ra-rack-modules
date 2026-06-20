@@ -1,4 +1,5 @@
 #include "ra-widgets.hpp"
+#include <atomic>
 
 using namespace rack;
 
@@ -27,6 +28,10 @@ struct RaScalerModule : Module {
 
     int lastRange = -1;
 
+    std::atomic<float> displayIn{0.f};
+    std::atomic<float> displayDiff{0.f};
+    std::atomic<float> displayOut{0.f};
+
     RaScalerModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(SCALE_PARAM, 0.f, 1.f, 1.f, "Scale amount", "", 0.f, 10.f);
@@ -42,10 +47,14 @@ struct RaScalerModule : Module {
         float in = inputs[CV_INPUT].getVoltage();
         float scale = params[SCALE_PARAM].getValue();
 
+        float scaled;
         if (params[POWER_PARAM].getValue() > 0.5f) {
-            scale = scale * scale;
+            float exponent = scale * 10.f;
+            float sign = in >= 0.f ? 1.f : -1.f;
+            scaled = sign * powf(fabs(in) + 1e-10f, exponent);
+        } else {
+            scaled = in * scale;
         }
-        float scaled = in * scale;
 
         int range = (int)std::round(params[RANGE_PARAM].getValue());
         float fullScale;
@@ -96,6 +105,10 @@ struct RaScalerModule : Module {
         }
 
         outputs[OUTPUT].setVoltage(out);
+
+        displayIn.store(in, std::memory_order_relaxed);
+        displayDiff.store(out - in, std::memory_order_relaxed);
+        displayOut.store(out, std::memory_order_relaxed);
     }
 
     float waveFold(float x, float t) {
@@ -121,6 +134,52 @@ struct RaScalerModule : Module {
     }
 };
 
+struct ScalerDisplay : Widget {
+    RaScalerModule *module;
+    std::shared_ptr<Font> font;
+
+    ScalerDisplay() {
+        font = APP->window->loadFont(asset::system("res/fonts/DejaVuSans.ttf"));
+    }
+
+    void draw(const DrawArgs &args) override {
+        nvgBeginPath(args.vg);
+        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 2);
+        nvgFillColor(args.vg, nvgRGB(0x10, 0x10, 0x10));
+        nvgFill(args.vg);
+
+        if (!module || !font) return;
+
+        nvgFontFaceId(args.vg, font->handle);
+
+        float in = module->displayIn.load(std::memory_order_relaxed);
+        float diff = module->displayDiff.load(std::memory_order_relaxed);
+        float out = module->displayOut.load(std::memory_order_relaxed);
+
+        struct Row { const char *label; float labelY; float valY; };
+        Row rows[] = {
+            {"IN",   24.f, 38.f},
+            {"DIFF", 80.f, 94.f},
+            {"OUT", 136.f, 150.f},
+        };
+
+        nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+
+        for (int r = 0; r < 3; r++) {
+            nvgFontSize(args.vg, 9);
+            nvgFillColor(args.vg, nvgRGBA(0x88, 0x88, 0x88, 0xff));
+            nvgText(args.vg, 5, rows[r].labelY, rows[r].label, NULL);
+
+            char buf[32];
+            float vals[] = {in, diff, out};
+            snprintf(buf, sizeof(buf), "%+.2fV", vals[r]);
+            nvgFontSize(args.vg, 10);
+            nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
+            nvgText(args.vg, 10, rows[r].valY, buf, NULL);
+        }
+    }
+};
+
 struct RaScalerWidget : ModuleWidget {
     RaScalerWidget(RaScalerModule *module) {
         setModule(module);
@@ -140,6 +199,12 @@ struct RaScalerWidget : ModuleWidget {
         addParam(createParamCentered<RaSwitch2>(Vec(30, 118), module, RaScalerModule::POWER_PARAM));
         addParam(createParamCentered<RaSwitch3>(Vec(44, 118), module, RaScalerModule::CLIP_MODE_PARAM));
         addOutput(createOutputCentered<RaPort>(Vec(cx, 158), module, RaScalerModule::OUTPUT));
+
+        auto *display = new ScalerDisplay();
+        display->box.pos = Vec(6, 172);
+        display->box.size = Vec(48, 188);
+        display->module = module;
+        addChild(display);
     }
 };
 
