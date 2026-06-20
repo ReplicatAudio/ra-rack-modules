@@ -122,8 +122,16 @@ struct RaSchemeModule : Module {
                 }
 
                 bool error = false;
+                outputValue = 0.f;
                 if (!expr.empty()) {
-                    s7_pointer result = s7_eval_c_string(sc, expr.c_str());
+                    std::string evalExpr = expr;
+                    size_t start = evalExpr.find_first_not_of(" \t\n\r");
+                    if (start != std::string::npos
+                        && evalExpr[start] != '('
+                        && evalExpr.find_first_of(" \t\n\r", start + 1) != std::string::npos) {
+                        evalExpr = "(" + evalExpr + ")";
+                    }
+                    s7_pointer result = s7_eval_c_string(sc, evalExpr.c_str());
                     if (s7_is_real(result)) {
                         float v = (float)s7_real(result);
                         if (std::isnan(v)) {
