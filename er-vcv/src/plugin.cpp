@@ -18,6 +18,7 @@ extern Model *modelRaBlank;
 extern Model *modelRaAdsr;
 extern Model *modelRaKlock;
 extern Model *modelRaButtons;
+extern Model *modelRaScheme;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -36,4 +37,5 @@ void init(Plugin *p) {
     p->addModel(modelRaAdsr);
     p->addModel(modelRaKlock);
     p->addModel(modelRaButtons);
+    p->addModel(modelRaScheme);
 }

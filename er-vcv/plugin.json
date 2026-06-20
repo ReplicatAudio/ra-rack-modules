@@ -94,6 +94,12 @@
       "name": "ra-buttons",
       "description": "4-channel trigger/gate source with LED buttons and momentary/toggle/hold modes",
       "tags": ["Utility", "CV source", "Sequencer"]
+    },
+    {
+      "slug": "ra-scheme",
+      "name": "ra-scheme",
+      "description": "Scheme expression evaluator — 4 CV inputs A B C D available as variables in Scheme expressions",
+      "tags": ["Utility", "CV source"]
     }
   ]
 }
