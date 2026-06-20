@@ -276,7 +276,6 @@ struct ActionButton : Widget {
 
 struct RaSchemeWidget : ModuleWidget {
     SchemeTextField *textField;
-    bool resetRequested = false;
     int lastExpressionVersion = -1;
 
     RaSchemeWidget(RaSchemeModule *module) {
@@ -322,33 +321,29 @@ struct RaSchemeWidget : ModuleWidget {
         display->module = module;
         addChild(display);
 
-        auto *saveBtn = new ActionButton();
-        saveBtn->box.pos = Vec(12, 275);
-        saveBtn->box.size = Vec(44, 22);
-        saveBtn->label = "Save";
-        saveBtn->onClick = [this]() {
+        auto *writeBtn = new ActionButton();
+        writeBtn->box.pos = Vec(12, 275);
+        writeBtn->box.size = Vec(44, 22);
+        writeBtn->label = "Write";
+        writeBtn->onClick = [this]() {
             if (this->module) ((RaSchemeModule*)this->module)->setExpression(textField->text);
         };
-        addChild(saveBtn);
+        addChild(writeBtn);
 
-        auto *resetBtn = new ActionButton();
-        resetBtn->box.pos = Vec(154, 275);
-        resetBtn->box.size = Vec(44, 22);
-        resetBtn->label = "Reset";
-        resetBtn->onClick = [this]() {
-            resetRequested = true;
+        auto *clearBtn = new ActionButton();
+        clearBtn->box.pos = Vec(154, 275);
+        clearBtn->box.size = Vec(44, 22);
+        clearBtn->label = "Clear";
+        clearBtn->onClick = [this]() {
+            textField->text = "";
         };
-        addChild(resetBtn);
+        addChild(clearBtn);
     }
 
     void step() override {
         if (module && textField) {
             auto *m = (RaSchemeModule*)module;
-            if (resetRequested) {
-                resetRequested = false;
-                lastExpressionVersion = m->expressionVersion;
-                textField->text = m->getExpression();
-            } else if (m->expressionVersion != lastExpressionVersion) {
+            if (m->expressionVersion != lastExpressionVersion) {
                 lastExpressionVersion = m->expressionVersion;
                 textField->text = m->getExpression();
             }
