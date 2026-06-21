@@ -108,41 +108,41 @@
   <circle cx="38.10" cy="2.54" r="0.8" fill="#444"/>
   <circle cx="38.10" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
   <circle cx="38.10" cy="125.96" r="0.8" fill="#444"/>
-  <text x="20.32" y="3.39" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">Ra-buttons</text>
-  <rect x="4.49" y="13.83" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
-  <line x1="6.77" y1="21.03" x2="6.77" y2="16.23" stroke="#888" stroke-width="1.7" opacity="0.6"/>
-  <text x="6.77" y="25.43" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">MODE1</text>
-  <circle cx="20.32" cy="18.63" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
-  <circle cx="20.32" cy="18.63" r="1.26" fill="#333" opacity="0.5"/>
-  <text x="20.32" y="24.23" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">BUTTON1</text>
-  <circle cx="33.87" cy="18.63" r="4.01" fill="#111" stroke="#FFB93D" stroke-width="1.6" opacity="0.7"/>
-  <circle cx="33.87" cy="18.63" r="1.40" fill="#FFB93D" opacity="0.5"/>
-  <text x="33.87" y="24.64" fill="#FFB93D" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1</text>
-  <rect x="4.49" y="45.32" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
-  <line x1="6.77" y1="52.52" x2="6.77" y2="47.72" stroke="#888" stroke-width="1.7" opacity="0.6"/>
-  <text x="6.77" y="56.92" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">MODE1</text>
-  <circle cx="20.32" cy="50.12" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
-  <circle cx="20.32" cy="50.12" r="1.26" fill="#333" opacity="0.5"/>
-  <text x="20.32" y="55.73" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">BUTTON1</text>
-  <circle cx="33.87" cy="50.12" r="4.01" fill="#111" stroke="#FFB93D" stroke-width="1.6" opacity="0.7"/>
-  <circle cx="33.87" cy="50.12" r="1.40" fill="#FFB93D" opacity="0.5"/>
-  <text x="33.87" y="56.14" fill="#FFB93D" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1</text>
-  <rect x="4.49" y="76.82" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
-  <line x1="6.77" y1="84.02" x2="6.77" y2="79.22" stroke="#888" stroke-width="1.7" opacity="0.6"/>
-  <text x="6.77" y="88.42" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">MODE1</text>
-  <circle cx="20.32" cy="81.62" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
-  <circle cx="20.32" cy="81.62" r="1.26" fill="#333" opacity="0.5"/>
-  <text x="20.32" y="87.23" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">BUTTON1</text>
-  <circle cx="33.87" cy="81.62" r="4.01" fill="#111" stroke="#FFB93D" stroke-width="1.6" opacity="0.7"/>
-  <circle cx="33.87" cy="81.62" r="1.40" fill="#FFB93D" opacity="0.5"/>
-  <text x="33.87" y="87.63" fill="#FFB93D" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1</text>
-  <rect x="4.49" y="108.32" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
-  <line x1="6.77" y1="115.51" x2="6.77" y2="110.72" stroke="#888" stroke-width="1.7" opacity="0.6"/>
-  <text x="6.77" y="119.91" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">MODE1</text>
-  <circle cx="20.32" cy="113.11" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
-  <circle cx="20.32" cy="113.11" r="1.26" fill="#333" opacity="0.5"/>
-  <text x="20.32" y="118.72" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">BUTTON1</text>
-  <circle cx="33.87" cy="113.11" r="4.01" fill="#111" stroke="#FFB93D" stroke-width="1.6" opacity="0.7"/>
-  <circle cx="33.87" cy="113.11" r="1.40" fill="#FFB93D" opacity="0.5"/>
-  <text x="33.87" y="119.13" fill="#FFB93D" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1</text>
+  <text x="20.32" y="3.39" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">Ra-accumulator</text>
+  <circle cx="10.16" cy="10.16" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="10.16" cy="10.16" r="1.68" fill="#333" opacity="0.4"/>
+  <line x1="10.16" y1="10.16" x2="13.28" y2="10.16" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+  <text x="10.16" y="16.96" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Origin</text>
+  <circle cx="30.48" cy="10.16" r="4.01" fill="#111" stroke="#14B274" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="30.48" cy="10.16" r="1.40" fill="#14B274" opacity="0.5"/>
+  <text x="30.48" y="16.17" fill="#14B274" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Origin CV</text>
+  <circle cx="10.16" cy="25.06" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+  <circle cx="10.16" cy="25.06" r="1.26" fill="#333" opacity="0.5"/>
+  <text x="10.16" y="30.67" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">WRITE</text>
+  <circle cx="30.48" cy="25.06" r="4.01" fill="#111" stroke="#14B274" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="30.48" cy="25.06" r="1.40" fill="#14B274" opacity="0.5"/>
+  <text x="30.48" y="31.07" fill="#14B274" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Write trig</text>
+  <circle cx="10.16" cy="39.96" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="10.16" cy="39.96" r="1.68" fill="#333" opacity="0.4"/>
+  <line x1="10.16" y1="39.96" x2="13.28" y2="39.96" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+  <text x="10.16" y="46.76" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Delta</text>
+  <circle cx="30.48" cy="39.96" r="4.01" fill="#111" stroke="#14B274" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="30.48" cy="39.96" r="1.40" fill="#14B274" opacity="0.5"/>
+  <text x="30.48" y="45.98" fill="#14B274" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Delta CV</text>
+  <circle cx="10.16" cy="54.86" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+  <circle cx="10.16" cy="54.86" r="1.26" fill="#333" opacity="0.5"/>
+  <text x="10.16" y="60.47" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">RESET</text>
+  <circle cx="30.48" cy="54.86" r="4.01" fill="#111" stroke="#14B274" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="30.48" cy="54.86" r="1.40" fill="#14B274" opacity="0.5"/>
+  <text x="30.48" y="60.88" fill="#14B274" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Reset trig</text>
+  <circle cx="10.16" cy="69.77" r="3.84" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="10.16" cy="69.77" r="1.34" fill="#333" opacity="0.4"/>
+  <line x1="10.16" y1="69.77" x2="12.66" y2="69.77" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+  <text x="10.16" y="75.61" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Slew</text>
+  <circle cx="30.48" cy="69.77" r="4.01" fill="#111" stroke="#14B274" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="30.48" cy="69.77" r="1.40" fill="#14B274" opacity="0.5"/>
+  <text x="30.48" y="75.78" fill="#14B274" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Slew CV</text>
+  <circle cx="20.32" cy="111.76" r="4.01" fill="#111" stroke="#FFB93D" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="20.32" cy="111.76" r="1.40" fill="#FFB93D" opacity="0.5"/>
+  <text x="20.32" y="117.77" fill="#FFB93D" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">CV</text>
 </svg>

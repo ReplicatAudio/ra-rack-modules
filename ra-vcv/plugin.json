@@ -106,6 +106,12 @@
       "name": "ra-think",
       "description": "Simple VCO — morphed waveform, resonant lowpass filter, pulse width control",
       "tags": ["VCO", "Oscillator"]
+    },
+    {
+      "slug": "ra-accumulator",
+      "name": "ra-accumulator",
+      "description": "CV accumulator with origin, delta write, reset, and slew",
+      "tags": ["Utility", "CV source", "Sequencer"]
     }
   ]
 }

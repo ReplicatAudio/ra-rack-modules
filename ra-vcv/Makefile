@@ -20,6 +20,7 @@ SOURCES = \
 	src/ra-vca.cpp \
 	src/ra-ntet.cpp \
 	src/ra-think.cpp \
+	src/ra-accumulator.cpp \
 
 
 DISTRIBUTABLES += $(wildcard res/*)
