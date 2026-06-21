@@ -28,10 +28,6 @@
 //   node util/gen-panel.mjs --all
 //   node util/gen-panel.mjs --hp=6 --input-color=#ff0000 src/ra-foo.cpp > panel.svg
 //
-// Note:
-// The background gradient uses color banding. It will generate 100 svg layers at each color band.
-// This is not the most optimial thing for performance but it looks nice. 
-// IF YOU PROVIDE THE SAME COLOR FOR START AND END THERE WILL BE NO GRADIENT GENERATION AT ALL.
 // ============================================================
 
 import fs from 'node:fs';
