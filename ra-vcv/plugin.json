@@ -100,6 +100,12 @@
       "name": "ra-ntet",
       "description": "N-TET CV processor — chromatic stretch or quantize, 8 channels",
       "tags": ["Utility", "CV source"]
+    },
+    {
+      "slug": "ra-think",
+      "name": "ra-think",
+      "description": "Simple VCO — morphed waveform, resonant lowpass filter, pulse width control",
+      "tags": ["VCO", "Oscillator"]
     }
   ]
 }
