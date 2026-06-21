@@ -7,6 +7,7 @@ extern Plugin *pluginInstance;
 struct RaNtetModule : Module {
     enum ParamIds {
         SCALE_PARAM,
+        OFFSET_PARAM,
         SMASH_PARAM,
         MODE_PARAM,
         NUM_PARAMS
@@ -42,6 +43,7 @@ struct RaNtetModule : Module {
     RaNtetModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configSwitch(SCALE_PARAM, 1.f, 10.f, 1.f, "Scale", {"12-TET", "24-TET", "36-TET", "48-TET", "60-TET", "72-TET", "84-TET", "96-TET", "108-TET", "120-TET"});
+        configSwitch(OFFSET_PARAM, 0.f, 11.f, 0.f, "Offset", {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"});
         configSwitch(SMASH_PARAM, 0.f, 1.f, 0.f, "Smash", {"Off", "On"});
         configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Mode", {"Chromatic", "Quant"});
         configInput(IN1_INPUT, "Input 1");
@@ -64,6 +66,7 @@ struct RaNtetModule : Module {
 
     void process(const ProcessArgs &args) override {
         float s = params[SCALE_PARAM].getValue();
+        float offset = params[OFFSET_PARAM].getValue() / 12.f;
         bool smash = params[SMASH_PARAM].getValue() > 0.f;
         bool quant = params[MODE_PARAM].getValue() > 0.f;
 
@@ -76,17 +79,20 @@ struct RaNtetModule : Module {
                 sq->labels = {"12-TET", "24-TET", "36-TET", "48-TET", "60-TET", "72-TET", "84-TET", "96-TET", "108-TET", "120-TET"};
         }
 
-        float divisions = smash ? (s == 1.f ? 12.f : 12.f - s) : s * 12.f;
-
         for (int i = 0; i < 8; i++) {
             float in = inputs[IN1_INPUT + i].getVoltage();
             float out;
             if (quant) {
+                float divisions = smash ? (s == 1.f ? 12.f : 12.f - s) : s * 12.f;
                 float quanta = 1.f / divisions;
-                out = std::round(in / quanta) * quanta;
+                out = std::round((in - offset) / quanta) * quanta + offset;
             } else {
-                float factor = smash ? (12.f / divisions) : (1.f / divisions);
-                out = in * factor;
+                if (smash) {
+                    float div = (s == 1.f ? 12.f : 12.f - s);
+                    out = (in - offset) * (12.f / div) + offset;
+                } else {
+                    out = (in - offset) / s + offset;
+                }
             }
             outputs[OUT1_OUTPUT + i].setVoltage(out);
         }
@@ -103,27 +109,28 @@ struct RaNtetWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, 25), module, RaNtetModule::SCALE_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 50), module, RaNtetModule::SMASH_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 72), module, RaNtetModule::MODE_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, 22), module, RaNtetModule::SCALE_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(box.size.x / 2, 52), module, RaNtetModule::OFFSET_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(18, 78), module, RaNtetModule::SMASH_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(42, 78), module, RaNtetModule::MODE_PARAM));
 
-        addInput(createInputCentered<RaPort>(Vec(16, 98), module, RaNtetModule::IN1_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 124), module, RaNtetModule::IN2_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 150), module, RaNtetModule::IN3_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 176), module, RaNtetModule::IN4_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 202), module, RaNtetModule::IN5_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 228), module, RaNtetModule::IN6_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 254), module, RaNtetModule::IN7_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 280), module, RaNtetModule::IN8_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 105), module, RaNtetModule::IN1_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 131), module, RaNtetModule::IN2_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 157), module, RaNtetModule::IN3_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 183), module, RaNtetModule::IN4_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 209), module, RaNtetModule::IN5_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 235), module, RaNtetModule::IN6_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 261), module, RaNtetModule::IN7_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 287), module, RaNtetModule::IN8_INPUT));
 
-        addOutput(createOutputCentered<RaPort>(Vec(44, 98), module, RaNtetModule::OUT1_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 124), module, RaNtetModule::OUT2_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 150), module, RaNtetModule::OUT3_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 176), module, RaNtetModule::OUT4_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 202), module, RaNtetModule::OUT5_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 228), module, RaNtetModule::OUT6_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 254), module, RaNtetModule::OUT7_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 280), module, RaNtetModule::OUT8_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 105), module, RaNtetModule::OUT1_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 131), module, RaNtetModule::OUT2_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 157), module, RaNtetModule::OUT3_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 183), module, RaNtetModule::OUT4_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 209), module, RaNtetModule::OUT5_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 235), module, RaNtetModule::OUT6_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 261), module, RaNtetModule::OUT7_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 287), module, RaNtetModule::OUT8_OUTPUT));
     }
 };
 
