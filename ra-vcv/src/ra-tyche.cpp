@@ -4,7 +4,7 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 
-struct RaChanceModule : Module {
+struct RaTycheModule : Module {
     enum ParamIds {
         BIAS_PARAM,
         NUM_PARAMS
@@ -32,7 +32,7 @@ struct RaChanceModule : Module {
     dsp::SchmittTrigger trigTrigger;
     dsp::PulseGenerator pulseGens[NUM_OUTPUTS];
 
-    RaChanceModule() {
+    RaTycheModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(BIAS_PARAM, -5.f, 5.f, 0.f, "Bias", " V");
         configInput(BIAS_CV_INPUT, "Bias CV");
@@ -77,10 +77,10 @@ struct RaChanceModule : Module {
     }
 };
 
-struct RaChanceWidget : ModuleWidget {
-    RaChanceWidget(RaChanceModule *module) {
+struct RaTycheWidget : ModuleWidget {
+    RaTycheWidget(RaTycheModule *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-chance.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-tyche.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
@@ -89,19 +89,19 @@ struct RaChanceWidget : ModuleWidget {
 
         float x = box.size.x / 2;
 
-        addParam(createParamCentered<RaKnobTrim>(Vec(x, 35), module, RaChanceModule::BIAS_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(x, 68), module, RaChanceModule::BIAS_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(x, 101), module, RaChanceModule::TRIG_INPUT));
+        addParam(createParamCentered<RaKnobTrim>(Vec(x, 35), module, RaTycheModule::BIAS_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(x, 68), module, RaTycheModule::BIAS_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(x, 101), module, RaTycheModule::TRIG_INPUT));
 
         static const int outIds[] = {
-            RaChanceModule::OUT_1_2,
-            RaChanceModule::OUT_1_4,
-            RaChanceModule::OUT_1_8,
-            RaChanceModule::OUT_1_16,
-            RaChanceModule::OUT_1_32,
-            RaChanceModule::OUT_1_64,
-            RaChanceModule::OUT_1_128,
-            RaChanceModule::OUT_1_256
+            RaTycheModule::OUT_1_2,
+            RaTycheModule::OUT_1_4,
+            RaTycheModule::OUT_1_8,
+            RaTycheModule::OUT_1_16,
+            RaTycheModule::OUT_1_32,
+            RaTycheModule::OUT_1_64,
+            RaTycheModule::OUT_1_128,
+            RaTycheModule::OUT_1_256
         };
 
         float y = 138;
@@ -112,4 +112,4 @@ struct RaChanceWidget : ModuleWidget {
     }
 };
 
-Model *modelRaChance = createModel<RaChanceModule, RaChanceWidget>("ra-chance");
+Model *modelRaTyche = createModel<RaTycheModule, RaTycheWidget>("ra-tyche");

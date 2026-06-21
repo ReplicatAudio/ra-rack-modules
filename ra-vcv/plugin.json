@@ -42,20 +42,14 @@
       "tags": ["Sequencer", "Utility"]
     },
     {
-      "slug": "ra-yscope",
-      "name": "ra-yscope",
-      "description": "Vertical oscilloscope — signal trace displayed top-to-bottom",
-      "tags": ["Visual", "Utility"]
-    },
-    {
       "slug": "ra-shapes",
       "name": "ra-shapes",
       "description": "VCO — sine, triangle, saw up, saw down, square outputs",
       "tags": ["VCO", "Oscillator"]
     },
     {
-      "slug": "ra-chance",
-      "name": "ra-chance",
+      "slug": "ra-tyche",
+      "name": "ra-tyche",
       "description": "Trigger chance — probabilistic trigger divider with bias CV",
       "tags": ["Probability", "Utility", "Random"]
     },
@@ -68,7 +62,7 @@
     {
       "slug": "ra-seer",
       "name": "ra-seer",
-      "description": "Signal meter — peak, RMS, and DC readouts",
+      "description": "Signal meter / oscilloscope / spectrum analyzer — peak/RMS/DC readouts, waveform display, and FFT spectrum",
       "tags": ["Visual", "Utility"]
     },
     {
@@ -96,8 +90,8 @@
       "tags": ["Utility", "CV source", "Sequencer"]
     },
     {
-      "slug": "ra-scheme",
-      "name": "ra-scheme",
+      "slug": "ra-magus",
+      "name": "ra-magus",
       "description": "Scheme expression evaluator — 4 CV inputs A B C D available as variables in Scheme expressions",
       "tags": ["Utility", "CV source"]
     }

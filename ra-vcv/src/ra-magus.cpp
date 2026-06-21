@@ -8,7 +8,7 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 
-struct RaSchemeModule : Module {
+struct RaMagusModule : Module {
     enum ParamIds {
         A_PARAM,
         B_PARAM,
@@ -37,16 +37,17 @@ struct RaSchemeModule : Module {
     s7_scheme *sc = nullptr;
     std::string exprText;
     std::mutex textMutex;
-    bool textChanged = true;
+    std::atomic<int> expressionVersion{0};
+    int lastCompiledVersion = -1;
+
+    s7_pointer compiledCode = nullptr;
+    s7_pointer errorPort = nullptr;
+    bool compiledValid = false;
 
     std::atomic<float> outputValue{0.f};
     bool evalError = false;
-    int expressionVersion = 0;
-    float lastA = 0.f, lastB = 0.f, lastC = 0.f, lastD = 0.f;
-    int evalCounter = 0;
-    static const int EVAL_INTERVAL = 64;
 
-    RaSchemeModule() {
+    RaMagusModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(A_PARAM, -10.f, 10.f, 0.f, "A", " V");
         configParam(B_PARAM, -10.f, 10.f, 0.f, "B", " V");
@@ -59,13 +60,18 @@ struct RaSchemeModule : Module {
         configOutput(OUT_OUTPUT, "Out");
 
         sc = s7_init();
-        exprText = "; ra-scheme module\n; s7 scheme interpreter\n+ a b c d";
+        errorPort = s7_open_output_string(sc);
+        s7_set_current_error_port(sc, errorPort);
+        exprText = "; ra-magus module\n; s7 scheme interpreter\n+ a b c d";
+        compileExpression();
     }
 
-    ~RaSchemeModule() {
+    ~RaMagusModule() {
         if (sc) {
             s7_free(sc);
             sc = nullptr;
+            compiledCode = nullptr;
+            errorPort = nullptr;
         }
     }
 
@@ -73,7 +79,6 @@ struct RaSchemeModule : Module {
         std::lock_guard<std::mutex> lock(textMutex);
         if (exprText != text) {
             exprText = text;
-            textChanged = true;
             expressionVersion++;
         }
     }
@@ -83,93 +88,121 @@ struct RaSchemeModule : Module {
         return exprText;
     }
 
+    void compileExpression() {
+        std::string expr;
+        {
+            std::lock_guard<std::mutex> lock(textMutex);
+            if (expressionVersion == lastCompiledVersion)
+                return;
+            expr = exprText;
+            lastCompiledVersion = expressionVersion;
+        }
+
+        compiledValid = false;
+        compiledCode = nullptr;
+        evalError = false;
+
+        if (expr.empty()) {
+            std::lock_guard<std::mutex> lock(errorMutex);
+            errorMessage = "Empty expression";
+            evalError = true;
+            return;
+        }
+
+        // Auto-wrap bare expressions in parens for convenience
+        std::string evalExpr = expr;
+        size_t start = evalExpr.find_first_not_of(" \t\n\r");
+        if (start != std::string::npos
+            && evalExpr[start] != '('
+            && evalExpr.find_first_of(" \t\n\r", start + 1) != std::string::npos) {
+            evalExpr = "(" + evalExpr + ")";
+        }
+
+        // Wrap in begin for multi-expression support
+        evalExpr = "(begin " + evalExpr + ")";
+
+        // Fresh error port for compile (called rarely)
+        s7_close_output_port(sc, errorPort);
+        errorPort = s7_open_output_string(sc);
+        s7_set_current_error_port(sc, errorPort);
+
+        // Parse to AST — re-parses only on text change
+        s7_pointer port = s7_open_input_string(sc, evalExpr.c_str());
+        s7_pointer code = s7_read(sc, port);
+        s7_close_input_port(sc, port);
+
+        const char *errMsg = s7_get_output_string(sc, errorPort);
+        if (errMsg && strlen(errMsg) > 0) {
+            std::lock_guard<std::mutex> lock(errorMutex);
+            errorMessage = errMsg;
+            evalError = true;
+            return;
+        }
+
+        // Trial eval with zeroed inputs to verify the expression works
+        s7_define_variable(sc, "a", s7_make_real(sc, 0.f));
+        s7_define_variable(sc, "b", s7_make_real(sc, 0.f));
+        s7_define_variable(sc, "c", s7_make_real(sc, 0.f));
+        s7_define_variable(sc, "d", s7_make_real(sc, 0.f));
+
+        s7_pointer result = s7_eval(sc, code, s7_rootlet(sc));
+
+        errMsg = s7_get_output_string(sc, errorPort);
+        if (errMsg && strlen(errMsg) > 0) {
+            std::lock_guard<std::mutex> lock(errorMutex);
+            errorMessage = errMsg;
+            evalError = true;
+            return;
+        }
+
+        if (!s7_is_real(result) && !s7_is_integer(result)) {
+            std::lock_guard<std::mutex> lock(errorMutex);
+            errorMessage = "Expression must evaluate to a number";
+            evalError = true;
+            return;
+        }
+
+        compiledCode = code;
+        compiledValid = true;
+        std::lock_guard<std::mutex> lock(errorMutex);
+        errorMessage.clear();
+    }
+
     void process(const ProcessArgs &args) override {
-        if (++evalCounter >= EVAL_INTERVAL) {
-            evalCounter = 0;
+        // Recompile if expression text changed (rare — only on user edit)
+        if (expressionVersion != lastCompiledVersion) {
+            compileExpression();
+        }
 
-            float a = inputs[A_INPUT].isConnected() ? inputs[A_INPUT].getVoltage() : params[A_PARAM].getValue();
-            float b = inputs[B_INPUT].isConnected() ? inputs[B_INPUT].getVoltage() : params[B_PARAM].getValue();
-            float c = inputs[C_INPUT].isConnected() ? inputs[C_INPUT].getVoltage() : params[C_PARAM].getValue();
-            float d = inputs[D_INPUT].isConnected() ? inputs[D_INPUT].getVoltage() : params[D_PARAM].getValue();
+        if (!compiledValid) {
+            outputs[OUT_OUTPUT].setVoltage(0.f);
+            return;
+        }
 
-            bool inputsChanged = (std::abs(a - lastA) > 0.001f) ||
-                                 (std::abs(b - lastB) > 0.001f) ||
-                                 (std::abs(c - lastC) > 0.001f) ||
-                                 (std::abs(d - lastD) > 0.001f);
+        // Read inputs every sample
+        float a = inputs[A_INPUT].isConnected() ? inputs[A_INPUT].getVoltage() : params[A_PARAM].getValue();
+        float b = inputs[B_INPUT].isConnected() ? inputs[B_INPUT].getVoltage() : params[B_PARAM].getValue();
+        float c = inputs[C_INPUT].isConnected() ? inputs[C_INPUT].getVoltage() : params[C_PARAM].getValue();
+        float d = inputs[D_INPUT].isConnected() ? inputs[D_INPUT].getVoltage() : params[D_PARAM].getValue();
 
-            bool changed = false;
-            {
-                std::lock_guard<std::mutex> lock(textMutex);
-                if (textChanged) {
-                    textChanged = false;
-                    changed = true;
-                }
-            }
+        // Set variables and evaluate cached AST
+        s7_define_variable(sc, "a", s7_make_real(sc, a));
+        s7_define_variable(sc, "b", s7_make_real(sc, b));
+        s7_define_variable(sc, "c", s7_make_real(sc, c));
+        s7_define_variable(sc, "d", s7_make_real(sc, d));
 
-            if (inputsChanged || changed) {
-                lastA = a; lastB = b; lastC = c; lastD = d;
+        s7_pointer result = s7_eval(sc, compiledCode, s7_rootlet(sc));
 
-                s7_define_variable(sc, "a", s7_make_real(sc, a));
-                s7_define_variable(sc, "b", s7_make_real(sc, b));
-                s7_define_variable(sc, "c", s7_make_real(sc, c));
-                s7_define_variable(sc, "d", s7_make_real(sc, d));
-
-                std::string expr;
-                {
-                    std::lock_guard<std::mutex> lock(textMutex);
-                    expr = exprText;
-                }
-
-                bool error = false;
-                outputValue = 0.f;
-                if (!expr.empty()) {
-                    std::string evalExpr = expr;
-                    size_t start = evalExpr.find_first_not_of(" \t\n\r");
-                    if (start != std::string::npos
-                        && evalExpr[start] != '('
-                        && evalExpr.find_first_of(" \t\n\r", start + 1) != std::string::npos) {
-                        evalExpr = "(" + evalExpr + ")";
-                    }
-
-                    s7_pointer errorPort = s7_open_output_string(sc);
-                    s7_pointer oldErrorPort = s7_set_current_error_port(sc, errorPort);
-
-                    s7_pointer result = s7_eval_c_string(sc, evalExpr.c_str());
-
-                    s7_set_current_error_port(sc, oldErrorPort);
-
-                    const char *errMsg = s7_get_output_string(sc, errorPort);
-                    bool hadError = (errMsg && strlen(errMsg) > 0);
-                    if (hadError) {
-                        std::lock_guard<std::mutex> lock(errorMutex);
-                        errorMessage = errMsg;
-                        error = true;
-                    }
-                    s7_close_output_port(sc, errorPort);
-
-                    if (!hadError) {
-                        if (s7_is_real(result)) {
-                            float v = (float)s7_real(result);
-                            if (std::isnan(v)) {
-                                error = true;
-                            } else {
-                                outputValue = v;
-                            }
-                        } else if (s7_is_integer(result)) {
-                            outputValue = (float)s7_integer(result);
-                        } else {
-                            error = true;
-                        }
-                    }
-                } else {
-                    {
-                        std::lock_guard<std::mutex> lock(errorMutex);
-                        errorMessage = "Empty expression";
-                    }
-                    error = true;
-                }
-                evalError = error;
-            }
+        if (s7_is_real(result)) {
+            float v = (float)s7_real(result);
+            outputValue = std::isnan(v) ? 0.f : v;
+            evalError = false;
+        } else if (s7_is_integer(result)) {
+            outputValue = (float)s7_integer(result);
+            evalError = false;
+        } else {
+            outputValue = 0.f;
+            evalError = true;
         }
 
         outputs[OUT_OUTPUT].setVoltage(outputValue);
@@ -190,11 +223,11 @@ struct RaSchemeModule : Module {
 };
 
 
-struct SchemeTextField : LedDisplayTextField {
-    RaSchemeModule *schemeModule;
+struct MagusTextField : LedDisplayTextField {
+    RaMagusModule *magusModule;
     float lineHeight;
 
-    SchemeTextField() {
+    MagusTextField() {
         textOffset = Vec(8, 8);
         color = nvgRGB(0x33, 0xcc, 0x33);
         bgColor = nvgRGBA(0x0a, 0x0a, 0x0a, 220);
@@ -237,8 +270,8 @@ struct SchemeTextField : LedDisplayTextField {
     void onSelectKey(const SelectKeyEvent &e) override {
         if (e.action == GLFW_PRESS && (e.key == GLFW_KEY_ENTER || e.key == GLFW_KEY_KP_ENTER)) {
             if (e.mods & RACK_MOD_MASK) {
-                if (schemeModule) {
-                    schemeModule->setExpression(text);
+                if (magusModule) {
+                    magusModule->setExpression(text);
                 }
                 e.consume(this);
                 return;
@@ -287,8 +320,8 @@ struct SchemeTextField : LedDisplayTextField {
 };
 
 
-struct OutputValueDisplay : LedDisplay {
-    RaSchemeModule *module;
+struct MagusOutputDisplay : LedDisplay {
+    RaMagusModule *module;
 
     void draw(const DrawArgs &args) override {
         if (!module) return;
@@ -352,7 +385,7 @@ struct ActionButton : Widget {
 
 
 struct StatusButton : Widget {
-    RaSchemeModule *module;
+    RaMagusModule *module;
     bool *showError;
     bool *dirty;
 
@@ -398,16 +431,16 @@ struct StatusButton : Widget {
 };
 
 
-struct RaSchemeWidget : ModuleWidget {
-    SchemeTextField *textField;
+struct RaMagusWidget : ModuleWidget {
+    MagusTextField *textField;
     bool showError = false;
     bool dirty = false;
     bool needRestore = false;
     int lastExpressionVersion = -1;
 
-    RaSchemeWidget(RaSchemeModule *module) {
+    RaMagusWidget(RaMagusModule *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-scheme.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-magus.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
@@ -417,25 +450,25 @@ struct RaSchemeWidget : ModuleWidget {
         float colX[] = {42, 84, 126, 168};
         float inY = 38;
         for (int i = 0; i < 4; i++) {
-            addInput(createInputCentered<RaPort>(Vec(colX[i], inY), module, RaSchemeModule::A_INPUT + i));
+            addInput(createInputCentered<RaPort>(Vec(colX[i], inY), module, RaMagusModule::A_INPUT + i));
         }
 
         float knobY = 66;
-        addParam(createParamCentered<RaKnobSmall>(Vec(colX[0], knobY), module, RaSchemeModule::A_PARAM));
-        addParam(createParamCentered<RaKnobSmall>(Vec(colX[1], knobY), module, RaSchemeModule::B_PARAM));
-        addParam(createParamCentered<RaKnobSmall>(Vec(colX[2], knobY), module, RaSchemeModule::C_PARAM));
-        addParam(createParamCentered<RaKnobSmall>(Vec(colX[3], knobY), module, RaSchemeModule::D_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(colX[0], knobY), module, RaMagusModule::A_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(colX[1], knobY), module, RaMagusModule::B_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(colX[2], knobY), module, RaMagusModule::C_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(colX[3], knobY), module, RaMagusModule::D_PARAM));
 
-        textField = new SchemeTextField();
+        textField = new MagusTextField();
         textField->box.pos = Vec(12, 92);
         textField->box.size = Vec(186, 130);
-        textField->schemeModule = module;
+        textField->magusModule = module;
         if (module) {
             textField->text = module->getExpression();
         }
         addChild(textField);
 
-        addOutput(createOutputCentered<RaPort>(Vec(105, 250), module, RaSchemeModule::OUT_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(105, 250), module, RaMagusModule::OUT_OUTPUT));
 
         auto *statusBtn = new StatusButton();
         statusBtn->box.pos = Vec(176, 241);
@@ -445,7 +478,7 @@ struct RaSchemeWidget : ModuleWidget {
         statusBtn->dirty = &dirty;
         addChild(statusBtn);
 
-        auto *display = new OutputValueDisplay();
+        auto *display = new MagusOutputDisplay();
         display->box.pos = Vec(68, 272);
         display->box.size = Vec(74, 28);
         display->module = module;
@@ -456,7 +489,7 @@ struct RaSchemeWidget : ModuleWidget {
         writeBtn->box.size = Vec(44, 22);
         writeBtn->label = "write";
         writeBtn->onClick = [this]() {
-            if (this->module) ((RaSchemeModule*)this->module)->setExpression(textField->text);
+            if (this->module) ((RaMagusModule*)this->module)->setExpression(textField->text);
         };
         addChild(writeBtn);
 
@@ -472,7 +505,7 @@ struct RaSchemeWidget : ModuleWidget {
 
     void step() override {
         if (module && textField) {
-            auto *m = (RaSchemeModule*)module;
+            auto *m = (RaMagusModule*)module;
             if (!m->evalError) {
                 showError = false;
             }
@@ -494,4 +527,4 @@ struct RaSchemeWidget : ModuleWidget {
     }
 };
 
-Model *modelRaScheme = createModel<RaSchemeModule, RaSchemeWidget>("ra-scheme");
+Model *modelRaMagus = createModel<RaMagusModule, RaMagusWidget>("ra-magus");
