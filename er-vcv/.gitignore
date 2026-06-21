@@ -1,4 +1,0 @@
-build/*
-dist/*
-compile_commands.json
-plugin.so
