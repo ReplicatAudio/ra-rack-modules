@@ -94,6 +94,12 @@
       "name": "ra-magus",
       "description": "Scheme expression evaluator — 4 CV inputs A B C D available as variables in Scheme expressions",
       "tags": ["Utility", "CV source"]
+    },
+    {
+      "slug": "ra-chromastretch",
+      "name": "ra-chromastretch",
+      "description": "CV divider — 4 channels, divide by 2–10",
+      "tags": ["Utility", "CV source"]
     }
   ]
 }
