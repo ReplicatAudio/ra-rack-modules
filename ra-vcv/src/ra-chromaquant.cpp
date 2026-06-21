@@ -7,6 +7,7 @@ extern Plugin *pluginInstance;
 struct RaChromaquantModule : Module {
     enum ParamIds {
         SCALE_PARAM,
+        SMASH_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -38,6 +39,7 @@ struct RaChromaquantModule : Module {
     RaChromaquantModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configSwitch(SCALE_PARAM, 1.f, 10.f, 1.f, "Scale", {"12-TET", "24-TET", "36-TET", "48-TET", "60-TET", "72-TET", "84-TET", "96-TET", "108-TET", "120-TET"});
+        configSwitch(SMASH_PARAM, 0.f, 1.f, 0.f, "Smash", {"Off", "On"});
         configInput(IN1_INPUT, "Input 1");
         configInput(IN2_INPUT, "Input 2");
         configInput(IN3_INPUT, "Input 3");
@@ -56,9 +58,20 @@ struct RaChromaquantModule : Module {
         configOutput(OUT8_OUTPUT, "Output 8");
     }
 
+    bool lastSmash = false;
+
     void process(const ProcessArgs &args) override {
-        float scale = params[SCALE_PARAM].getValue();
-        float divisions = scale * 12.f;
+        float s = params[SCALE_PARAM].getValue();
+        bool smash = params[SMASH_PARAM].getValue() > 0.f;
+        if (smash != lastSmash) {
+            lastSmash = smash;
+            auto* sq = static_cast<SwitchQuantity*>(paramQuantities[SCALE_PARAM]);
+            if (smash)
+                sq->labels = {"12-TET", "10-TET", "9-TET", "8-TET", "7-TET", "6-TET", "5-TET", "4-TET", "3-TET", "2-TET"};
+            else
+                sq->labels = {"12-TET", "24-TET", "36-TET", "48-TET", "60-TET", "72-TET", "84-TET", "96-TET", "108-TET", "120-TET"};
+        }
+        float divisions = smash ? (s == 1.f ? 12.f : 12.f - s) : s * 12.f;
         float quanta = 1.f / divisions;
         outputs[OUT1_OUTPUT].setVoltage(std::round(inputs[IN1_INPUT].getVoltage() / quanta) * quanta);
         outputs[OUT2_OUTPUT].setVoltage(std::round(inputs[IN2_INPUT].getVoltage() / quanta) * quanta);
@@ -82,24 +95,25 @@ struct RaChromaquantWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, 28), module, RaChromaquantModule::SCALE_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 55), module, RaChromaquantModule::SMASH_PARAM));
 
-        addInput(createInputCentered<RaPort>(Vec(16, 78), module, RaChromaquantModule::IN1_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(44, 78), module, RaChromaquantModule::IN2_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 106), module, RaChromaquantModule::IN3_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(44, 106), module, RaChromaquantModule::IN4_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 134), module, RaChromaquantModule::IN5_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(44, 134), module, RaChromaquantModule::IN6_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 162), module, RaChromaquantModule::IN7_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(44, 162), module, RaChromaquantModule::IN8_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 80), module, RaChromaquantModule::IN1_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 106), module, RaChromaquantModule::IN2_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 132), module, RaChromaquantModule::IN3_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 158), module, RaChromaquantModule::IN4_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 184), module, RaChromaquantModule::IN5_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 210), module, RaChromaquantModule::IN6_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 236), module, RaChromaquantModule::IN7_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 262), module, RaChromaquantModule::IN8_INPUT));
 
-        addOutput(createOutputCentered<RaPort>(Vec(16, 200), module, RaChromaquantModule::OUT1_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 200), module, RaChromaquantModule::OUT2_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(16, 228), module, RaChromaquantModule::OUT3_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 228), module, RaChromaquantModule::OUT4_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(16, 256), module, RaChromaquantModule::OUT5_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 256), module, RaChromaquantModule::OUT6_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(16, 284), module, RaChromaquantModule::OUT7_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 284), module, RaChromaquantModule::OUT8_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 80), module, RaChromaquantModule::OUT1_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 106), module, RaChromaquantModule::OUT2_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 132), module, RaChromaquantModule::OUT3_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 158), module, RaChromaquantModule::OUT4_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 184), module, RaChromaquantModule::OUT5_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 210), module, RaChromaquantModule::OUT6_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 236), module, RaChromaquantModule::OUT7_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 262), module, RaChromaquantModule::OUT8_OUTPUT));
     }
 };
 

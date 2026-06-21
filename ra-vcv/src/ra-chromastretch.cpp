@@ -7,6 +7,7 @@ extern Plugin *pluginInstance;
 struct RaChromastretchModule : Module {
     enum ParamIds {
         SCALE_PARAM,
+        SMASH_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -38,6 +39,7 @@ struct RaChromastretchModule : Module {
     RaChromastretchModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configSwitch(SCALE_PARAM, 1.f, 10.f, 1.f, "Scale", {"12-TET", "24-TET", "36-TET", "48-TET", "60-TET", "72-TET", "84-TET", "96-TET", "108-TET", "120-TET"});
+        configSwitch(SMASH_PARAM, 0.f, 1.f, 0.f, "Smash", {"Off", "On"});
         configInput(IN1_INPUT, "Input 1");
         configInput(IN2_INPUT, "Input 2");
         configInput(IN3_INPUT, "Input 3");
@@ -56,16 +58,29 @@ struct RaChromastretchModule : Module {
         configOutput(OUT8_OUTPUT, "Output 8");
     }
 
+    bool lastSmash = false;
+
     void process(const ProcessArgs &args) override {
-        float scale = params[SCALE_PARAM].getValue() * 12.f;
-        outputs[OUT1_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() / scale);
-        outputs[OUT2_OUTPUT].setVoltage(inputs[IN2_INPUT].getVoltage() / scale);
-        outputs[OUT3_OUTPUT].setVoltage(inputs[IN3_INPUT].getVoltage() / scale);
-        outputs[OUT4_OUTPUT].setVoltage(inputs[IN4_INPUT].getVoltage() / scale);
-        outputs[OUT5_OUTPUT].setVoltage(inputs[IN5_INPUT].getVoltage() / scale);
-        outputs[OUT6_OUTPUT].setVoltage(inputs[IN6_INPUT].getVoltage() / scale);
-        outputs[OUT7_OUTPUT].setVoltage(inputs[IN7_INPUT].getVoltage() / scale);
-        outputs[OUT8_OUTPUT].setVoltage(inputs[IN8_INPUT].getVoltage() / scale);
+        float s = params[SCALE_PARAM].getValue();
+        bool smash = params[SMASH_PARAM].getValue() > 0.f;
+        if (smash != lastSmash) {
+            lastSmash = smash;
+            auto* sq = static_cast<SwitchQuantity*>(paramQuantities[SCALE_PARAM]);
+            if (smash)
+                sq->labels = {"12-TET", "10-TET", "9-TET", "8-TET", "7-TET", "6-TET", "5-TET", "4-TET", "3-TET", "2-TET"};
+            else
+                sq->labels = {"12-TET", "24-TET", "36-TET", "48-TET", "60-TET", "72-TET", "84-TET", "96-TET", "108-TET", "120-TET"};
+        }
+        float divisions = smash ? (s == 1.f ? 12.f : 12.f - s) : s;
+        float factor = smash ? (12.f / divisions) : (1.f / divisions);
+        outputs[OUT1_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() * factor);
+        outputs[OUT2_OUTPUT].setVoltage(inputs[IN2_INPUT].getVoltage() * factor);
+        outputs[OUT3_OUTPUT].setVoltage(inputs[IN3_INPUT].getVoltage() * factor);
+        outputs[OUT4_OUTPUT].setVoltage(inputs[IN4_INPUT].getVoltage() * factor);
+        outputs[OUT5_OUTPUT].setVoltage(inputs[IN5_INPUT].getVoltage() * factor);
+        outputs[OUT6_OUTPUT].setVoltage(inputs[IN6_INPUT].getVoltage() * factor);
+        outputs[OUT7_OUTPUT].setVoltage(inputs[IN7_INPUT].getVoltage() * factor);
+        outputs[OUT8_OUTPUT].setVoltage(inputs[IN8_INPUT].getVoltage() * factor);
     }
 };
 
@@ -80,24 +95,25 @@ struct RaChromastretchWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, 28), module, RaChromastretchModule::SCALE_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 55), module, RaChromastretchModule::SMASH_PARAM));
 
-        addInput(createInputCentered<RaPort>(Vec(16, 78), module, RaChromastretchModule::IN1_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(44, 78), module, RaChromastretchModule::IN2_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 106), module, RaChromastretchModule::IN3_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(44, 106), module, RaChromastretchModule::IN4_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 134), module, RaChromastretchModule::IN5_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(44, 134), module, RaChromastretchModule::IN6_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(16, 162), module, RaChromastretchModule::IN7_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(44, 162), module, RaChromastretchModule::IN8_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 80), module, RaChromastretchModule::IN1_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 106), module, RaChromastretchModule::IN2_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 132), module, RaChromastretchModule::IN3_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 158), module, RaChromastretchModule::IN4_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 184), module, RaChromastretchModule::IN5_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 210), module, RaChromastretchModule::IN6_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 236), module, RaChromastretchModule::IN7_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 262), module, RaChromastretchModule::IN8_INPUT));
 
-        addOutput(createOutputCentered<RaPort>(Vec(16, 200), module, RaChromastretchModule::OUT1_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 200), module, RaChromastretchModule::OUT2_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(16, 228), module, RaChromastretchModule::OUT3_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 228), module, RaChromastretchModule::OUT4_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(16, 256), module, RaChromastretchModule::OUT5_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 256), module, RaChromastretchModule::OUT6_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(16, 284), module, RaChromastretchModule::OUT7_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 284), module, RaChromastretchModule::OUT8_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 80), module, RaChromastretchModule::OUT1_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 106), module, RaChromastretchModule::OUT2_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 132), module, RaChromastretchModule::OUT3_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 158), module, RaChromastretchModule::OUT4_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 184), module, RaChromastretchModule::OUT5_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 210), module, RaChromastretchModule::OUT6_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 236), module, RaChromastretchModule::OUT7_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 262), module, RaChromastretchModule::OUT8_OUTPUT));
     }
 };
 
