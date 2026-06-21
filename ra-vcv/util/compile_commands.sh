@@ -7,6 +7,11 @@
 #
 # Regenerate after changing the SDK path or Makefile includes.
 set -euo pipefail
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 RACK_DIR="${RACK_DIR:-../Rack-SDK}"
+
+rm -rf build
+
 bear -- make RACK_DIR="$RACK_DIR" 2>&1
+
+mv compile_commands.json .
