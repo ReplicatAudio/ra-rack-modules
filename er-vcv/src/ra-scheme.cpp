@@ -183,7 +183,7 @@ struct RaSchemeModule : Module {
 
     void dataFromJson(json_t *rootJ) override {
         json_t *j = json_object_get(rootJ, "expression");
-        if (j) {
+        if (j && json_string_value(j)) {
             setExpression(json_string_value(j));
         }
     }
@@ -414,7 +414,7 @@ struct RaSchemeWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        float colX[] = {26, 67, 108, 149};
+        float colX[] = {42, 84, 126, 168};
         float inY = 38;
         for (int i = 0; i < 4; i++) {
             addInput(createInputCentered<RaPort>(Vec(colX[i], inY), module, RaSchemeModule::A_INPUT + i));
@@ -454,7 +454,7 @@ struct RaSchemeWidget : ModuleWidget {
         auto *writeBtn = new ActionButton();
         writeBtn->box.pos = Vec(12, 275);
         writeBtn->box.size = Vec(44, 22);
-        writeBtn->label = "Write";
+        writeBtn->label = "write";
         writeBtn->onClick = [this]() {
             if (this->module) ((RaSchemeModule*)this->module)->setExpression(textField->text);
         };
@@ -463,7 +463,7 @@ struct RaSchemeWidget : ModuleWidget {
         auto *clearBtn = new ActionButton();
         clearBtn->box.pos = Vec(154, 275);
         clearBtn->box.size = Vec(44, 22);
-        clearBtn->label = "Clear";
+        clearBtn->label = "clear";
         clearBtn->onClick = [this]() {
             textField->text = "";
         };

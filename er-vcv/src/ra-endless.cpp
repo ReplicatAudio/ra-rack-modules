@@ -405,7 +405,7 @@ struct RaEndlessWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(125, 257), module, RaEndlessModule::RESET_TRIG_INPUT));
 
         // Position input above Track A trigger output
-        addInput(createInputCentered<RaPort>(Vec(75, 277), module, RaEndlessModule::POSITION_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(75, 237), module, RaEndlessModule::POSITION_INPUT));
 
         // Outputs — Track A at y=305, Track B at y=345
         // Each row: CV | TRIG | END  spaced 45 units apart

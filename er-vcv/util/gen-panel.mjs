@@ -1,20 +1,50 @@
 #!/usr/bin/env node
-// Generate a panel SVG from a VCV Rack module C++ source file.
-// Usage: node util/gen-panel.mjs [src/ra-xxxx.cpp] > out.svg
+
+// ============================================================
+// gen-panel.mjs — VCV Rack panel SVG generator
+//
+// Parses a VCV Rack module's C++ source file, extracts widget
+// positions (knobs, jacks, switches, lights, etc.), and emits
+// a panel SVG ready for use in Rack.
+//
+// Usage:
+//   Single module (stdout):
+//     node util/gen-panel.mjs src/ra-endless.cpp > res/ra-endless.svg
+//
+//   Generate all modules (writes res/*.svg, assumes modules are in /src):
+//     node util/gen-panel.mjs --all
+//
+// Flags:
+//   --all              Batch-generate SVGs for every src/ra-*.cpp file
+//   --hp=N             Override HP width (otherwise auto-detected from SVG)
+//   --input-color=#hex Set jack color for inputs  (default #14B274)
+//   --output-color=#hex Set jack color for outputs (default #FFB93D)
+//   --bg-start=#hex    Top color of background gradient (default #423558)
+//   --bg-end=#hex      Bottom color of background gradient (default #221421)
+//   --bg-mid=0-100     Midpoint of gradient as % from top (default 33)
+//
+// Examples:
+//   node util/gen-panel.mjs src/ra-vca.cpp > res/ra-vca.svg
+//   node util/gen-panel.mjs --all
+//   node util/gen-panel.mjs --hp=6 --input-color=#ff0000 src/ra-foo.cpp > panel.svg
+//
+// Note:
+// The background gradient uses color banding. It will generate 100 svg layers at each color band.
+// This is not the most optimial thing for performance but it looks nice. 
+// IF YOU PROVIDE THE SAME COLOR FOR START AND END THERE WILL BE NO GRADIENT GENERATION AT ALL.
+// ============================================================
 
 import fs from 'node:fs';
 import path from 'node:path';
 
 // ============================================================
-// Configuration
+// Configuration — default visual style
+// Overridable via CLI flags (see above).
 // ============================================================
 
-
-//start: '#443852',
-//242425
 let CFG = {
-  strokeWidth: 1.5,
-  bg: {
+  strokeWidth: 1.5, // Width of all drawn lines
+  bg: { // Background gradient
     start: '#423558',
     end: '#221421',
     mid: 33,
@@ -25,10 +55,18 @@ let CFG = {
   },
 };
 
-const ru2mm = (ru) => ru * 5.08 / 15;
-
-// Widget physical dimensions in rack units
-// rad = radius; hw = half-width; hh = half-height
+// ============================================================
+// Widget geometry registry
+//
+// Maps C++ widget type names to their physical dimensions and
+// rendering category. Used during SVG generation to draw the
+// correct shape and size for each component.
+//
+// Fields:
+//   kind  — rendering category (jack, knob, switch, button, etc.)
+//   rad   — radius in rack-units (for round components)
+//   hw/hh — half-width / half-height in rack-units (for rect components)
+// ============================================================
 const WIDGET_INFO = {
   RaPort: { kind: 'jack', rad: 11.85 },
   RaKnob: { kind: 'knob', rad: 14.17 },
@@ -56,8 +94,15 @@ function resolveBaseType(typeStr) {
   return null;
 }
 
+// Convert rack-units to millimetres (1hp = 5.08mm = 15 rack-units)
+const ru2mm = (ru) => ru * 5.08 / 15;
+
 // ============================================================
 // Expression resolver
+//
+// Evaluates arithmetic expressions from C++ source at parse
+// time, substituting known variables, array lookups, and
+// Rack-specific constants (box.size.x, RACK_GRID_WIDTH, etc.).
 // ============================================================
 class ExprContext {
   constructor(HW) {
@@ -120,33 +165,45 @@ class ExprContext {
 
 // ============================================================
 // C++ Parser
+//
+// Reads a VCV Rack module source file and extracts:
+//   - panel SVG path
+//   - module name (from createModel slug)
+//   - configParam/Input/Output display labels
+//   - HP width (from SVG viewBox or estimated from layout)
+//   - widget positions inside the Widget constructor
 // ============================================================
 function parseModule(filePath) {
   const src = fs.readFileSync(filePath, 'utf8');
   const lines = src.split('\n');
 
   // ---- Extract panel SVG path ----
+  // Match: asset::plugin(pluginInstance, "res/ra-foo.svg")
   const panelMatch = src.match(/asset::plugin\(pluginInstance,\s*"([^"]+\.svg)"\)/);
   const panelSvg = panelMatch ? panelMatch[1] : null;
 
-  // ---- Extract module name from createModel ----
+  // ---- Extract module name from createModel slug ----
+  // Match: createModel<FooModule, FooWidget>("ra-foo")
   const modelMatch = src.match(/createModel<\w+,\s*\w+>\s*\(\s*"([^"]+)"\s*\)/);
   const moduleName = modelMatch ? modelMatch[1] : path.basename(filePath, '.cpp');
 
-  // ---- Extract config names (display labels for params/inputs/outputs) ----
+  // ---- Extract display labels from configParam/Input/Output calls ----
+  // Builds a lookup: configNames["GAIN_PARAM"] = "Gain"
   const configNames = {};
-  // configParam(ENUM, ..., "Name", ...)
+  // Match: configParam(GAIN_PARAM, ..., "Gain", ...)
   const configParamRe = /configParam\(\s*(\w+)\s*,.*?"([^"]+?)"/g;
   let m;
   while ((m = configParamRe.exec(src)) !== null) configNames[m[1]] = m[2];
-  // configInput(ENUM, "Name")
+  // Match: configInput(IN_ID, "Audio In")
   const configInputRe = /configInput\(\s*(\w+)\s*,\s*"([^"]+?)"\s*\)/g;
   while ((m = configInputRe.exec(src)) !== null) configNames[m[1]] = m[2];
-  // configOutput(ENUM, "Name")
+  // Match: configOutput(OUT_ID, "Audio Out")
   const configOutputRe = /configOutput\(\s*(\w+)\s*,\s*"([^"]+?)"\s*\)/g;
   while ((m = configOutputRe.exec(src)) !== null) configNames[m[1]] = m[2];
 
-  // ---- Determine HP from panel SVG ----
+  // ---- Determine HP width ----
+  // Preferred source: read the existing panel SVG's viewBox and compute
+  // width = mmWidth / 5.08 (1hp = 5.08mm).
   let HP = 0;
   if (panelSvg) {
     const svgDir = path.dirname(path.resolve(filePath));
@@ -161,18 +218,18 @@ function parseModule(filePath) {
     }
   }
 
-  // Fallback: estimate from the rightmost numeric x-coordinate in Vec() calls.
-  // Only kicks in when SVG is unavailable or its HP is implausibly large
-  // for the component layout (e.g. pre-generated output read on a 2nd run).
+  // Fallback HP estimation: use the rightmost x-coordinate from Vec() calls.
+  // This handles cases where no SVG exists yet (e.g. generating the first panel).
   if (!HP) {
     let maxX = 0;
+    // Find all numeric x-coordinates in Vec(x, y) calls
     const xRe = /Vec\(\s*([\d.]+)\s*,/g;
     let xm;
     while ((xm = xRe.exec(src)) !== null) {
       const xv = parseFloat(xm[1]);
       if (xv > maxX) maxX = xv;
     }
-    // Components at box.size.x - N imply a position near the right edge
+    // Also detect expressions like box.size.x - RACK_GRID_WIDTH (right-edge placement)
     const offsetRe = /box\.size\.x\s*-\s*([\d.]+)/g;
     let om;
     while ((om = offsetRe.exec(src)) !== null) {
@@ -180,16 +237,17 @@ function parseModule(filePath) {
       if (w > maxX) maxX = w;
     }
     if (maxX > 0) {
-      // The rightmost component center + 15 units (~1HP margin) ≈ panel width
+      // Add 1hp (15 units) margin beyond the rightmost component
       const guessedHP = Math.ceil((maxX + 15) / 15);
+      // Clamp to a reasonable range to avoid bogus values
       if (guessedHP >= 4 && guessedHP <= 12) HP = guessedHP;
     }
   }
-  if (!HP) HP = 4;
-  const HW = HP * 15; // box.size.x in rack units
+  if (!HP) HP = 4;             // fallback default
+  const HW = HP * 15;          // box.size.x in rack-units
 
-  // ---- Parse widget constructor body ----
-  // Find the Widget constructor
+  // ---- Isolate the Widget constructor body ----
+  // Find the opening { of FooWidget::FooWidget(...) { ... }
   const widgetStartRe = /\b(\w+Widget)\s*\([^)]*\)\s*\{/;
   const consMatch = src.match(widgetStartRe);
   if (!consMatch) {
@@ -197,17 +255,18 @@ function parseModule(filePath) {
     process.exit(1);
   }
   const constructorStart = src.indexOf(consMatch[0]);
+  // Extract everything between the outer { }
   const body = extractBraces(src, constructorStart + consMatch[0].length - 1);
   const bodyLines = body.split('\n');
 
-  // ---- Process body with expression context ----
+  // ---- Walk the constructor body line by line ----
+  // The ExprContext tracks local variables, arrays, and loop
+  // counters so we can resolve expressions like y+28*i at parse time.
   const ctx = new ExprContext(HW);
   const components = [];
 
-  // Known arrays from enum IDs (we match these when we see patterns like RaChanceModule::OUT_1_2 + i)
-  // We'll collect actual numeric enum values from enums.
-
-  // Extract array declarations and variable declarations, and process component creation
+  // Process all lines — handles variable declarations, for-loops,
+  // assignments, and component creation calls.
   processBlock(bodyLines, ctx, components);
 
   return {
@@ -220,7 +279,8 @@ function parseModule(filePath) {
   };
 }
 
-// Extract text between matching { } starting at openBraceIdx
+// Extract the text between the first matching { } brace pair
+// starting from openBraceIdx. Handles nested braces correctly.
 function extractBraces(src, openBraceIdx) {
   let depth = 0;
   let start = -1;
@@ -236,7 +296,16 @@ function extractBraces(src, openBraceIdx) {
   return src.slice(start);
 }
 
-// Process a block of lines, handling for loops, variable decls, component calls
+// Process a block of C++ source lines, recognising:
+//   - for loops          → unroll by iterating the loop variable
+//   - variable decls     → store in ExprContext for later resolution
+//   - array decls        → store array values in ExprContext
+//   - compound assignment→ update tracked variables (y += 28)
+//   - simple assignment  → update tracked variables (y = expr)
+//   - component creation → parse via parseComponentLine() and collect
+//
+// loopVars are injected temporarily and cleaned up on exit, so
+// recursive calls (e.g. loop unrolling) get fresh loop-iterator values.
 function processBlock(lines, ctx, components, loopVars = {}) {
   // Merge loop variables into context temporarily
   for (const [k, v] of Object.entries(loopVars)) ctx.setVar(k, v);
@@ -245,27 +314,26 @@ function processBlock(lines, ctx, components, loopVars = {}) {
   while (i < lines.length) {
     const line = lines[i].trim();
 
-    // Skip empty lines and comments
+    // Skip empty lines and C++-style comments
     if (!line || line.startsWith('//')) { i++; continue; }
 
-    // Detect for loop: for (int VAR = START; VAR < END; VAR++)
+    // ---- For-loop detection and unrolling ----
+    // Pattern: for (int VAR = START; VAR < END; VAR++)
     const forMatch = line.match(/^\s*for\s*\(\s*(?:int|float)\s+(\w+)\s*=\s*([^;]+);\s*\1\s*<\s*([^;]+);\s*(?:\1\+\+|--\1|\1\s*=\s*\1\s*\+[^)]*)\s*\)\s*\{?\s*$/);
     if (forMatch) {
       const varName = forMatch[1];
       const startVal = ctx.resolve(forMatch[2]);
       const endExpr = forMatch[3];
 
-      // Collect loop body — find matching closing brace
+      // Collect the loop body by tracking brace depth
       let bodyLines = [];
       let braceCount = 0;
       let j = i;
-      // If the for line already has {, start body from next line
       if (line.includes('{')) {
         braceCount = 1;
         j = i + 1;
       } else {
         j = i + 1;
-        // Find opening brace
         while (j < lines.length && !lines[j].trim().startsWith('{')) j++;
         if (j < lines.length) {
           braceCount = 1;
@@ -282,7 +350,7 @@ function processBlock(lines, ctx, components, loopVars = {}) {
         j++;
       }
 
-      // Unroll loop
+      // Unroll: process the body once per iteration, injecting the loop variable
       const endVal = ctx.resolve(endExpr);
       if (isFinite(startVal) && isFinite(endVal)) {
         for (let iter = startVal; iter < endVal; iter++) {
@@ -294,11 +362,15 @@ function processBlock(lines, ctx, components, loopVars = {}) {
       continue;
     }
 
-    // Detect display creation: auto *display = new SomeDisplay();
-    // or: SomeDisplay* display = createWidget<SomeDisplay>(...)
+    // ---- Display widget detection ----
+    // Displays are created with patterns like:
+    //   auto *display = new SomeDisplay();
+    //   display->box.pos = Vec(x, y);
+    //   display->box.size = Vec(w, h);
+    // or with createWidget<SomeDisplay>(Vec(x, y))
     const dispMatch = line.match(/^\s*(?:\w+\s*\*?\s+)?\w+\s*=\s*(?:new\s+|createWidget<)(\w+Display)\s*[^(]*\(/);
     if (dispMatch) {
-      // Look at next lines for ->box.pos = Vec(x, y) and ->box.size = Vec(w, h)
+      // Look ahead a few lines for ->box.pos / ->box.size assignments
       let pos = null, size = null;
       for (let k = i; k < Math.min(i + 5, lines.length); k++) {
         const sub = lines[k].trim();
@@ -315,7 +387,7 @@ function processBlock(lines, ctx, components, loopVars = {}) {
           size = { w: isMM && isFinite(sw) ? sw * 15 / 5.08 : sw, h: isMM && isFinite(sh) ? sh * 15 / 5.08 : sh };
         }
       }
-      // If no separate ->box.pos line, extract position from createWidget args
+      // Fallback: extract position from createWidget argument list
       if (!pos) {
         const createPosM = line.match(/createWidget<\w+Display>\s*\(\s*(?:mm2px\()?\s*Vec\(([^)]+)\)/);
         if (createPosM) {
@@ -329,11 +401,8 @@ function processBlock(lines, ctx, components, loopVars = {}) {
       continue;
     }
 
-    // Detect display via setPosition/setSize style (alternative pattern)
-    // (already handled above)
-
-    // Detect variable / array declarations
-    // float/int VAR = EXPR;
+    // ---- Variable declarations (with initialiser) ----
+    // Pattern: float/int VAR = EXPR;
     const varMatch = line.match(/^\s*(?:float|int)\s+(\w+)\s*=\s*(.+?);\s*$/);
     if (varMatch) {
       const val = ctx.resolve(varMatch[2]);
@@ -342,23 +411,25 @@ function processBlock(lines, ctx, components, loopVars = {}) {
       continue;
     }
 
-    // float TYPE[] = { ... };
+    // ---- Single-line array declarations ----
+    // Pattern: float/int NAME[] = { val1, val2, ... };
     const arrMatch = line.match(/^\s*(?:float|int)\s+(\w+)\[\]\s*=\s*\{(.+?)\}\s*;/);
     if (arrMatch) {
       const values = arrMatch[2].split(',').map(s => ctx.resolve(s.trim()));
-      // Filter out non-numeric values (like enum references)
+      // Keep only numeric values; discard enum references we can't resolve
       ctx.setArray(arrMatch[1], values.filter(v => isFinite(v)));
       i++;
       continue;
     }
 
-    // static const int TYPE[] = { ... };
+    // ---- Static const array (single-line) ----
+    // Pattern: static const int NAME[] = { Module::ENUM1, Module::ENUM2 };
     const staticArrMatch = line.match(/^\s*static\s+const\s+(?:int|float)\s+(\w+)\[\]\s*=\s*\{(.+?)\}\s*;/);
     if (staticArrMatch) {
       const values = staticArrMatch[2].split(',').map(s => {
-        // Handle RaChanceModule::OUT_1_2 style enum references
+        // Preserve enum-style strings (Module::ENUM_NAME) for label lookup
         const enumMatch = s.trim().match(/::(\w+)/);
-        if (enumMatch) return enumMatch[1]; // store as enum name for later
+        if (enumMatch) return enumMatch[1];
         return ctx.resolve(s.trim());
       });
       ctx.setArray(staticArrMatch[1], values);
@@ -366,7 +437,11 @@ function processBlock(lines, ctx, components, loopVars = {}) {
       continue;
     }
 
-    // Multi-line array: detect start of `static const int NAME[] = {`
+    // ---- Multi-line array declarations ----
+    // Pattern: static const int NAME[] = {
+    //            Module::ENUM1,
+    //            Module::ENUM2,
+    //          };
     const arrStart = line.match(/^\s*(?:static\s+)?const\s+(?:int|float)\s+(\w+)\[\]\s*=\s*\{\s*$/);
     if (arrStart) {
       const arrName = arrStart[1];
@@ -394,7 +469,7 @@ function processBlock(lines, ctx, components, loopVars = {}) {
       continue;
     }
 
-    // Assignment: y += 28, y -= 5
+    // ---- Compound assignment: y += 28 / y -= 5 ----
     const assignMatch = line.match(/^\s*(\w+)\s*(\+=|-=)\s*(.+?);\s*$/);
     if (assignMatch) {
       const varName = assignMatch[1];
@@ -407,7 +482,7 @@ function processBlock(lines, ctx, components, loopVars = {}) {
       continue;
     }
 
-    // Simple assignment (no type keyword): y = expr;
+    // ---- Simple assignment (previously-declared variable): y = expr; ----
     const simpleAssign = line.match(/^\s*(\w+)\s*=\s*(.+?);\s*$/);
     if (simpleAssign && ctx.vars[simpleAssign[1]] !== undefined) {
       ctx.setVar(simpleAssign[1], ctx.resolve(simpleAssign[2]));
@@ -415,7 +490,7 @@ function processBlock(lines, ctx, components, loopVars = {}) {
       continue;
     }
 
-    // ---- Component creation calls ----
+    // ---- Component creation calls (knobs, jacks, switches, lights, screws) ----
     const compMatch = parseComponentLine(line, ctx);
     if (compMatch) {
       components.push(compMatch);
@@ -426,7 +501,7 @@ function processBlock(lines, ctx, components, loopVars = {}) {
     i++;
   }
 
-  // Clean up loop vars
+  // Clean up loop variables so they don't leak to sibling iterations
   for (const k of Object.keys(loopVars)) delete ctx.vars[k];
 }
 
@@ -530,15 +605,30 @@ function parseComponentLine(line, ctx) {
 
 // ============================================================
 // SVG Generation
+//
+// Produces a panel SVG from the parsed module data. The SVG
+// uses millimetre units matching Rack's coordinate system
+// (viewBox in mm, panel height 128.5mm).
+//
+// The output includes:
+//   - Background gradient (simulated with vertical strips to
+//     avoid SVG url(#id) issues inside Rack)
+//   - Corner screws
+//   - Module name label
+//   - Display rectangles
+//   - Jacks, knobs, switches, buttons, bezels, lights, sliders
+//     each drawn with appropriate shapes and colors
+//   - Labels from configParam/Input/Output names
 // ============================================================
 function generateSVG(info) {
   const { moduleName, HP, components, configNames } = info;
-  const W = HP * 5.08; // mm
-  const H = 128.5;
-  const cx = W / 2;
-  const HW = HP * 15;
+  const W = HP * 5.08; // panel width in mm
+  const H = 128.5;     // standard 3U panel height in mm
+  const cx = W / 2;    // horizontal centre in mm
+  const HW = HP * 15;  // panel width in rack-units (for ru2mm conversion)
 
-  // Interpolate between two hex colors: t=0 → a, t=1 → b
+  // Linear interpolation between two hex color strings
+  // t=0 returns a, t=1 returns b, intermediate values blend
   const lerpColor = (a, b, t) => {
     const ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
     const ar = (ah >> 16) & 0xff, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
@@ -605,7 +695,7 @@ function generateSVG(info) {
     const mx = ru2mm(w.x);
     const my = ru2mm(w.y);
 
-    // Determine colour
+    // Determine color
     let color = '#888';
     if (w.role === 'input') color = CFG.colors.input;
     else if (w.role === 'output') color = CFG.colors.output;
@@ -704,23 +794,39 @@ function generateSVG(info) {
 }
 
 // ============================================================
-// Main
+// Main — CLI entry point
+//
+// Parses CLI flags (see header comment), then either:
+//   --all   : batch-generate SVGs for all src/ra-*.cpp files
+//   [file]  : generate a single SVG to stdout
 // ============================================================
-let filePath = 'src/ra-endless.cpp';
-let overrideHP = 0;
-let allFlag = false;
+
+let filePath = 'src/ra-endless.cpp';   // default if no file given
+let overrideHP = 0;                    // --hp=N override
+let allFlag = false;                   // --all mode
+
 for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
-  if (arg === '--all') allFlag = true;
-  else if (arg.startsWith('--hp=')) overrideHP = parseInt(arg.slice(5), 10);
-  else if (arg.startsWith('--input-color=')) CFG.colors.input = arg.slice(14);
-  else if (arg.startsWith('--output-color=')) CFG.colors.output = arg.slice(15);
-  else if (arg.startsWith('--bg-start=')) CFG.bg.start = arg.slice(11);
-  else if (arg.startsWith('--bg-end=')) CFG.bg.end = arg.slice(9);
-  else if (arg.startsWith('--bg-mid=')) CFG.bg.mid = Math.max(0, Math.min(100, parseInt(arg.slice(9), 10)));
-  else if (!arg.startsWith('--')) filePath = arg;
+  if (arg === '--all') {
+    allFlag = true;
+  } else if (arg.startsWith('--hp=')) {
+    overrideHP = parseInt(arg.slice(5), 10);
+  } else if (arg.startsWith('--input-color=')) {
+    CFG.colors.input = arg.slice(14);
+  } else if (arg.startsWith('--output-color=')) {
+    CFG.colors.output = arg.slice(15);
+  } else if (arg.startsWith('--bg-start=')) {
+    CFG.bg.start = arg.slice(11);
+  } else if (arg.startsWith('--bg-end=')) {
+    CFG.bg.end = arg.slice(9);
+  } else if (arg.startsWith('--bg-mid=')) {
+    CFG.bg.mid = Math.max(0, Math.min(100, parseInt(arg.slice(9), 10)));
+  } else if (!arg.startsWith('--')) {
+    filePath = arg;
+  }
 }
 
+// ---- Batch mode: scan src/ for ra-*.cpp, write each SVG to res/ ----
 if (allFlag) {
   const files = fs.readdirSync('src').filter(f => f.startsWith('ra-') && f.endsWith('.cpp'));
   const dir = path.resolve('res');
@@ -732,11 +838,13 @@ if (allFlag) {
     const svg = generateSVG(info);
     const outName = f.replace(/\.cpp$/, '.svg');
     fs.writeFileSync(path.join(dir, outName), svg);
+    // Progress messages go to stderr so stdout is clean for piping
     console.error(`${outName} (${info.HP}hp)`);
   }
   process.exit(0);
 }
 
+// ---- Single-file mode: read one source, emit SVG on stdout ----
 const fullPath = path.resolve(filePath);
 
 if (!fs.existsSync(fullPath)) {

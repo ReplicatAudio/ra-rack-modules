@@ -160,9 +160,9 @@
   <circle cx="42.33" cy="87.04" r="4.01" fill="#111" stroke="#14B274" stroke-width="1.6" opacity="0.7"/>
   <circle cx="42.33" cy="87.04" r="1.40" fill="#14B274" opacity="0.5"/>
   <text x="42.33" y="93.05" fill="#14B274" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Reset trigger</text>
-  <circle cx="25.40" cy="93.81" r="4.01" fill="#111" stroke="#14B274" stroke-width="1.6" opacity="0.7"/>
-  <circle cx="25.40" cy="93.81" r="1.40" fill="#14B274" opacity="0.5"/>
-  <text x="25.40" y="99.82" fill="#14B274" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Position CV (0-10V)</text>
+  <circle cx="25.40" cy="80.26" r="4.01" fill="#111" stroke="#14B274" stroke-width="1.6" opacity="0.7"/>
+  <circle cx="25.40" cy="80.26" r="1.40" fill="#14B274" opacity="0.5"/>
+  <text x="25.40" y="86.28" fill="#14B274" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Position CV (0-10V)</text>
   <circle cx="10.16" cy="103.29" r="4.01" fill="#111" stroke="#FFB93D" stroke-width="1.6" opacity="0.7"/>
   <circle cx="10.16" cy="103.29" r="1.40" fill="#FFB93D" opacity="0.5"/>
   <text x="10.16" y="109.31" fill="#FFB93D" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Track A pitch CV</text>
