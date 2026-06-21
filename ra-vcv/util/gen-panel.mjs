@@ -41,8 +41,8 @@ import path from 'node:path';
 let CFG = {
   strokeWidth: 1.5, // Width of all drawn lines
   bg: { // Background gradient
-    start: '#423558',
-    end: '#221421',
+    start: '#332832', //#423558
+    end: '#221721',
     mid: 33,
   },
   colors: {
