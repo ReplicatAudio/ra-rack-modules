@@ -98,7 +98,13 @@
     {
       "slug": "ra-chromastretch",
       "name": "ra-chromastretch",
-      "description": "CV divider — 4 channels, divide by 2–10",
+      "description": "CV divider — 8 channels, divide by 1–10",
+      "tags": ["Utility", "CV source"]
+    },
+    {
+      "slug": "ra-chromaquant",
+      "name": "ra-chromaquant",
+      "description": "Microtonal quantizer — 8 channels, 12-TET to 120-TET",
       "tags": ["Utility", "CV source"]
     }
   ]

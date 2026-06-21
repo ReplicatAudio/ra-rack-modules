@@ -37,7 +37,7 @@ struct RaChromastretchModule : Module {
 
     RaChromastretchModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configSwitch(SCALE_PARAM, 1.f, 10.f, 1.f, "Scale", {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+        configSwitch(SCALE_PARAM, 1.f, 10.f, 1.f, "Scale", {"12-TET", "24-TET", "36-TET", "48-TET", "60-TET", "72-TET", "84-TET", "96-TET", "108-TET", "120-TET"});
         configInput(IN1_INPUT, "Input 1");
         configInput(IN2_INPUT, "Input 2");
         configInput(IN3_INPUT, "Input 3");
@@ -57,7 +57,7 @@ struct RaChromastretchModule : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        float scale = params[SCALE_PARAM].getValue();
+        float scale = params[SCALE_PARAM].getValue() * 12.f;
         outputs[OUT1_OUTPUT].setVoltage(inputs[IN1_INPUT].getVoltage() / scale);
         outputs[OUT2_OUTPUT].setVoltage(inputs[IN2_INPUT].getVoltage() / scale);
         outputs[OUT3_OUTPUT].setVoltage(inputs[IN3_INPUT].getVoltage() / scale);

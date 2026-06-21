@@ -19,6 +19,7 @@ SOURCES = \
 	src/ra-ulfo.cpp \
 	src/ra-vca.cpp \
 	src/ra-chromastretch.cpp \
+	src/ra-chromaquant.cpp \
 
 
 DISTRIBUTABLES += $(wildcard res/*)
