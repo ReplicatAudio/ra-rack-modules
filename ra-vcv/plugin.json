@@ -90,6 +90,12 @@
       "tags": ["Utility", "CV source", "Sequencer"]
     },
     {
+      "slug": "ra-m2",
+      "name": "ra-m2",
+      "description": "Stereo master processor — gain, -6dB limiter, soft clip, mute, and stereo-to-mono blend",
+      "tags": ["Utility", "Effect"]
+    },
+    {
       "slug": "ra-magus",
       "name": "ra-magus",
       "description": "Scheme expression evaluator — 4 CV inputs A B C D available as variables in Scheme expressions",
