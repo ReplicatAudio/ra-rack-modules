@@ -22,6 +22,7 @@ SOURCES = \
 	src/ra-ntet.cpp \
 	src/ra-think.cpp \
 	src/ra-accumulator.cpp \
+	src/ra-glitch.cpp \
 	src/ra-zeno.cpp \
 
 

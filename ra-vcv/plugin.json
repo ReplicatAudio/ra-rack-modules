@@ -78,6 +78,12 @@
       "tags": ["Envelope generator", "Polyphonic"]
     },
     {
+      "slug": "ra-glitch",
+      "name": "ra-glitch",
+      "description": "Random glitch processor — freeze, replace, or drop audio with CV-controllable frequency and length",
+      "tags": ["Effect", "Utility", "Random"]
+    },
+    {
       "slug": "ra-klock",
       "name": "ra-klock",
       "description": "Master clock with v/oct BPM control, swing, run/reset, and 9 clock outputs",
