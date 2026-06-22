@@ -13,20 +13,21 @@ struct RaGlitchModule : Module {
     };
     enum InputIds {
         AUDIO_INPUT,
-        REPLACE_INPUT,
+        SWAP_INPUT,
         FREQ_CV_INPUT,
         LENGTH_CV_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
         AUDIO_OUTPUT,
+        SWAP_OUTPUT,
         NUM_OUTPUTS
     };
     enum LightIds {
         NUM_LIGHTS
     };
 
-    static const int FREEZE_BUFFER_SIZE = 44100;
+    static const int FREEZE_BUFFER_SIZE = 48000;
     float freezeBuffer[FREEZE_BUFFER_SIZE] = {};
     int freezeWritePos = 0;
     int freezeReadPos = 0;
@@ -37,46 +38,51 @@ struct RaGlitchModule : Module {
     RaGlitchModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(FREQ_PARAM, 0.f, 1.f, 0.2f, "Frequency", "%", 0.f, 100.f);
-        configParam(LENGTH_PARAM, 0.f, 1.f, 0.3f, "Length", "%", 0.f, 100.f);
-        configSwitch(MODE_PARAM, 0.f, 2.f, 0.f, "Mode", {"Freeze", "Replace", "Drop"});
+        configParam(LENGTH_PARAM, 0.f, 1.f, 0.1f, "Length", " ms", 0.f, 499.f, 1.f);
+        configSwitch(MODE_PARAM, 0.f, 2.f, 0.f, "Mode", {"Freeze", "Swap", "Drop"});
         configInput(AUDIO_INPUT, "Audio");
-        configInput(REPLACE_INPUT, "Replace");
+        configInput(SWAP_INPUT, "Swap");
         configInput(FREQ_CV_INPUT, "Frequency CV");
         configInput(LENGTH_CV_INPUT, "Length CV");
         configOutput(AUDIO_OUTPUT, "Audio");
+        configOutput(SWAP_OUTPUT, "Swap");
     }
 
     void process(const ProcessArgs &args) override {
         float freq = clamp(params[FREQ_PARAM].getValue() + inputs[FREQ_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
-        float maxLen = clamp(params[LENGTH_PARAM].getValue() + inputs[LENGTH_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+        float maxLenMs = 1.f + clamp(params[LENGTH_PARAM].getValue() + inputs[LENGTH_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f) * 499.f;
         int mode = (int)std::round(params[MODE_PARAM].getValue());
 
-        float in = inputs[AUDIO_INPUT].getVoltage();
-        float out;
+        float in1 = inputs[AUDIO_INPUT].getVoltage();
+        float in2 = inputs[SWAP_INPUT].getVoltage();
+        float out1, out2;
 
         if (inGlitch) {
             glitchTimer -= args.sampleTime;
 
             if (freezeWritePos < FREEZE_BUFFER_SIZE) {
-                freezeBuffer[freezeWritePos] = in;
+                freezeBuffer[freezeWritePos] = in1;
                 freezeWritePos++;
             }
 
             switch (mode) {
                 case 0: {
                     if (freezeWritePos > 0) {
-                        out = freezeBuffer[freezeReadPos % freezeWritePos];
+                        out1 = freezeBuffer[freezeReadPos % freezeWritePos];
                         freezeReadPos++;
                     } else {
-                        out = 0.f;
+                        out1 = 0.f;
                     }
+                    out2 = in2;
                     break;
                 }
                 case 1:
-                    out = inputs[REPLACE_INPUT].getVoltage();
+                    out1 = in2;
+                    out2 = in1;
                     break;
                 default:
-                    out = 0.f;
+                    out1 = 0.f;
+                    out2 = 0.f;
                     break;
             }
 
@@ -84,21 +90,22 @@ struct RaGlitchModule : Module {
                 inGlitch = false;
             }
         } else {
-            out = in;
+            out1 = in1;
+            out2 = in2;
         }
 
         if (!inGlitch) {
             float glitchRate = freq * 10.f;
             if (random::uniform() < glitchRate * args.sampleTime) {
                 inGlitch = true;
-                float MAX_GLITCH_SEC = 1.f;
-                glitchTimer = random::uniform() * maxLen * MAX_GLITCH_SEC;
+                glitchTimer = random::uniform() * maxLenMs / 1000.f;
                 freezeWritePos = 0;
                 freezeReadPos = 0;
             }
         }
 
-        outputs[AUDIO_OUTPUT].setVoltage(out);
+        outputs[AUDIO_OUTPUT].setVoltage(out1);
+        outputs[SWAP_OUTPUT].setVoltage(out2);
     }
 };
 
@@ -117,7 +124,7 @@ struct RaGlitchWidget : ModuleWidget {
         float rx = 68;
 
         addInput(createInputCentered<RaPort>(Vec(lx, 25), module, RaGlitchModule::AUDIO_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(rx, 25), module, RaGlitchModule::REPLACE_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(rx, 25), module, RaGlitchModule::SWAP_INPUT));
 
         addParam(createParamCentered<RaKnob>(Vec(cx, 75), module, RaGlitchModule::FREQ_PARAM));
         addInput(createInputCentered<RaPort>(Vec(cx, 110), module, RaGlitchModule::FREQ_CV_INPUT));
@@ -127,7 +134,8 @@ struct RaGlitchWidget : ModuleWidget {
 
         addParam(createParamCentered<RaSwitch3>(Vec(cx, 245), module, RaGlitchModule::MODE_PARAM));
 
-        addOutput(createOutputCentered<RaPort>(Vec(cx, 315), module, RaGlitchModule::AUDIO_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(lx, 315), module, RaGlitchModule::AUDIO_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(rx, 315), module, RaGlitchModule::SWAP_OUTPUT));
     }
 };
 

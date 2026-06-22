@@ -80,7 +80,7 @@
     {
       "slug": "ra-glitch",
       "name": "ra-glitch",
-      "description": "Random glitch processor — freeze, replace, or drop audio with CV-controllable frequency and length",
+      "description": "Random glitch processor — freeze, swap, or drop audio with CV-controllable frequency and length",
       "tags": ["Effect", "Utility", "Random"]
     },
     {
