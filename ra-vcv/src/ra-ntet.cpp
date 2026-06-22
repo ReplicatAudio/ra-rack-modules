@@ -6,8 +6,7 @@ extern Plugin *pluginInstance;
 
 struct RaNtetModule : Module {
     enum ParamIds {
-        SCALE_PARAM,
-        SMASH_PARAM,
+        TET_PARAM,
         MODE_PARAM,
         NUM_PARAMS
     };
@@ -37,12 +36,10 @@ struct RaNtetModule : Module {
         NUM_LIGHTS
     };
 
-    bool lastSmash = false;
-
     RaNtetModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configSwitch(SCALE_PARAM, 1.f, 10.f, 1.f, "Scale", {"12-TET", "24-TET", "36-TET", "48-TET", "60-TET", "72-TET", "84-TET", "96-TET", "108-TET", "120-TET"});
-        configSwitch(SMASH_PARAM, 0.f, 1.f, 0.f, "Smash", {"Off", "On"});
+        configParam(TET_PARAM, 2.f, 48.f, 12.f, "TET");
+        paramQuantities[TET_PARAM]->snapEnabled = true;
         configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Mode", {"Chromatic", "Quant"});
         configInput(IN1_INPUT, "Input 1");
         configInput(IN2_INPUT, "Input 2");
@@ -63,34 +60,16 @@ struct RaNtetModule : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        float s = params[SCALE_PARAM].getValue();
-        bool smash = params[SMASH_PARAM].getValue() > 0.f;
+        float tet = params[TET_PARAM].getValue();
         bool quant = params[MODE_PARAM].getValue() > 0.f;
-
-        if (smash != lastSmash) {
-            lastSmash = smash;
-            auto* sq = static_cast<SwitchQuantity*>(paramQuantities[SCALE_PARAM]);
-            if (smash)
-                sq->labels = {"12-TET", "10-TET", "9-TET", "8-TET", "7-TET", "6-TET", "5-TET", "4-TET", "3-TET", "2-TET"};
-            else
-                sq->labels = {"12-TET", "24-TET", "36-TET", "48-TET", "60-TET", "72-TET", "84-TET", "96-TET", "108-TET", "120-TET"};
-        }
 
         for (int i = 0; i < 8; i++) {
             float in = inputs[IN1_INPUT + i].getVoltage();
             float out;
-            if (quant) {
-                float divisions = smash ? (s == 1.f ? 12.f : 12.f - s) : s * 12.f;
-                float quanta = 1.f / divisions;
-                out = std::round(in / quanta) * quanta;
-            } else {
-                if (smash) {
-                    float div = (s == 1.f ? 12.f : 12.f - s);
-                    out = in * (12.f / div);
-                } else {
-                    out = in / s;
-                }
-            }
+            if (quant)
+                out = std::round(in * tet) / tet;
+            else
+                out = in * 12.f / tet;
             outputs[OUT1_OUTPUT + i].setVoltage(out);
         }
     }
@@ -106,9 +85,8 @@ struct RaNtetWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, 25), module, RaNtetModule::SCALE_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(18, 55), module, RaNtetModule::SMASH_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(42, 55), module, RaNtetModule::MODE_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, 25), module, RaNtetModule::TET_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 55), module, RaNtetModule::MODE_PARAM));
 
         addInput(createInputCentered<RaPort>(Vec(16, 92), module, RaNtetModule::IN1_INPUT));
         addInput(createInputCentered<RaPort>(Vec(16, 124), module, RaNtetModule::IN2_INPUT));
