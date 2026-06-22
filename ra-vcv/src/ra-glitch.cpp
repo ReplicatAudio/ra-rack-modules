@@ -31,6 +31,8 @@ struct RaGlitchModule : Module {
     float freezeBuffer[FREEZE_BUFFER_SIZE] = {};
     int freezeWritePos = 0;
     int freezeReadPos = 0;
+    int freezeCaptureLen = 0;
+    bool freezeCaptured = false;
 
     bool inGlitch = false;
     float glitchTimer = 0.f;
@@ -60,18 +62,21 @@ struct RaGlitchModule : Module {
         if (inGlitch) {
             glitchTimer -= args.sampleTime;
 
-            if (freezeWritePos < FREEZE_BUFFER_SIZE) {
+            if (mode == 0 && !freezeCaptured) {
                 freezeBuffer[freezeWritePos] = in1;
                 freezeWritePos++;
+                if (freezeWritePos >= freezeCaptureLen) {
+                    freezeCaptured = true;
+                }
             }
 
             switch (mode) {
                 case 0: {
-                    if (freezeWritePos > 0) {
-                        out1 = freezeBuffer[freezeReadPos % freezeWritePos];
+                    if (freezeCaptured && freezeCaptureLen > 0) {
+                        out1 = freezeBuffer[freezeReadPos % freezeCaptureLen];
                         freezeReadPos++;
                     } else {
-                        out1 = 0.f;
+                        out1 = in1;
                     }
                     out2 = in2;
                     break;
@@ -86,7 +91,7 @@ struct RaGlitchModule : Module {
                     break;
             }
 
-            if (glitchTimer <= 0.f) {
+            if (glitchTimer <= 0.f && freq < 1.f) {
                 inGlitch = false;
             }
         } else {
@@ -95,12 +100,14 @@ struct RaGlitchModule : Module {
         }
 
         if (!inGlitch) {
-            float glitchRate = freq * 10.f;
-            if (random::uniform() < glitchRate * args.sampleTime) {
+            if (freq >= 1.f || random::uniform() < freq * 10.f * args.sampleTime) {
                 inGlitch = true;
                 glitchTimer = random::uniform() * maxLenMs / 1000.f;
                 freezeWritePos = 0;
                 freezeReadPos = 0;
+                freezeCaptured = false;
+                int glitchSamples = (int)(glitchTimer * args.sampleRate);
+                freezeCaptureLen = std::max(16, std::min(glitchSamples / 4, FREEZE_BUFFER_SIZE));
             }
         }
 
