@@ -1,13 +1,37 @@
 #pragma once
 #include "rack.hpp"
 
+using namespace rack;
+
 namespace rack {
 namespace componentlibrary {
 
+// Custom knobs — white Rogan without foreground overlay (fg hides the indicator pointer)
+struct RaRoganStd : Rogan {
+	RaRoganStd() {
+		setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan2PWhite.svg")));
+		bg->setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan2P_bg.svg")));
+	}
+};
+
+struct RaRoganLarge : Rogan {
+	RaRoganLarge() {
+		setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan3PSWhite.svg")));
+		bg->setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan3PS_bg.svg")));
+	}
+};
+
+struct RaRoganSmall : Rogan {
+	RaRoganSmall() {
+		setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan1PWhite.svg")));
+		bg->setSvg(Svg::load(asset::system("res/ComponentLibrary/Rogan1P_bg.svg")));
+	}
+};
+
 // Knobs
-using RaKnob = Davies1900hBlackKnob;
-using RaKnobLarge = Davies1900hLargeBlackKnob;
-using RaKnobSmall = RoundSmallBlackKnob;
+using RaKnob = RaRoganStd;
+using RaKnobLarge = RaRoganLarge;
+using RaKnobSmall = RaRoganSmall;
 using RaKnobTrim = Trimpot;
 
 // Ports
