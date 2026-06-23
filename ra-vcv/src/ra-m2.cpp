@@ -30,6 +30,7 @@ struct RaM2Module : Module {
 
     bool muteState = false;
     bool prevMuteButton = false;
+    float pulsePhase = 0.f;
 
     RaM2Module() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -72,7 +73,9 @@ struct RaM2Module : Module {
             muteState = !muteState;
         prevMuteButton = buttonPressed;
 
-        lights[MUTE_LIGHT].setBrightnessSmooth(muteState ? 1.f : 0.f, args.sampleTime);
+        pulsePhase += args.sampleTime;
+        float pulse = muteState ? 0.5f * (1.f + sinf(2.f * M_PI * 2.f * pulsePhase)) : 0.f;
+        lights[MUTE_LIGHT].setBrightnessSmooth(pulse, args.sampleTime);
 
         if (muteState) {
             outputs[L_OUTPUT].setVoltage(0.f);
@@ -133,7 +136,7 @@ struct RaM2Widget : ModuleWidget {
         addParam(createParamCentered<RaSwitch2>(Vec(35, 200), module, RaM2Module::LIMITER_PARAM));
         addParam(createParamCentered<RaSwitch2>(Vec(55, 200), module, RaM2Module::SOFTCLIP_PARAM));
 
-        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(cx, 255), module, RaM2Module::MUTE_PARAM, RaM2Module::MUTE_LIGHT));
+        addParam(createLightParamCentered<VCVLightBezel<RedLight>>(Vec(cx, 255), module, RaM2Module::MUTE_PARAM, RaM2Module::MUTE_LIGHT));
 
         addOutput(createOutputCentered<RaPort>(Vec(lx, 320), module, RaM2Module::L_OUTPUT));
         addOutput(createOutputCentered<RaPort>(Vec(rx, 320), module, RaM2Module::R_OUTPUT));
