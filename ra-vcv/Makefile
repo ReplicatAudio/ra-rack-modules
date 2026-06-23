@@ -26,7 +26,7 @@ SOURCES = \
 	src/ra-zeno.cpp \
 
 
-DISTRIBUTABLES += $(wildcard res/*)
+DISTRIBUTABLES += $(shell find res -type f)
 FLAGS += -Idep/s7
 
 include $(RACK_DIR)/plugin.mk

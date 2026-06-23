@@ -1,4 +1,4 @@
-#include "ra-widgets.hpp"
+#include "ra-components.hpp"
 
 using namespace rack;
 

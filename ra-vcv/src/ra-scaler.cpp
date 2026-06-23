@@ -1,4 +1,4 @@
-#include "ra-widgets.hpp"
+#include "ra-components.hpp"
 #include <atomic>
 
 using namespace rack;
