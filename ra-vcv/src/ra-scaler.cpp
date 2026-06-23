@@ -47,15 +47,6 @@ struct RaScalerModule : Module {
         float in = inputs[CV_INPUT].getVoltage();
         float scale = params[SCALE_PARAM].getValue();
 
-        float scaled;
-        if (params[POWER_PARAM].getValue() > 0.5f) {
-            float exponent = scale * 10.f;
-            float sign = in >= 0.f ? 1.f : -1.f;
-            scaled = sign * powf(fabs(in) + 1e-10f, exponent);
-        } else {
-            scaled = in * scale;
-        }
-
         int range = (int)std::round(params[RANGE_PARAM].getValue());
         float fullScale;
         float scaleDisplayMul = 1.f;
@@ -74,6 +65,17 @@ struct RaScalerModule : Module {
                 paramQuantities[SCALE_PARAM]->displayMultiplier = scaleDisplayMul;
                 paramQuantities[SCALE_PARAM]->displayOffset = scaleDisplayOff;
             }
+        }
+
+        float scaleFactor = scale * scaleDisplayMul + scaleDisplayOff;
+
+        float scaled;
+        if (params[POWER_PARAM].getValue() > 0.5f) {
+            float exponent = scale * 10.f;
+            float sign = in >= 0.f ? 1.f : -1.f;
+            scaled = sign * powf(fabs(in) + 1e-10f, exponent);
+        } else {
+            scaled = in * scaleFactor;
         }
 
         float clip = params[CLIP_PARAM].getValue();
