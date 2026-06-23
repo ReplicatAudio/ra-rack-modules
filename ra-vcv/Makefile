@@ -24,6 +24,7 @@ SOURCES = \
 	src/ra-accumulator.cpp \
 	src/ra-glitch.cpp \
 	src/ra-zeno.cpp \
+	src/ra-nblank.cpp \
 
 
 DISTRIBUTABLES += $(shell find res -type f)
