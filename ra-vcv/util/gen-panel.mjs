@@ -8,8 +8,8 @@
 // a panel SVG ready for use in Rack.
 //
 // Usage:
-//   Single module (stdout):
-//     node util/gen-panel.mjs src/ra-endless.cpp > res/ra-endless.svg
+//   Single module (writes res/ra-foo.svg):
+//     node util/gen-panel.mjs ra-foo
 //
 //   Generate all modules (writes res/*.svg, assumes modules are in /src):
 //     node util/gen-panel.mjs --all
@@ -24,9 +24,9 @@
 //   --bg-mid=0-100     Midpoint of gradient as % from top (default 33)
 //
 // Examples:
-//   node util/gen-panel.mjs src/ra-vca.cpp > res/ra-vca.svg
+//   node util/gen-panel.mjs ra-vca
 //   node util/gen-panel.mjs --all
-//   node util/gen-panel.mjs --hp=6 --input-color=#ff0000 src/ra-foo.cpp > panel.svg
+//   node util/gen-panel.mjs --hp=6 --input-color=#ff0000 ra-foo
 //
 // ============================================================
 
@@ -794,10 +794,10 @@ function generateSVG(info) {
 //
 // Parses CLI flags (see header comment), then either:
 //   --all   : batch-generate SVGs for all src/ra-*.cpp files
-//   [file]  : generate a single SVG to stdout
+//   [file]  : generate a single SVG to res/
 // ============================================================
 
-let filePath = 'src/ra-endless.cpp';   // default if no file given
+let moduleName = 'ra-endless';          // default if no module given
 let overrideHP = 0;                    // --hp=N override
 let allFlag = false;                   // --all mode
 
@@ -818,7 +818,7 @@ for (let i = 2; i < process.argv.length; i++) {
   } else if (arg.startsWith('--bg-mid=')) {
     CFG.bg.mid = Math.max(0, Math.min(100, parseInt(arg.slice(9), 10)));
   } else if (!arg.startsWith('--')) {
-    filePath = arg;
+    moduleName = arg;
   }
 }
 
@@ -834,21 +834,26 @@ if (allFlag) {
     const svg = generateSVG(info);
     const outName = f.replace(/\.cpp$/, '.svg');
     fs.writeFileSync(path.join(dir, outName), svg);
-    // Progress messages go to stderr so stdout is clean for piping
     console.error(`${outName} (${info.HP}hp)`);
   }
   process.exit(0);
 }
 
-// ---- Single-file mode: read one source, emit SVG on stdout ----
-const fullPath = path.resolve(filePath);
+// ---- Single-file mode: read one source, write SVG to res/ ----
+const srcPath = path.resolve('src', moduleName + '.cpp');
 
-if (!fs.existsSync(fullPath)) {
-  console.error('File not found:', fullPath);
+if (!fs.existsSync(srcPath)) {
+  console.error('File not found:', srcPath);
   process.exit(1);
 }
 
-const info = parseModule(fullPath);
+const info = parseModule(srcPath);
 if (overrideHP) info.HP = overrideHP;
 const svg = generateSVG(info);
-process.stdout.write(svg);
+
+const outName = moduleName + '.svg';
+const outDir = path.resolve('res');
+fs.mkdirSync(outDir, { recursive: true });
+const outPath = path.join(outDir, outName);
+fs.writeFileSync(outPath, svg);
+console.error(`${outName} (${info.HP}hp)`);
