@@ -12,14 +12,14 @@
       "tags": ["VCA", "Utility"]
     },
     {
-      "slug": "ra-gnawbz-4x",
-      "name": "ra-gnawbz-4x",
-      "description": "4-channel control voltage source",
+      "slug": "ra-gnawbz",
+      "name": "ra-gnawbz",
+      "description": "3-channel control voltage source",
       "tags": ["Utility", "CV source"]
     },
     {
-      "slug": "ra-gnawbz-1x4",
-      "name": "ra-gnawbz-1x4",
+      "slug": "ra-macro",
+      "name": "ra-macro",
       "description": "Single macro knob with 4 attenuverted outputs",
       "tags": ["Utility", "CV source"]
     },

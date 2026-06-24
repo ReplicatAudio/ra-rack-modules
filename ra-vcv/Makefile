@@ -9,8 +9,8 @@ SOURCES = \
 	src/ra-buttons.cpp \
 	src/ra-tyche.cpp \
 	src/ra-endless.cpp \
-	src/ra-gnawbz-1x4.cpp \
-	src/ra-gnawbz-4x.cpp \
+	src/ra-macro.cpp \
+	src/ra-gnawbz.cpp \
 	src/ra-klock.cpp \
 	src/ra-m2.cpp \
 	src/ra-scaler.cpp \

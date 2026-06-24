@@ -102,7 +102,7 @@ struct RaGnawbz4xModule : Module {
 struct RaGnawbz4xWidget : ModuleWidget {
     RaGnawbz4xWidget(RaGnawbz4xModule *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-gnawbz-4x.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-gnawbz.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
@@ -121,4 +121,4 @@ struct RaGnawbz4xWidget : ModuleWidget {
     }
 };
 
-Model *modelRaGnawbz4x = createModel<RaGnawbz4xModule, RaGnawbz4xWidget>("ra-gnawbz-4x");
+Model *modelRaGnawbz = createModel<RaGnawbz4xModule, RaGnawbz4xWidget>("ra-gnawbz");

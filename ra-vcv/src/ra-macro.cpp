@@ -63,18 +63,18 @@ struct RaGnawbz1x4Module : Module {
 struct RaGnawbz1x4Widget : ModuleWidget {
     RaGnawbz1x4Widget(RaGnawbz1x4Module *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-gnawbz-1x4.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-macro.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RaKnobLarge>(Vec(box.size.x / 2, 28), module, RaGnawbz1x4Module::MACRO_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 56), module, RaGnawbz1x4Module::RANGE_PARAM));
+        addParam(createParamCentered<RaKnobLarge>(Vec(box.size.x / 2, 63), module, RaGnawbz1x4Module::MACRO_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 102), module, RaGnawbz1x4Module::RANGE_PARAM));
 
         float colX[] = {24, 66};
-        float rowY[] = {92, 210};
+        float rowY[] = {134, 262};
 
         for (int r = 0; r < 2; r++) {
             for (int c = 0; c < 2; c++) {
@@ -82,11 +82,11 @@ struct RaGnawbz1x4Widget : ModuleWidget {
                 float cx = colX[c];
                 float cy = rowY[r];
                 addParam(createParamCentered<RaKnob>(Vec(cx, cy), module, RaGnawbz1x4Module::ATTN1_PARAM + i));
-                addParam(createParamCentered<RaKnobSmall>(Vec(cx, cy + 30), module, RaGnawbz1x4Module::OFFSET1_PARAM + i));
-                addOutput(createOutputCentered<RaPort>(Vec(cx, cy + 56), module, RaGnawbz1x4Module::OUTPUT1 + i));
+                addParam(createParamCentered<RaKnobSmall>(Vec(cx, cy + 34), module, RaGnawbz1x4Module::OFFSET1_PARAM + i));
+                addOutput(createOutputCentered<RaPort>(Vec(cx, cy + 62), module, RaGnawbz1x4Module::OUTPUT1 + i));
             }
         }
     }
 };
 
-Model *modelRaGnawbz1x4 = createModel<RaGnawbz1x4Module, RaGnawbz1x4Widget>("ra-gnawbz-1x4");
+Model *modelRaMacro = createModel<RaGnawbz1x4Module, RaGnawbz1x4Widget>("ra-macro");

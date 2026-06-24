@@ -4,8 +4,8 @@ using namespace rack;
 
 Plugin *pluginInstance;
 extern Model *modelRaVca;
-extern Model *modelRaGnawbz4x;
-extern Model *modelRaGnawbz1x4;
+extern Model *modelRaGnawbz;
+extern Model *modelRaMacro;
 extern Model *modelRaUlfo;
 extern Model *modelRaScaler;
 extern Model *modelRaEndless;
@@ -28,8 +28,8 @@ extern Model *modelRaZeno;
 void init(Plugin *p) {
     pluginInstance = p;
     p->addModel(modelRaVca);
-    p->addModel(modelRaGnawbz4x);
-    p->addModel(modelRaGnawbz1x4);
+    p->addModel(modelRaGnawbz);
+    p->addModel(modelRaMacro);
     p->addModel(modelRaUlfo);
     p->addModel(modelRaScaler);
     p->addModel(modelRaEndless);
