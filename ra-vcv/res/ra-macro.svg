@@ -124,6 +124,8 @@
     <line x1="8.13" y1="56.90" x2="10.62" y2="56.90" stroke="#666" stroke-width="0.5" opacity="0.6"/>
     <rect x="3.31" y="61.57" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="8.13" cy="66.38" r="2.61" fill="#111" opacity="0.5"/>
+    <circle cx="8.13" cy="75.18" r="3.05" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="8.13" cy="75.18" r="1.07" fill="#333" opacity="0.5"/>
     <circle cx="22.35" cy="45.38" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
     <circle cx="22.35" cy="45.38" r="1.68" fill="#333" opacity="0.4"/>
     <line x1="22.35" y1="45.38" x2="25.47" y2="45.38" stroke="#666" stroke-width="0.5" opacity="0.6"/>
@@ -132,6 +134,8 @@
     <line x1="22.35" y1="56.90" x2="24.85" y2="56.90" stroke="#666" stroke-width="0.5" opacity="0.6"/>
     <rect x="17.54" y="61.57" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="22.35" cy="66.38" r="2.61" fill="#111" opacity="0.5"/>
+    <circle cx="22.35" cy="75.18" r="3.05" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="22.35" cy="75.18" r="1.07" fill="#333" opacity="0.5"/>
     <circle cx="8.13" cy="88.73" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
     <circle cx="8.13" cy="88.73" r="1.68" fill="#333" opacity="0.4"/>
     <line x1="8.13" y1="88.73" x2="11.25" y2="88.73" stroke="#666" stroke-width="0.5" opacity="0.6"/>
@@ -140,6 +144,8 @@
     <line x1="8.13" y1="100.25" x2="10.62" y2="100.25" stroke="#666" stroke-width="0.5" opacity="0.6"/>
     <rect x="3.31" y="104.91" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="8.13" cy="109.73" r="2.61" fill="#111" opacity="0.5"/>
+    <circle cx="8.13" cy="118.53" r="3.05" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="8.13" cy="118.53" r="1.07" fill="#333" opacity="0.5"/>
     <circle cx="22.35" cy="88.73" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
     <circle cx="22.35" cy="88.73" r="1.68" fill="#333" opacity="0.4"/>
     <line x1="22.35" y1="88.73" x2="25.47" y2="88.73" stroke="#666" stroke-width="0.5" opacity="0.6"/>
@@ -148,6 +154,8 @@
     <line x1="22.35" y1="100.25" x2="24.85" y2="100.25" stroke="#666" stroke-width="0.5" opacity="0.6"/>
     <rect x="17.54" y="104.91" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="22.35" cy="109.73" r="2.61" fill="#111" opacity="0.5"/>
+    <circle cx="22.35" cy="118.53" r="3.05" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="22.35" cy="118.53" r="1.07" fill="#333" opacity="0.5"/>
   </g>
   <g inkscape:groupmode="layer" id="layer-text" inkscape:label="Text">
     <text x="15.24" y="3.39" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">Ra-macro</text>
@@ -156,14 +164,18 @@
     <text x="8.13" y="52.18" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">ATTN1</text>
     <text x="8.13" y="62.74" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OFFSET1</text>
     <text x="8.13" y="72.39" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1</text>
+    <text x="8.13" y="80.23" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1 LED R</text>
     <text x="22.35" y="52.18" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">ATTN1</text>
     <text x="22.35" y="62.74" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OFFSET1</text>
     <text x="22.35" y="72.39" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1</text>
+    <text x="22.35" y="80.23" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1 LED R</text>
     <text x="8.13" y="95.53" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">ATTN1</text>
     <text x="8.13" y="106.09" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OFFSET1</text>
     <text x="8.13" y="115.74" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1</text>
+    <text x="8.13" y="123.58" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1 LED R</text>
     <text x="22.35" y="95.53" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">ATTN1</text>
     <text x="22.35" y="106.09" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OFFSET1</text>
     <text x="22.35" y="115.74" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1</text>
+    <text x="22.35" y="123.58" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">OUTPUT1 LED R</text>
   </g>
 </svg>
