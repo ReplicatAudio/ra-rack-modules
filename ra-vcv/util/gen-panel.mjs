@@ -635,13 +635,15 @@ function generateSVG(info) {
     return '#' + ((1 << 24) | (rr << 16) | (rg << 8) | rb).toString(16).slice(1);
   };
 
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W.toFixed(2)} ${H}" width="${W.toFixed(2)}mm" height="${H}mm">
-  <rect x="0.3" y="0.3" width="${(W - 0.6).toFixed(2)}" height="${H - 0.6}" fill="none" stroke="#333" stroke-width="${CFG.strokeWidth}"/>
-`;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W.toFixed(2)} ${H}" width="${W.toFixed(2)}mm" height="${H}mm">\n`;
+
+  // ---- Layer 1: Background ----
+  svg += `  <g inkscape:groupmode="layer" id="layer-background" inkscape:label="Background">\n`;
+  svg += `    <rect x="0.3" y="0.3" width="${(W - 0.6).toFixed(2)}" height="${H - 0.6}" fill="none" stroke="#333" stroke-width="${CFG.strokeWidth}"/>\n`;
 
   // Background gradient — inline strips to avoid url(#id) issues in Rack
   if (CFG.bg.start === CFG.bg.end) {
-    svg += `  <rect x="0" y="0" width="${W.toFixed(2)}" height="${H}" fill="${CFG.bg.start}"/>\n`;
+    svg += `    <rect x="0" y="0" width="${W.toFixed(2)}" height="${H}" fill="${CFG.bg.start}"/>\n`;
   } else {
     const STRIPS = 100;
     const stripH = H / STRIPS;
@@ -650,9 +652,13 @@ function generateSVG(info) {
       const mid = CFG.bg.mid / 100;
       const t = Math.min(yPos / mid, 1);
       const color = lerpColor(CFG.bg.start, CFG.bg.end, t);
-      svg += `  <rect x="0" y="${(i * stripH).toFixed(3)}" width="${W.toFixed(2)}" height="${(stripH + 0.01).toFixed(3)}" fill="${color}"/>\n`;
+      svg += `    <rect x="0" y="${(i * stripH).toFixed(3)}" width="${W.toFixed(2)}" height="${(stripH + 0.01).toFixed(3)}" fill="${color}"/>\n`;
     }
   }
+  svg += `  </g>\n`;
+
+  // ---- Layer 2: Component Outlines ----
+  svg += `  <g inkscape:groupmode="layer" id="layer-outlines" inkscape:label="Component Outlines">\n`;
 
   // Screws — always at corners
   const sr = ru2mm(7.5);
@@ -662,16 +668,12 @@ function generateSVG(info) {
   const screwY2 = H - sr;
   for (const sx of [screwX1, screwX2]) {
     for (const sy of [screwY1, screwY2]) {
-      svg += `  <circle cx="${sx.toFixed(2)}" cy="${sy.toFixed(2)}" r="${sr.toFixed(2)}" fill="#2a2a2a" stroke="#444" stroke-width="${CFG.strokeWidth}"/>\n`;
-      svg += `  <circle cx="${sx.toFixed(2)}" cy="${sy.toFixed(2)}" r="0.8" fill="#444"/>\n`;
+      svg += `    <circle cx="${sx.toFixed(2)}" cy="${sy.toFixed(2)}" r="${sr.toFixed(2)}" fill="#2a2a2a" stroke="#444" stroke-width="${CFG.strokeWidth}"/>\n`;
+      svg += `    <circle cx="${sx.toFixed(2)}" cy="${sy.toFixed(2)}" r="0.8" fill="#444"/>\n`;
     }
   }
 
-  // Module name
-  const displayName = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
-  svg += `  <text x="${cx.toFixed(2)}" y="${ru2mm(10).toFixed(2)}" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">${displayName}</text>\n`;
-
-  // Collect displays and components
+  // Collect displays and widgets
   const displays = components.filter(c => c.kind === 'display');
   const widgets = components.filter(c => c.kind !== 'display');
 
@@ -682,11 +684,11 @@ function generateSVG(info) {
       const dy = ru2mm(d.pos.y);
       const dw = ru2mm(d.size.w);
       const dh = ru2mm(d.size.h);
-      svg += `  <rect x="${dx.toFixed(2)}" y="${dy.toFixed(2)}" width="${dw.toFixed(2)}" height="${dh.toFixed(2)}" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="${CFG.strokeWidth + 0.2}"/>\n`;
+      svg += `    <rect x="${dx.toFixed(2)}" y="${dy.toFixed(2)}" width="${dw.toFixed(2)}" height="${dh.toFixed(2)}" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="${CFG.strokeWidth + 0.2}"/>\n`;
     }
   }
 
-  // Draw widgets
+  // Draw widget shapes (no text)
   for (const w of widgets) {
     const mx = ru2mm(w.x);
     const my = ru2mm(w.y);
@@ -695,7 +697,76 @@ function generateSVG(info) {
     let color = '#888';
     if (w.role === 'input') color = CFG.colors.input;
     else if (w.role === 'output') color = CFG.colors.output;
-    else if (w.kind === 'screw') color = '#888';
+
+    switch (w.kind) {
+      case 'slider': {
+        const sw = ru2mm(w.hw || 5);
+        const sh = ru2mm(w.hh || 15);
+        svg += `    <rect x="${(mx - sw).toFixed(2)}" y="${(my - sh).toFixed(2)}" width="${(sw * 2).toFixed(2)}" height="${(sh * 2).toFixed(2)}" rx="1.5" fill="#1a1a1a" stroke="${color}" stroke-width="${CFG.strokeWidth}" opacity="0.5"/>\n`;
+        break;
+      }
+      case 'jack': {
+        const r = ru2mm(w.rad);
+        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#111" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.7"/>\n`;
+        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="${color}" opacity="0.5"/>\n`;
+        break;
+      }
+      case 'knob': {
+        const r = ru2mm(w.rad);
+        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#222" stroke="${color}" stroke-width="${CFG.strokeWidth}" opacity="0.6"/>\n`;
+        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="#333" opacity="0.4"/>\n`;
+        // Indicator line
+        const indX = mx + r * 0.65;
+        svg += `    <line x1="${mx.toFixed(2)}" y1="${my.toFixed(2)}" x2="${indX.toFixed(2)}" y2="${my.toFixed(2)}" stroke="#666" stroke-width="0.5" opacity="0.6"/>\n`;
+        break;
+      }
+      case 'switch': {
+        const hw = ru2mm(w.hw || 7);
+        const hh = ru2mm(w.hh || 10.32);
+        svg += `    <rect x="${(mx - hw).toFixed(2)}" y="${(my - hh).toFixed(2)}" width="${(hw * 2).toFixed(2)}" height="${(hh * 2).toFixed(2)}" rx="1" fill="none" stroke="${color}" stroke-width="${CFG.strokeWidth - 0.1}" opacity="0.5"/>\n`;
+        svg += `    <line x1="${mx.toFixed(2)}" y1="${(my + hh * 0.5).toFixed(2)}" x2="${mx.toFixed(2)}" y2="${(my - hh * 0.5).toFixed(2)}" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.2}" opacity="0.6"/>\n`;
+        break;
+      }
+      case 'button': {
+        const r = ru2mm(w.rad);
+        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#222" stroke="${color}" stroke-width="${CFG.strokeWidth}" opacity="0.6"/>\n`;
+        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.4).toFixed(2)}" fill="#444" opacity="0.4"/>\n`;
+        break;
+      }
+      case 'bezel': {
+        const r = ru2mm(w.rad);
+        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#1a1a1a" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.6"/>\n`;
+        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="#333" opacity="0.5"/>\n`;
+        break;
+      }
+      case 'screw':
+        // Screws already drawn above; skip duplicates
+        break;
+      default:
+        // Unknown — draw small dot
+        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="1" fill="#f0f"/>\n`;
+        break;
+    }
+  }
+
+  svg += `  </g>\n`;
+
+  // ---- Layer 3: Text ----
+  svg += `  <g inkscape:groupmode="layer" id="layer-text" inkscape:label="Text">\n`;
+
+  // Module name
+  const displayName = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
+  svg += `    <text x="${cx.toFixed(2)}" y="${ru2mm(10).toFixed(2)}" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">${displayName}</text>\n`;
+
+  // Draw widget labels
+  for (const w of widgets) {
+    const mx = ru2mm(w.x);
+    const my = ru2mm(w.y);
+
+    // Determine color
+    let color = '#888';
+    if (w.role === 'input') color = CFG.colors.input;
+    else if (w.role === 'output') color = CFG.colors.output;
 
     // Determine label from config name or prettified enum
     let label = '';
@@ -710,81 +781,48 @@ function generateSVG(info) {
       }
     }
 
+    if (!label) continue;
+
+    let ly;
     switch (w.kind) {
       case 'slider': {
-        const sw = ru2mm(w.hw || 5);
         const sh = ru2mm(w.hh || 15);
-        svg += `  <rect x="${(mx - sw).toFixed(2)}" y="${(my - sh).toFixed(2)}" width="${(sw * 2).toFixed(2)}" height="${(sh * 2).toFixed(2)}" rx="1.5" fill="#1a1a1a" stroke="${color}" stroke-width="${CFG.strokeWidth}" opacity="0.5"/>\n`;
-        if (label) {
-          const ly = my + sh + 2.0;
-          svg += `  <text x="${mx.toFixed(2)}" y="${ly.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">${label}</text>\n`;
-        }
+        ly = my + sh + 2.0;
         break;
       }
       case 'jack': {
         const r = ru2mm(w.rad);
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#111" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.7"/>\n`;
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="${color}" opacity="0.5"/>\n`;
-        if (label) {
-          const ly = my + r + 2.0;
-          svg += `  <text x="${mx.toFixed(2)}" y="${ly.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">${label}</text>\n`;
-        }
+        ly = my + r + 2.0;
         break;
       }
       case 'knob': {
         const r = ru2mm(w.rad);
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#222" stroke="${color}" stroke-width="${CFG.strokeWidth}" opacity="0.6"/>\n`;
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="#333" opacity="0.4"/>\n`;
-        // Indicator line
-        const indX = mx + r * 0.65;
-        svg += `  <line x1="${mx.toFixed(2)}" y1="${my.toFixed(2)}" x2="${indX.toFixed(2)}" y2="${my.toFixed(2)}" stroke="#666" stroke-width="0.5" opacity="0.6"/>\n`;
-        if (label) {
-          const ly = my + r + 2.0;
-          svg += `  <text x="${mx.toFixed(2)}" y="${ly.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">${label}</text>\n`;
-        }
+        ly = my + r + 2.0;
         break;
       }
       case 'switch': {
-        const hw = ru2mm(w.hw || 7);
         const hh = ru2mm(w.hh || 10.32);
-        svg += `  <rect x="${(mx - hw).toFixed(2)}" y="${(my - hh).toFixed(2)}" width="${(hw * 2).toFixed(2)}" height="${(hh * 2).toFixed(2)}" rx="1" fill="none" stroke="${color}" stroke-width="${CFG.strokeWidth - 0.1}" opacity="0.5"/>\n`;
-        svg += `  <line x1="${mx.toFixed(2)}" y1="${(my + hh * 0.5).toFixed(2)}" x2="${mx.toFixed(2)}" y2="${(my - hh * 0.5).toFixed(2)}" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.2}" opacity="0.6"/>\n`;
-        if (label) {
-          const ly = my + hh + 2.0;
-          svg += `  <text x="${mx.toFixed(2)}" y="${ly.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">${label}</text>\n`;
-        }
+        ly = my + hh + 2.0;
         break;
       }
       case 'button': {
         const r = ru2mm(w.rad);
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#222" stroke="${color}" stroke-width="${CFG.strokeWidth}" opacity="0.6"/>\n`;
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.4).toFixed(2)}" fill="#444" opacity="0.4"/>\n`;
-        if (label) {
-          const ly = my + r + 2.0;
-          svg += `  <text x="${mx.toFixed(2)}" y="${ly.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">${label}</text>\n`;
-        }
+        ly = my + r + 2.0;
         break;
       }
       case 'bezel': {
         const r = ru2mm(w.rad);
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#1a1a1a" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.6"/>\n`;
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="#333" opacity="0.5"/>\n`;
-        if (label) {
-          const ly = my + r + 2.0;
-          svg += `  <text x="${mx.toFixed(2)}" y="${ly.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">${label}</text>\n`;
-        }
+        ly = my + r + 2.0;
         break;
       }
-      case 'screw':
-        // Screws already drawn above; skip duplicates
-        break;
       default:
-        // Unknown — draw small dot
-        svg += `  <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="1" fill="#f0f"/>\n`;
-        break;
+        continue;
     }
+
+    svg += `    <text x="${mx.toFixed(2)}" y="${ly.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">${label}</text>\n`;
   }
 
+  svg += `  </g>\n`;
   svg += `</svg>\n`;
   return svg;
 }
