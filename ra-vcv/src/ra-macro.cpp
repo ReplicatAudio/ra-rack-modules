@@ -159,11 +159,11 @@ struct RaGnawbz1x4Widget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         addParam(createParamCentered<RaKnobLarge>(Vec(box.size.x / 2, 63), module, RaGnawbz1x4Module::MACRO_PARAM));
-        addChild(createLightCentered<RaRGBLight>(Vec(72, 36), module, RaGnawbz1x4Module::MACRO_LED_R));
+        addChild(createLightCentered<RaRGBLight>(Vec(72, 102), module, RaGnawbz1x4Module::MACRO_LED_R));
         addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 102), module, RaGnawbz1x4Module::RANGE_PARAM));
 
         float colX[] = {24, 66};
-        float rowY[] = {134, 262};
+        float rowY[] = {134, 254};
 
         for (int r = 0; r < 2; r++) {
             for (int c = 0; c < 2; c++) {
