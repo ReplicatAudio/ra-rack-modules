@@ -41,13 +41,13 @@ import path from 'node:path';
 let CFG = {
   strokeWidth: 1.5, // Width of all drawn lines
   bg: { // Background gradient
-    start: '#332832', //#423558
-    end: '#221721',
+    start: '#303031', //#423558, #332832
+    end: '#232324',//'#221721',
     mid: 33,
   },
   colors: {
-    input: '#14B274',
-    output: '#FFB93D',
+    input: '#996dd2',
+    output: '#c8b7c7',
   },
 };
 
@@ -635,7 +635,7 @@ function generateSVG(info) {
     return '#' + ((1 << 24) | (rr << 16) | (rg << 8) | rb).toString(16).slice(1);
   };
 
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W.toFixed(2)} ${H}" width="${W.toFixed(2)}mm" height="${H}mm">\n`;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" viewBox="0 0 ${W.toFixed(2)} ${H}" width="${W.toFixed(2)}mm" height="${H}mm">\n`;
 
   // ---- Layer 1: Background ----
   svg += `  <g inkscape:groupmode="layer" id="layer-background" inkscape:label="Background">\n`;
@@ -707,8 +707,15 @@ function generateSVG(info) {
       }
       case 'jack': {
         const r = ru2mm(w.rad);
-        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#111" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.7"/>\n`;
-        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="${color}" opacity="0.5"/>\n`;
+        if (w.role === 'output') {
+          const sw = CFG.strokeWidth + 0.1;
+          const d = r * 2 + sw;
+          svg += `    <rect x="${(mx - r - sw / 2).toFixed(2)}" y="${(my - r - sw / 2).toFixed(2)}" width="${d.toFixed(2)}" height="${d.toFixed(2)}" rx="1.5" fill="${color}" opacity="0.7"/>\n`;
+          svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.65).toFixed(2)}" fill="#111" opacity="0.5"/>\n`;
+        } else {
+          svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#111" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.7"/>\n`;
+          svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="${color}" opacity="0.5"/>\n`;
+        }
         break;
       }
       case 'knob': {
