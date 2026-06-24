@@ -68,15 +68,16 @@ struct RaVcaModule : Module {
         float gain1, gain2;
 
         if (params[SUM_PARAM].getValue() > 0.f) {
+            float summedGain = params[GAIN1_PARAM].getValue() + params[GAIN2_PARAM].getValue();
             bool anyCv = inputs[CV1_INPUT].isConnected() || inputs[CV2_INPUT].isConnected();
             if (anyCv) {
                 float summed = inputs[CV1_INPUT].getVoltage() + inputs[CV2_INPUT].getVoltage();
                 summed = clamp(summed, 0.f, 10.f);
-                gain1 = params[GAIN1_PARAM].getValue() * summed / 10.f;
-                gain2 = params[GAIN2_PARAM].getValue() * summed / 10.f;
+                gain1 = summedGain * summed / 10.f;
+                gain2 = summedGain * summed / 10.f;
             } else {
-                gain1 = params[GAIN1_PARAM].getValue();
-                gain2 = params[GAIN2_PARAM].getValue();
+                gain1 = summedGain;
+                gain2 = summedGain;
             }
         } else {
             if (inputs[CV1_INPUT].isConnected())
