@@ -2,9 +2,11 @@
 
 ### LLM Usage
 
-I've been developing software for well over a decade. Long before AI was capable of programming for us. I have a deep love for music, math and computing, It stresses me out to see how generative AI has led to such an alarming and overwhelming amount of slop. Software stores and music streaming platforms are now full of low effort, low creativity shovelware and soulless drivel. 
+This project includes code that was generated with the assistance of LLMs. However, this is not a "vibe coded" project. This is not slop. I have a deep love for programming and have been doing it professionally for over a decade. Long before AI was capable of doing it for us. I understand ALL of this code. This code is virtually indistiguishable from code I would have written myself. 
 
-This being said so bluntly, I do believe its possible to responsibly (if not ethically) use LLMs to aid in a certain class of programming tasks. L To be clear, significant portions of the code in this repo have been created with the assistance of LLMs. LLMs are one tool in my tool kit among many. These are my ideas and my implementations.  
+As said, I have a deep love for music, math and computing. It stresses me out to see how generative AI has led to such an alarming and overwhelming amount of slop. Software stores and music streaming platforms are now full of low effort, low creativity shovelware and soulless drivel. This is not that.  
+
+This being said so bluntly, I do believe its possible to responsibly (if not ethically) use LLMs to aid in a certain class of programming tasks. To be clear, significant portions of the code in this repo have been created with the assistance of LLMs. LLMs are one tool in my tool kit among many. These are my ideas and my implementations.  
 
 NO:
 - Module ideas
@@ -13,7 +15,7 @@ NO:
 - UI/UX decisions
 - Generally just no serious decisions
 - Commits without review
-- ABSOLUTELY no AI generated art or audio assets ever
+- ABSOLUTELY no AI generated art or audio assets EVER
 
 SOMETIMES:
 - Bug hunting
@@ -29,6 +31,6 @@ I won't go into my personal views on the state / ethics of generative AI usage i
 
 Pull requests are welcome. That being said, if I have any reason to believe a PR has been "vibe coded" or that the submitter doesn't understand their code, the PR will be rejected with no further explanation. 
 
-Absolutely NO "coauthored by $AGENT" commits will be merged.
+Absolutely NO "coauthored by $AGENT" commits will be merged. Ever. No exceptions. Take that somewhere else.  
 
 

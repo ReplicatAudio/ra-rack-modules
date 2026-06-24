@@ -41,6 +41,9 @@ struct RaGnawbz1x4Module : Module {
         OUTPUT4_LED_R,
         OUTPUT4_LED_G,
         OUTPUT4_LED_B,
+        MACRO_LED_R,
+        MACRO_LED_G,
+        MACRO_LED_B,
         NUM_LIGHTS
     };
 
@@ -55,6 +58,8 @@ struct RaGnawbz1x4Module : Module {
             for (int c = 0; c < 3; c++)
                 configLight(OUTPUT1_LED_R + i * 3 + c, string::f("Output %d LED", i + 1));
         }
+        for (int c = 0; c < 3; c++)
+            configLight(MACRO_LED_R + c, "Macro LED");
     }
 
     void process(const ProcessArgs &args) override {
@@ -106,6 +111,40 @@ struct RaGnawbz1x4Module : Module {
             lights[OUTPUT1_LED_R + i * 3 + 1].setBrightness(g);
             lights[OUTPUT1_LED_R + i * 3 + 2].setBrightness(bl);
         }
+
+        float mHue;
+        if (range > 0.5f) {
+            mHue = clamp(macroV / 10.f, 0.f, 1.f);
+        } else {
+            mHue = clamp((macroV + 5.f) / 10.f, 0.f, 1.f);
+        }
+        float mS = 1.f, mB = 1.f;
+        int mHi = (int)(mHue * 6.f);
+        float mF = mHue * 6.f - mHi;
+        float mP = mB * (1.f - mS);
+        float mQ = mB * (1.f - mF * mS);
+        float mT = mB * (1.f - (1.f - mF) * mS);
+        float mR, mG;
+        switch (mHi % 6) {
+            case 0: mR = mB; mG = mT; break;
+            case 1: mR = mQ; mG = mB; break;
+            case 2: mR = mP; mG = mB; break;
+            case 3: mR = mP; mG = mQ; break;
+            case 4: mR = mT; mG = mP; break;
+            default: mR = mB; mG = mP; break;
+        }
+        float mBl;
+        switch (mHi % 6) {
+            case 0: mBl = mP; break;
+            case 1: mBl = mP; break;
+            case 2: mBl = mT; break;
+            case 3: mBl = mB; break;
+            case 4: mBl = mB; break;
+            default: mBl = mQ; break;
+        }
+        lights[MACRO_LED_R + 0].setBrightness(mR);
+        lights[MACRO_LED_R + 1].setBrightness(mG);
+        lights[MACRO_LED_R + 2].setBrightness(mBl);
     }
 };
 
@@ -120,6 +159,7 @@ struct RaGnawbz1x4Widget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         addParam(createParamCentered<RaKnobLarge>(Vec(box.size.x / 2, 63), module, RaGnawbz1x4Module::MACRO_PARAM));
+        addChild(createLightCentered<RaRGBLight>(Vec(72, 36), module, RaGnawbz1x4Module::MACRO_LED_R));
         addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 102), module, RaGnawbz1x4Module::RANGE_PARAM));
 
         float colX[] = {24, 66};
