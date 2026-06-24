@@ -54,19 +54,10 @@ struct RaVcaModule : Module {
         for (int i = 0; i < 8; i++) {
             float brightness = clamp((level - (float)i / 8.f) * 8.f, 0.f, 1.f);
 
-            float r = 0.f, g = 0.f, b = 0.f;
             float t = (float)i / 7.f;
-            if (t < 0.375f) {
-                g = brightness;
-            } else if (t < 0.625f) {
-                r = brightness;
-                g = brightness * 0.7f;
-            } else if (t < 0.875f) {
-                r = brightness;
-                g = brightness * 0.3f;
-            } else {
-                r = brightness;
-            }
+            float r = brightness * (0.3f + 0.7f * t);
+            float g = brightness * (0.4f * t);
+            float b = brightness * (0.3f + 0.5f * t);
             lights[base + i * 3].setBrightness(r);
             lights[base + i * 3 + 1].setBrightness(g);
             lights[base + i * 3 + 2].setBrightness(b);
