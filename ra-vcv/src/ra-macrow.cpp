@@ -151,7 +151,7 @@ struct RaGnawbz1x4Module : Module {
 struct RaGnawbz1x4Widget : ModuleWidget {
     RaGnawbz1x4Widget(RaGnawbz1x4Module *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-macro.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-macrow.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
@@ -179,4 +179,4 @@ struct RaGnawbz1x4Widget : ModuleWidget {
     }
 };
 
-Model *modelRaMacro = createModel<RaGnawbz1x4Module, RaGnawbz1x4Widget>("ra-macro");
+Model *modelRaMacro = createModel<RaGnawbz1x4Module, RaGnawbz1x4Widget>("ra-macrow");

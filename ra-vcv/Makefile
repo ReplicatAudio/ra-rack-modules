@@ -9,7 +9,7 @@ SOURCES = \
 	src/ra-buttons.cpp \
 	src/ra-tyche.cpp \
 	src/ra-endless.cpp \
-	src/ra-macro.cpp \
+	src/ra-macrow.cpp \
 	src/ra-gnawbz.cpp \
 	src/ra-klock.cpp \
 	src/ra-m2.cpp \
