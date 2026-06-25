@@ -422,7 +422,7 @@ struct DScopeDisplay : LedDisplay {
 		nvgRestore(args.vg);
 	}
 
-	void drawLissajous(const DrawArgs& args, int channel, float offsetX, float gainX, float offsetY, float gainY) {
+	void drawLissajous(const DrawArgs& args, int channel, float offsetX, float gainX, float offsetY, float gainY, NVGcolor colorOld, NVGcolor colorNew) {
 		if (!module)
 			return;
 
@@ -436,7 +436,9 @@ struct DScopeDisplay : LedDisplay {
 		nvgSave(args.vg);
 		Rect b = box.zeroPos().shrink(Vec(0, 15));
 		nvgScissor(args.vg, RECT_ARGS(b));
-		nvgBeginPath(args.vg);
+
+		Vec points[BUFFER_SIZE];
+		int numValid = 0;
 		int bufferIndex = module->bufferIndex;
 		for (int i = 0; i < BUFFER_SIZE; i++) {
 			const DScopeModule::Point& pointX = pointBufferX[(i + bufferIndex) % BUFFER_SIZE];
@@ -450,16 +452,29 @@ struct DScopeDisplay : LedDisplay {
 			p.x = (avgX + offsetX) * gainX * 0.5f + 0.5f;
 			p.y = (avgY + offsetY) * gainY * -0.5f + 0.5f;
 			p = b.interpolate(p);
-			if (i == 0)
-				nvgMoveTo(args.vg, p.x, p.y);
-			else
-				nvgLineTo(args.vg, p.x, p.y);
+			points[numValid++] = p;
 		}
+
 		nvgLineCap(args.vg, NVG_ROUND);
 		nvgMiterLimit(args.vg, 2.f);
 		nvgStrokeWidth(args.vg, 1.5f);
 		nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
-		nvgStroke(args.vg);
+
+		for (int i = 0; i < numValid - 1; i++) {
+			float t = (float)(i + 1) / numValid;
+			NVGcolor c;
+			c.r = colorOld.r + (colorNew.r - colorOld.r) * t;
+			c.g = colorOld.g + (colorNew.g - colorOld.g) * t;
+			c.b = colorOld.b + (colorNew.b - colorOld.b) * t;
+			c.a = colorOld.a + (colorNew.a - colorOld.a) * t;
+			nvgStrokeColor(args.vg, c);
+
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, points[i].x, points[i].y);
+			nvgLineTo(args.vg, points[i + 1].x, points[i + 1].y);
+			nvgStroke(args.vg);
+		}
+
 		nvgResetScissor(args.vg);
 		nvgRestore(args.vg);
 	}
@@ -788,8 +803,7 @@ struct DScopeDisplay : LedDisplay {
 		if (displayMode == 1) {
 			int lissajousChannels = std::min(channelsX, channelsY);
 			for (int c = 0; c < lissajousChannels; c++) {
-				nvgStrokeColor(args.vg, SCHEME_YELLOW);
-				drawLissajous(args, c, offsetX, gainX, offsetY, gainY);
+				drawLissajous(args, c, offsetX, gainX, offsetY, gainY, inputYColor, inputXColor);
 			}
 		}
 		else {
