@@ -69,7 +69,7 @@ struct DScopeModule : Module {
 	bool spectrumReady = false;
 	float sampleRate = 44100.f;
 
-	static const int SONO_NUM_COLS = 360;
+	static const int SONO_NUM_COLS = 400;
 	float sonoBuffer[SONO_NUM_COLS * (FFT_SIZE / 2)];
 	int sonoCount = 0;
 	float sonoRingBuffer[FFT_SIZE];
@@ -550,7 +550,7 @@ struct DScopeDisplay : LedDisplay {
 		if (!module || !module->spectrumReady)
 			return;
 
-		float marginL = 30.f;
+		float marginL = 12.f;
 		float marginR = 0.f;
 		float marginT = 6.f;
 		float marginB = 20.f;
@@ -650,7 +650,7 @@ struct DScopeDisplay : LedDisplay {
 
 			if (db > -60) {
 				nvgFillColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x50));
-				nvgText(args.vg, plot.pos.x - 4, y, string::f("%d", db).c_str(), NULL);
+				nvgText(args.vg, plot.pos.x + 4, y, string::f("%d", db).c_str(), NULL);
 			}
 		}
 
@@ -661,7 +661,7 @@ struct DScopeDisplay : LedDisplay {
 		if (!module)
 			return;
 
-		float marginL = 30.f;
+		float marginL = 12.f;
 		float marginR = 0.f;
 		float marginT = 6.f;
 		float marginB = 20.f;
