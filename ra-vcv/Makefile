@@ -23,6 +23,7 @@ SOURCES = \
 	src/ra-think.cpp \
 	src/ra-accumulator.cpp \
 	src/ra-glitch.cpp \
+	src/ra-vscope.cpp \
 	src/ra-zeno.cpp \
 
 

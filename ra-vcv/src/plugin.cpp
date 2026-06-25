@@ -24,6 +24,7 @@ extern Model *modelRaNtet;
 extern Model *modelRaThink;
 extern Model *modelRaAccumulator;
 extern Model *modelRaZeno;
+extern Model *modelRaVscope;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -48,4 +49,5 @@ void init(Plugin *p) {
 	p->addModel(modelRaThink);
 	p->addModel(modelRaAccumulator);
 	p->addModel(modelRaZeno);
+	p->addModel(modelRaVscope);
 }

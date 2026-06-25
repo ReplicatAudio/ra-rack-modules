@@ -130,6 +130,12 @@
       "name": "ra-zeno",
       "description": "Slowdown/halftime effect — record buffer with 1x–16x speed reduction, snap, and reset",
       "tags": ["Delay", "Effect", "Utility"]
+    },
+    {
+      "slug": "ra-vscope",
+      "name": "ra-vscope",
+      "description": "Vertical oscilloscope — dual-channel scope with trigger, Lissajous, and stats readout",
+      "tags": ["Visual", "Utility"]
     }
   ]
 }
