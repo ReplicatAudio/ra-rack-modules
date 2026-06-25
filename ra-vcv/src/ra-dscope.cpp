@@ -688,7 +688,7 @@ struct DScopeDisplay : LedDisplay {
 		auto normToRGB = [](float norm, uint8_t& r, uint8_t& g, uint8_t& b) {
 			float hue = (1.f - clamp(norm, 0.f, 1.f)) * 270.f;
 			float s = 1.f;
-			float v = 0.5f + norm * 0.5f;
+			float v = powf(clamp(norm, 0.f, 1.f), 0.4f);
 			int hi = ((int)(hue / 60.f)) % 6;
 			float f = hue / 60.f - floorf(hue / 60.f);
 			float p = v * (1.f - s);
