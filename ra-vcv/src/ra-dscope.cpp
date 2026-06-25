@@ -69,6 +69,13 @@ struct DScopeModule : Module {
 	bool spectrumReady = false;
 	float sampleRate = 44100.f;
 
+	static const int SONO_NUM_COLS = 360;
+	float sonoBuffer[SONO_NUM_COLS * (FFT_SIZE / 2)];
+	int sonoCount = 0;
+	float sonoRingBuffer[FFT_SIZE];
+	int sonoRingPos = 0;
+	int sonoHopCounter = 0;
+
 	DScopeModule() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(X_SCALE_PARAM, 0.f, 8.f, 0.f, "Gain 1", " V/screen", 1 / 2.f, 20);
@@ -107,6 +114,7 @@ struct DScopeModule : Module {
 		for (int i = 0; i < FFT_SIZE; i++) {
 			hannWindow[i] = 0.5f * (1.f - cosf(2.f * M_PI * i / (FFT_SIZE - 1)));
 		}
+		memset(sonoBuffer, 0, sizeof(sonoBuffer));
 	}
 
 	~DScopeModule() {
@@ -137,7 +145,7 @@ struct DScopeModule : Module {
 	void process(const ProcessArgs& args) override {
 		sampleRate = args.sampleRate;
 		if (modeCycleTrigger.process(params[MODE_PARAM].getValue())) {
-			mode = (mode + 1) % 3;
+			mode = (mode + 1) % 4;
 		}
 
 		float lr = 0.f, lg = 0.f, lb = 0.f;
@@ -145,6 +153,7 @@ struct DScopeModule : Module {
 			case 0: lr = lg = lb = 1.0f; break;
 			case 1: lr = 1.0f; lg = 1.0f; break;
 			case 2: lg = 1.0f; break;
+			case 3: lb = 1.0f; break;
 		}
 		lights[MODE_LIGHT_R].setBrightness(lr);
 		lights[MODE_LIGHT_G].setBrightness(lg);
@@ -195,6 +204,36 @@ struct DScopeModule : Module {
 
 				spectrumReady = true;
 				fftIndex = 0;
+			}
+			return;
+		}
+
+		if (mode == 3) {
+			float in = inputs[X_INPUT].getVoltageSum();
+			sonoRingBuffer[sonoRingPos] = in;
+			sonoRingPos = (sonoRingPos + 1) % FFT_SIZE;
+
+			float hopFloat = (float)FFT_SIZE * dsp::exp2_taylor5(1.f - params[TIME_PARAM].getValue());
+			int hop = clamp((int)hopFloat, FFT_SIZE / 8, FFT_SIZE * 8);
+
+			sonoHopCounter++;
+			if (sonoHopCounter >= (int)hop) {
+				sonoHopCounter = 0;
+
+				for (int i = 0; i < FFT_SIZE; i++)
+					fftInputL[i] = sonoRingBuffer[(sonoRingPos + i) % FFT_SIZE] * hannWindow[i];
+				fft->rfft(fftInputL, fftOutputL);
+
+				int numBins = FFT_SIZE / 2;
+				memmove(&sonoBuffer[numBins], &sonoBuffer[0], (SONO_NUM_COLS - 1) * numBins * sizeof(float));
+				sonoBuffer[0] = fabsf(fftOutputL[0]) / (float)(FFT_SIZE / 2);
+				for (int i = 1; i < numBins; i++) {
+					float re = fftOutputL[2 * i];
+					float im = fftOutputL[2 * i + 1];
+					sonoBuffer[i] = sqrtf(re * re + im * im) / (float)(FFT_SIZE / 2);
+				}
+				if (sonoCount < SONO_NUM_COLS)
+					sonoCount++;
 			}
 			return;
 		}
@@ -306,6 +345,7 @@ struct DScopeDisplay : LedDisplay {
 	ModuleWidget* moduleWidget;
 	int statsFrame = 0;
 	std::string fontPath;
+	int sonoImageId = -1;
 
 	struct Stats {
 		float min = INFINITY;
@@ -545,13 +585,16 @@ struct DScopeDisplay : LedDisplay {
 		};
 
 		for (auto& ch : chs) {
+			float gainY = module ? powf(2.f, roundf(module->params[DScopeModule::Y_SCALE_PARAM].getValue())) / 10.f : 0.1f;
+			float offsetY = module ? module->params[DScopeModule::Y_POS_PARAM].getValue() : 0.f;
+
 			nvgBeginPath(args.vg);
 			nvgMoveTo(args.vg, logX(0.f), plot.pos.y + plot.size.y);
 
 			for (int i = 0; i < numBins; i++) {
 				float freq = (float)i * binSpacingHz;
-				float mag = ch.mag[i] / (float)(FFT_SIZE / 2);
-				float db = 20.f * log10f(mag + 1e-6f);
+				float mag = ch.mag[i] / (float)(FFT_SIZE / 2) * gainY;
+				float db = 20.f * log10f(mag + 1e-6f) + offsetY;
 				float yNorm = clamp(rescale(db, -60.f, 0.f, 0.f, 1.f), 0.f, 1.f);
 				float y = plot.pos.y + plot.size.y * (1.f - yNorm);
 				nvgLineTo(args.vg, logX(freq), y);
@@ -614,6 +657,100 @@ struct DScopeDisplay : LedDisplay {
 		nvgRestore(args.vg);
 	}
 
+	void drawSonograph(const DrawArgs& args) {
+		if (!module)
+			return;
+
+		float marginL = 30.f;
+		float marginR = 0.f;
+		float marginT = 6.f;
+		float marginB = 20.f;
+		Rect plot = box.zeroPos().grow(Vec(-marginL, -marginT)).grow(Vec(-marginR, -marginB));
+
+		int plotW = (int)plot.size.x;
+		int plotH = (int)plot.size.y;
+		if (plotW <= 0 || plotH <= 0)
+			return;
+
+		float sampleRate = module->sampleRate;
+		float binSpacingHz = sampleRate / FFT_SIZE;
+		int numBins = FFT_SIZE / 2;
+		float minLogFreq = 20.f;
+		float maxLogFreq = sampleRate / 2.f;
+		float logMin = logf(minLogFreq);
+		float logRange = logf(maxLogFreq) - logMin;
+
+		float gainY = powf(2.f, roundf(module->params[DScopeModule::Y_SCALE_PARAM].getValue())) / 10.f;
+		float offsetY = module->params[DScopeModule::Y_POS_PARAM].getValue();
+
+		uint8_t* pixels = new uint8_t[plotW * plotH * 4];
+
+		auto normToRGB = [](float norm, uint8_t& r, uint8_t& g, uint8_t& b) {
+			float hue = (1.f - clamp(norm, 0.f, 1.f)) * 270.f;
+			float s = 1.f;
+			float v = 0.5f + norm * 0.5f;
+			int hi = ((int)(hue / 60.f)) % 6;
+			float f = hue / 60.f - floorf(hue / 60.f);
+			float p = v * (1.f - s);
+			float q = v * (1.f - s * f);
+			float t = v * (1.f - s * (1.f - f));
+			switch (hi) {
+				case 0: r = v*255; g = t*255; b = p*255; break;
+				case 1: r = q*255; g = v*255; b = p*255; break;
+				case 2: r = p*255; g = v*255; b = t*255; break;
+				case 3: r = p*255; g = q*255; b = v*255; break;
+				case 4: r = t*255; g = p*255; b = v*255; break;
+				default: r = v*255; g = p*255; b = q*255; break;
+			}
+		};
+
+		for (int px = 0; px < plotW; px++) {
+			int frameAge = plotW - 1 - px;
+			if (frameAge >= module->sonoCount) {
+				for (int py = 0; py < plotH; py++) {
+					int idx = (py * plotW + px) * 4;
+					pixels[idx+0] = 0;
+					pixels[idx+1] = 0;
+					pixels[idx+2] = 0;
+					pixels[idx+3] = 0;
+				}
+				continue;
+			}
+			float* frame = &module->sonoBuffer[frameAge * numBins];
+
+			for (int py = 0; py < plotH; py++) {
+				float yNorm = 1.f - (float)py / plotH;
+				float freq = expf(logMin + yNorm * logRange);
+				int bin = clamp((int)(freq / binSpacingHz), 0, numBins - 1);
+
+				float mag = frame[bin] * gainY;
+				float db = 20.f * log10f(mag + 1e-6f) + offsetY;
+				float norm = clamp(rescale(db, -60.f, 0.f, 0.f, 1.f), 0.f, 1.f);
+
+				uint8_t r, g, b;
+				normToRGB(norm, r, g, b);
+
+				int idx = (py * plotW + px) * 4;
+				pixels[idx+0] = r;
+				pixels[idx+1] = g;
+				pixels[idx+2] = b;
+				pixels[idx+3] = 255;
+			}
+		}
+
+		if (sonoImageId >= 0)
+			nvgDeleteImage(args.vg, sonoImageId);
+		sonoImageId = nvgCreateImageRGBA(args.vg, plotW, plotH, NVG_IMAGE_NEAREST, pixels);
+		delete[] pixels;
+
+		nvgSave(args.vg);
+		nvgBeginPath(args.vg);
+		nvgRect(args.vg, plot.pos.x, plot.pos.y, plotW, plotH);
+		nvgFillPaint(args.vg, nvgImagePattern(args.vg, plot.pos.x, plot.pos.y, plotW, plotH, 0.f, sonoImageId, 1.f));
+		nvgFill(args.vg);
+		nvgRestore(args.vg);
+	}
+
 	void drawLayer(const DrawArgs& args, int layer) override {
 		if (layer != 1)
 			return;
@@ -624,6 +761,11 @@ struct DScopeDisplay : LedDisplay {
 
 		if (displayMode == 2) {
 			drawSpectrum(args);
+			return;
+		}
+
+		if (displayMode == 3) {
+			drawSonograph(args);
 			return;
 		}
 
