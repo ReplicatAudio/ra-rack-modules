@@ -124,27 +124,26 @@ struct RaUlfoWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, 24), module, RaUlfoModule::FREQ_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x - 8, 46), module, RaUlfoModule::RANGE_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(14, 52), module, RaUlfoModule::RESET_INPUT));
-        addParam(createParamCentered<RaKnobSmall>(Vec(box.size.x / 2, 72), module, RaUlfoModule::ATTN_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(box.size.x / 2, 44), module, RaUlfoModule::FREQ_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(box.size.x - 8, 70), module, RaUlfoModule::RANGE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(14, 72), module, RaUlfoModule::RESET_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(box.size.x / 2, 92), module, RaUlfoModule::ATTN_PARAM));
 
-        addOutput(createOutputCentered<RaPort>(Vec(16, 106), module, RaUlfoModule::SINE_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 106), module, RaUlfoModule::COSINE_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(16, 128), module, RaUlfoModule::INV_SINE_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(44, 128), module, RaUlfoModule::INV_COSINE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(16, 128), module, RaUlfoModule::SINE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 128), module, RaUlfoModule::COSINE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(16, 156), module, RaUlfoModule::INV_SINE_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(44, 156), module, RaUlfoModule::INV_COSINE_OUTPUT));
 
-        addParam(createParamCentered<RaKnobSmall>(Vec(box.size.x / 2, 158), module, RaUlfoModule::PHASE_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(box.size.x / 2, 186), module, RaUlfoModule::PHASE_PARAM));
 
-        addParam(createParamCentered<RaKnobSmall>(Vec(16, 194), module, RaUlfoModule::A_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(44, 190), module, RaUlfoModule::A_CV_INPUT));
-        addParam(createParamCentered<RaKnobSmall>(Vec(44, 212), module, RaUlfoModule::A_ATTN_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(16, 228), module, RaUlfoModule::A_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(44, 228), module, RaUlfoModule::B_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(16, 258), module, RaUlfoModule::A_ATTN_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(44, 258), module, RaUlfoModule::B_ATTN_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(16, 288), module, RaUlfoModule::A_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(44, 288), module, RaUlfoModule::B_CV_INPUT));
 
-        addParam(createParamCentered<RaKnobSmall>(Vec(16, 242), module, RaUlfoModule::B_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(44, 238), module, RaUlfoModule::B_CV_INPUT));
-        addParam(createParamCentered<RaKnobSmall>(Vec(44, 260), module, RaUlfoModule::B_ATTN_PARAM));
-
-        addOutput(createOutputCentered<RaPort>(Vec(box.size.x / 2, 290), module, RaUlfoModule::FORMULA_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(box.size.x / 2, 334), module, RaUlfoModule::FORMULA_OUTPUT));
     }
 };
 
