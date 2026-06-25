@@ -127,19 +127,19 @@ struct RaM2Widget : ModuleWidget {
         float lx = 25;
         float rx = 65;
 
-        addInput(createInputCentered<RaPort>(Vec(lx, 30), module, RaM2Module::L_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(rx, 30), module, RaM2Module::R_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(lx, 85), module, RaM2Module::L_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(rx, 85), module, RaM2Module::R_INPUT));
 
-        addParam(createParamCentered<RaKnob>(Vec(cx, 85), module, RaM2Module::GAIN_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(cx, 145), module, RaM2Module::STEREO_MONO_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(cx, 125), module, RaM2Module::GAIN_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(cx, 170), module, RaM2Module::STEREO_MONO_PARAM));
 
-        addParam(createParamCentered<RaSwitch2>(Vec(35, 200), module, RaM2Module::LIMITER_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(55, 200), module, RaM2Module::SOFTCLIP_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(35, 210), module, RaM2Module::LIMITER_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(55, 210), module, RaM2Module::SOFTCLIP_PARAM));
 
-        addParam(createLightParamCentered<VCVLightBezel<RedLight>>(Vec(cx, 255), module, RaM2Module::MUTE_PARAM, RaM2Module::MUTE_LIGHT));
+        addParam(createLightParamCentered<VCVLightBezel<RedLight>>(Vec(cx, 250), module, RaM2Module::MUTE_PARAM, RaM2Module::MUTE_LIGHT));
 
-        addOutput(createOutputCentered<RaPort>(Vec(lx, 320), module, RaM2Module::L_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(rx, 320), module, RaM2Module::R_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(lx, 295), module, RaM2Module::L_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(rx, 295), module, RaM2Module::R_OUTPUT));
     }
 };
 
