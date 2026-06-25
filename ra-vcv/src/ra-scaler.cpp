@@ -160,9 +160,9 @@ struct ScalerDisplay : Widget {
 
         struct Row { const char *label; float labelY; float valY; };
         Row rows[] = {
-            {"IN",   24.f, 38.f},
-            {"DIFF", 80.f, 94.f},
-            {"OUT", 136.f, 150.f},
+            {"IN",   10.f, 20.f},
+            {"DIFF", 32.f, 42.f},
+            {"OUT",  54.f, 64.f},
         };
 
         nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
@@ -194,17 +194,17 @@ struct RaScalerWidget : ModuleWidget {
 
         float cx = box.size.x / 2;
 
-        addInput(createInputCentered<RaPort>(Vec(cx, 22), module, RaScalerModule::CV_INPUT));
-        addParam(createParamCentered<RaKnob>(Vec(cx, 56), module, RaScalerModule::SCALE_PARAM));
-        addParam(createParamCentered<RaKnobSmall>(Vec(cx, 84), module, RaScalerModule::CLIP_PARAM));
-        addParam(createParamCentered<RaSwitch3>(Vec(16, 118), module, RaScalerModule::RANGE_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(30, 118), module, RaScalerModule::POWER_PARAM));
-        addParam(createParamCentered<RaSwitch3>(Vec(44, 118), module, RaScalerModule::CLIP_MODE_PARAM));
-        addOutput(createOutputCentered<RaPort>(Vec(cx, 158), module, RaScalerModule::OUTPUT));
+        addInput(createInputCentered<RaPort>(Vec(cx, 74.5), module, RaScalerModule::CV_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(cx, 108.5), module, RaScalerModule::SCALE_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(cx, 136.5), module, RaScalerModule::CLIP_PARAM));
+        addParam(createParamCentered<RaSwitch3>(Vec(16, 170.5), module, RaScalerModule::RANGE_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(30, 170.5), module, RaScalerModule::POWER_PARAM));
+        addParam(createParamCentered<RaSwitch3>(Vec(44, 170.5), module, RaScalerModule::CLIP_MODE_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(cx, 210.5), module, RaScalerModule::OUTPUT));
 
         auto *display = new ScalerDisplay();
-        display->box.pos = Vec(6, 172);
-        display->box.size = Vec(48, 188);
+        display->box.pos = Vec(6, 224.5);
+        display->box.size = Vec(48, 80);
         display->module = module;
         addChild(display);
     }
