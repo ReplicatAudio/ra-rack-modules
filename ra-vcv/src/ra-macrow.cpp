@@ -19,6 +19,7 @@ struct RaGnawbz1x4Module : Module {
         NUM_PARAMS
     };
     enum InputIds {
+        MACRO_CV_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -51,6 +52,7 @@ struct RaGnawbz1x4Module : Module {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(MACRO_PARAM, 0.f, 1.f, 0.5f, "Macro", "V", 0.f, 10.f);
         configSwitch(RANGE_PARAM, 0.f, 1.f, 0.f, "Range", {"\u00B15V", "0\u201310V"});
+        configInput(MACRO_CV_INPUT, "Macro CV");
         for (int i = 0; i < 4; i++) {
             configParam(ATTN1_PARAM + i, -1.f, 1.f, 1.f, string::f("Atten %d", i + 1));
             configParam(OFFSET1_PARAM + i, -5.f, 5.f, 0.f, string::f("Offset %d", i + 1), "V");
@@ -63,12 +65,20 @@ struct RaGnawbz1x4Module : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        float macroV = params[MACRO_PARAM].getValue();
+        float macroKnob = params[MACRO_PARAM].getValue();
         float range = params[RANGE_PARAM].getValue();
-        if (range > 0.5f) {
-            macroV *= 10.f;
+        float macroV;
+        if (inputs[MACRO_CV_INPUT].isConnected()) {
+            float cv = inputs[MACRO_CV_INPUT].getVoltage();
+            float cvAtten = math::rescale(macroKnob, 0.f, 1.f, -1.f, 1.f);
+            macroV = cv * cvAtten;
         } else {
-            macroV = macroV * 10.f - 5.f;
+            macroV = macroKnob;
+            if (range > 0.5f) {
+                macroV *= 10.f;
+            } else {
+                macroV = macroV * 10.f - 5.f;
+            }
         }
 
         for (int i = 0; i < 4; i++) {
@@ -158,8 +168,9 @@ struct RaGnawbz1x4Widget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RaKnobLarge>(Vec(box.size.x / 2, 63), module, RaGnawbz1x4Module::MACRO_PARAM));
-        addChild(createLightCentered<RaRGBLight>(Vec(72, 102), module, RaGnawbz1x4Module::MACRO_LED_R));
+        addParam(createParamCentered<RaKnobLarge>(Vec(38, 63), module, RaGnawbz1x4Module::MACRO_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(72, 102), module, RaGnawbz1x4Module::MACRO_CV_INPUT));
+        addChild(createLightCentered<RaRGBLight>(Vec(12, 42), module, RaGnawbz1x4Module::MACRO_LED_R));
         addParam(createParamCentered<RaSwitch2>(Vec(box.size.x / 2, 102), module, RaGnawbz1x4Module::RANGE_PARAM));
 
         float colX[] = {24, 66};
