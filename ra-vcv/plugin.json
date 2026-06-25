@@ -132,9 +132,9 @@
       "tags": ["Delay", "Effect", "Utility"]
     },
     {
-      "slug": "ra-vscope",
-      "name": "ra-vscope",
-      "description": "Vertical oscilloscope — dual-channel scope with trigger, Lissajous, and stats readout",
+      "slug": "ra-dscope",
+      "name": "ra-dscope",
+      "description": "Dual oscilloscope — scope, Lissajous, and 1024-bin spectrum analyzer with colored mode indicator",
       "tags": ["Visual", "Utility"]
     }
   ]

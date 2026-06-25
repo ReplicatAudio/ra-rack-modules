@@ -1,20 +1,23 @@
 #include "ra-components.hpp"
 #include <string.h>
+#include <cmath>
+#include <dsp/fft.hpp>
 
 using namespace rack;
 
 extern Plugin *pluginInstance;
 
 static const int BUFFER_SIZE = 256;
+static const int FFT_SIZE = 2048;
 
-struct VScopeModule : Module {
+struct DScopeModule : Module {
 	enum ParamIds {
 		X_SCALE_PARAM,
 		X_POS_PARAM,
 		Y_SCALE_PARAM,
 		Y_POS_PARAM,
 		TIME_PARAM,
-		LISSAJOUS_PARAM,
+		MODE_PARAM,
 		THRESH_PARAM,
 		TRIG_PARAM,
 		NUM_PARAMS
@@ -31,7 +34,9 @@ struct VScopeModule : Module {
 		NUM_OUTPUTS
 	};
 	enum LightIds {
-		LISSAJOUS_LIGHT,
+		MODE_LIGHT_R,
+		MODE_LIGHT_G,
+		MODE_LIGHT_B,
 		TRIG_LIGHT,
 		NUM_LIGHTS
 	};
@@ -49,7 +54,22 @@ struct VScopeModule : Module {
 
 	dsp::SchmittTrigger triggers[16];
 
-	VScopeModule() {
+	int mode = 0;
+	dsp::SchmittTrigger modeCycleTrigger;
+
+	dsp::RealFFT* fft = nullptr;
+	float* fftInputL = nullptr;
+	float* fftOutputL = nullptr;
+	float* spectrumMagL = nullptr;
+	float* fftInputR = nullptr;
+	float* fftOutputR = nullptr;
+	float* spectrumMagR = nullptr;
+	int fftIndex = 0;
+	float* hannWindow = nullptr;
+	bool spectrumReady = false;
+	float sampleRate = 44100.f;
+
+	DScopeModule() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(X_SCALE_PARAM, 0.f, 8.f, 0.f, "Gain 1", " V/screen", 1 / 2.f, 20);
 		getParamQuantity(X_SCALE_PARAM)->snapEnabled = true;
@@ -61,7 +81,7 @@ struct VScopeModule : Module {
 		const float minTime = -std::log2(5e-3f);
 		const float defaultTime = -std::log2(5e-1f);
 		configParam(TIME_PARAM, maxTime, minTime, defaultTime, "Time", " ms/screen", 1 / 2.f, 1000);
-		configSwitch(LISSAJOUS_PARAM, 0.f, 1.f, 0.f, "Scope mode", {"1 & 2", "1 x 2"});
+		configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Cycle mode", {"Cycle"});
 		configParam(THRESH_PARAM, -10.f, 10.f, 0.f, "Trigger threshold", " V");
 		configSwitch(TRIG_PARAM, 0.f, 1.f, 1.f, "Trigger", {"Enabled", "Disabled"});
 
@@ -71,6 +91,33 @@ struct VScopeModule : Module {
 
 		configOutput(X_OUTPUT, "Ch 1");
 		configOutput(Y_OUTPUT, "Ch 2");
+
+		configLight(MODE_LIGHT_R, "Mode indicator");
+		configLight(MODE_LIGHT_G, "");
+		configLight(MODE_LIGHT_B, "");
+
+		fft = new dsp::RealFFT(FFT_SIZE);
+		fftInputL = (float*) pffft_aligned_malloc(FFT_SIZE * sizeof(float));
+		fftOutputL = (float*) pffft_aligned_malloc(2 * FFT_SIZE * sizeof(float));
+		spectrumMagL = new float[FFT_SIZE / 2];
+		fftInputR = (float*) pffft_aligned_malloc(FFT_SIZE * sizeof(float));
+		fftOutputR = (float*) pffft_aligned_malloc(2 * FFT_SIZE * sizeof(float));
+		spectrumMagR = new float[FFT_SIZE / 2];
+		hannWindow = new float[FFT_SIZE];
+		for (int i = 0; i < FFT_SIZE; i++) {
+			hannWindow[i] = 0.5f * (1.f - cosf(2.f * M_PI * i / (FFT_SIZE - 1)));
+		}
+	}
+
+	~DScopeModule() {
+		delete fft;
+		pffft_aligned_free(fftInputL);
+		pffft_aligned_free(fftOutputL);
+		delete[] spectrumMagL;
+		pffft_aligned_free(fftInputR);
+		pffft_aligned_free(fftOutputR);
+		delete[] spectrumMagR;
+		delete[] hannWindow;
 	}
 
 	void onReset() override {
@@ -83,17 +130,79 @@ struct VScopeModule : Module {
 		}
 	}
 
-	void process(const ProcessArgs& args) override {
-		bool lissajous = params[LISSAJOUS_PARAM].getValue();
-		lights[LISSAJOUS_LIGHT].setBrightness(lissajous);
+	int getMode() {
+		return mode;
+	}
 
-		bool trig = !params[TRIG_PARAM].getValue();
-		lights[TRIG_LIGHT].setBrightness(trig);
+	void process(const ProcessArgs& args) override {
+		sampleRate = args.sampleRate;
+		if (modeCycleTrigger.process(params[MODE_PARAM].getValue())) {
+			mode = (mode + 1) % 3;
+		}
+
+		float lr = 0.f, lg = 0.f, lb = 0.f;
+		switch (mode) {
+			case 0: lr = lg = lb = 1.0f; break;
+			case 1: lr = 1.0f; lg = 1.0f; break;
+			case 2: lg = 1.0f; break;
+		}
+		lights[MODE_LIGHT_R].setBrightness(lr);
+		lights[MODE_LIGHT_G].setBrightness(lg);
+		lights[MODE_LIGHT_B].setBrightness(lb);
+
+		bool trigEnabled = !params[TRIG_PARAM].getValue();
+		lights[TRIG_LIGHT].setBrightness(trigEnabled);
+
+		int channelsX = inputs[X_INPUT].getChannels();
+		if (channelsX != this->channelsX) {
+			this->channelsX = channelsX;
+		}
+		int channelsY = inputs[Y_INPUT].getChannels();
+		if (channelsY != this->channelsY) {
+			this->channelsY = channelsY;
+		}
+
+		outputs[X_OUTPUT].setChannels(channelsX);
+		outputs[X_OUTPUT].writeVoltages(inputs[X_INPUT].getVoltages());
+		outputs[Y_OUTPUT].setChannels(channelsY);
+		outputs[Y_OUTPUT].writeVoltages(inputs[Y_INPUT].getVoltages());
+
+		if (mode == 2) {
+			fftInputL[fftIndex] = inputs[X_INPUT].getVoltageSum();
+			fftInputR[fftIndex] = inputs[Y_INPUT].getVoltageSum();
+			fftIndex++;
+
+			if (fftIndex >= FFT_SIZE) {
+				for (int i = 0; i < FFT_SIZE; i++)
+					fftInputL[i] *= hannWindow[i];
+				fft->rfft(fftInputL, fftOutputL);
+				spectrumMagL[0] = fabsf(fftOutputL[0]);
+				for (int i = 1; i < FFT_SIZE / 2; i++) {
+					float re = fftOutputL[2 * i];
+					float im = fftOutputL[2 * i + 1];
+					spectrumMagL[i] = sqrtf(re * re + im * im);
+				}
+
+				for (int i = 0; i < FFT_SIZE; i++)
+					fftInputR[i] *= hannWindow[i];
+				fft->rfft(fftInputR, fftOutputR);
+				spectrumMagR[0] = fabsf(fftOutputR[0]);
+				for (int i = 1; i < FFT_SIZE / 2; i++) {
+					float re = fftOutputR[2 * i];
+					float im = fftOutputR[2 * i + 1];
+					spectrumMagR[i] = sqrtf(re * re + im * im);
+				}
+
+				spectrumReady = true;
+				fftIndex = 0;
+			}
+			return;
+		}
 
 		if (bufferIndex >= BUFFER_SIZE) {
 			bool triggered = false;
 
-			if (lissajous || !trig) {
+			if (mode == 1 || !trigEnabled) {
 				triggered = true;
 			}
 			else {
@@ -117,21 +226,6 @@ struct VScopeModule : Module {
 				frameIndex = 0;
 			}
 		}
-
-		int channelsX = inputs[X_INPUT].getChannels();
-		if (channelsX != this->channelsX) {
-			this->channelsX = channelsX;
-		}
-
-		int channelsY = inputs[Y_INPUT].getChannels();
-		if (channelsY != this->channelsY) {
-			this->channelsY = channelsY;
-		}
-
-		outputs[X_OUTPUT].setChannels(channelsX);
-		outputs[X_OUTPUT].writeVoltages(inputs[X_INPUT].getVoltages());
-		outputs[Y_OUTPUT].setChannels(channelsY);
-		outputs[Y_OUTPUT].writeVoltages(inputs[Y_INPUT].getVoltages());
 
 		if (bufferIndex < BUFFER_SIZE) {
 			float deltaTime = dsp::exp2_taylor5(-params[TIME_PARAM].getValue()) / BUFFER_SIZE;
@@ -165,15 +259,14 @@ struct VScopeModule : Module {
 		}
 	}
 
-	bool isLissajous() {
-		return params[LISSAJOUS_PARAM].getValue() > 0.f;
-	}
-
 	void dataFromJson(json_t* rootJ) override {
-		json_t* lissajousJ = json_object_get(rootJ, "lissajous");
-		if (lissajousJ) {
-			if (json_integer_value(lissajousJ))
-				params[LISSAJOUS_PARAM].setValue(1.f);
+		json_t* modeJ = json_object_get(rootJ, "mode");
+		if (modeJ) {
+			mode = json_integer_value(modeJ);
+		} else {
+			json_t* lissajousJ = json_object_get(rootJ, "lissajous");
+			if (lissajousJ && json_integer_value(lissajousJ))
+				mode = 1;
 		}
 
 		json_t* externalJ = json_object_get(rootJ, "external");
@@ -182,10 +275,16 @@ struct VScopeModule : Module {
 				params[TRIG_PARAM].setValue(1.f);
 		}
 	}
+
+	json_t* dataToJson() override {
+		json_t* rootJ = json_object();
+		json_object_set_new(rootJ, "mode", json_integer(mode));
+		return rootJ;
+	}
 };
 
 
-VScopeModule::Point DEMO_POINT_BUFFER[BUFFER_SIZE];
+DScopeModule::Point DEMO_POINT_BUFFER[BUFFER_SIZE];
 
 void demoPointBufferInit() {
 	static bool init = false;
@@ -195,15 +294,15 @@ void demoPointBufferInit() {
 
 	for (size_t i = 0; i < BUFFER_SIZE; i++) {
 		float phase = float(i) / BUFFER_SIZE;
-		VScopeModule::Point point;
+		DScopeModule::Point point;
 		point.min = point.max = 4.f * std::sin(2 * M_PI * phase * 2.f);
 		DEMO_POINT_BUFFER[i] = point;
 	}
 }
 
 
-struct VScopeDisplay : LedDisplay {
-	VScopeModule* module;
+struct DScopeDisplay : LedDisplay {
+	DScopeModule* module;
 	ModuleWidget* moduleWidget;
 	int statsFrame = 0;
 	std::string fontPath;
@@ -215,9 +314,8 @@ struct VScopeDisplay : LedDisplay {
 	Stats statsX;
 	Stats statsY;
 
-	VScopeDisplay() {
+	DScopeDisplay() {
 		fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
-
 		demoPointBufferInit();
 	}
 
@@ -231,7 +329,7 @@ struct VScopeDisplay : LedDisplay {
 		stats = Stats();
 		for (int i = 0; i < BUFFER_SIZE; i++) {
 			for (int c = 0; c < channels; c++) {
-				VScopeModule::Point point = module->pointBuffer[i][wave][c];
+				DScopeModule::Point point = module->pointBuffer[i][wave][c];
 				stats.max = std::fmax(stats.max, point.max);
 				stats.min = std::fmin(stats.min, point.min);
 			}
@@ -239,7 +337,7 @@ struct VScopeDisplay : LedDisplay {
 	}
 
 	void drawWave(const DrawArgs& args, int wave, int channel, float offset, float gain) {
-		VScopeModule::Point pointBuffer[BUFFER_SIZE];
+		DScopeModule::Point pointBuffer[BUFFER_SIZE];
 		for (int i = 0; i < BUFFER_SIZE; i++) {
 			pointBuffer[i] = module ? module->pointBuffer[i][wave][channel] : DEMO_POINT_BUFFER[i];
 		}
@@ -249,7 +347,7 @@ struct VScopeDisplay : LedDisplay {
 		nvgScissor(args.vg, RECT_ARGS(b));
 		nvgBeginPath(args.vg);
 		for (int i = 0; i < BUFFER_SIZE; i++) {
-			const VScopeModule::Point& point = pointBuffer[i];
+			const DScopeModule::Point& point = pointBuffer[i];
 			float max = point.max;
 			if (!std::isfinite(max))
 				max = 0.f;
@@ -265,7 +363,7 @@ struct VScopeDisplay : LedDisplay {
 				nvgLineTo(args.vg, p.x, p.y);
 		}
 		for (int i = BUFFER_SIZE - 1; i >= 0; i--) {
-			const VScopeModule::Point& point = pointBuffer[i];
+			const DScopeModule::Point& point = pointBuffer[i];
 			float min = point.min;
 			if (!std::isfinite(min))
 				min = 0.f;
@@ -288,8 +386,8 @@ struct VScopeDisplay : LedDisplay {
 		if (!module)
 			return;
 
-		VScopeModule::Point pointBufferX[BUFFER_SIZE];
-		VScopeModule::Point pointBufferY[BUFFER_SIZE];
+		DScopeModule::Point pointBufferX[BUFFER_SIZE];
+		DScopeModule::Point pointBufferY[BUFFER_SIZE];
 		for (int i = 0; i < BUFFER_SIZE; i++) {
 			pointBufferX[i] = module->pointBuffer[i][0][channel];
 			pointBufferY[i] = module->pointBuffer[i][1][channel];
@@ -301,8 +399,8 @@ struct VScopeDisplay : LedDisplay {
 		nvgBeginPath(args.vg);
 		int bufferIndex = module->bufferIndex;
 		for (int i = 0; i < BUFFER_SIZE; i++) {
-			const VScopeModule::Point& pointX = pointBufferX[(i + bufferIndex) % BUFFER_SIZE];
-			const VScopeModule::Point& pointY = pointBufferY[(i + bufferIndex) % BUFFER_SIZE];
+			const DScopeModule::Point& pointX = pointBufferX[(i + bufferIndex) % BUFFER_SIZE];
+			const DScopeModule::Point& pointY = pointBufferY[(i + bufferIndex) % BUFFER_SIZE];
 			float avgX = (pointX.min + pointX.max) / 2;
 			float avgY = (pointY.min + pointY.max) / 2;
 			if (!std::isfinite(avgX) || !std::isfinite(avgY))
@@ -408,21 +506,136 @@ struct VScopeDisplay : LedDisplay {
 		}
 	}
 
+	void drawSpectrum(const DrawArgs& args) {
+		if (!module || !module->spectrumReady)
+			return;
+
+		float marginL = 30.f;
+		float marginR = 0.f;
+		float marginT = 6.f;
+		float marginB = 20.f;
+		Rect plot = box.zeroPos().grow(Vec(-marginL, -marginT)).grow(Vec(-marginR, -marginB));
+
+		int numBins = FFT_SIZE / 2;
+		float binSpacingHz = module->sampleRate / FFT_SIZE;
+		float minLogFreq = 20.f;
+		float maxLogFreq = module->sampleRate / 2.f;
+		float logMin = logf(minLogFreq);
+		float logRange = logf(maxLogFreq) - logMin;
+
+		auto logX = [&](float freq) -> float {
+			float norm = (logf(fmaxf(freq, minLogFreq)) - logMin) / logRange;
+			return plot.pos.x + norm * plot.size.x;
+		};
+
+		nvgSave(args.vg);
+		nvgScissor(args.vg, RECT_ARGS(plot));
+
+		PortWidget* inputX = moduleWidget->getInput(DScopeModule::X_INPUT);
+		PortWidget* inputY = moduleWidget->getInput(DScopeModule::Y_INPUT);
+		CableWidget* inputXCable = APP->scene->rack->getTopCable(inputX);
+		CableWidget* inputYCable = APP->scene->rack->getTopCable(inputY);
+		NVGcolor colorL = inputXCable ? inputXCable->color : SCHEME_YELLOW;
+		NVGcolor colorR = inputYCable ? inputYCable->color : SCHEME_YELLOW;
+
+		struct ChannelSpec { float* mag; NVGcolor color; };
+		ChannelSpec chs[] = {
+			{module->spectrumMagL, colorL},
+			{module->spectrumMagR, colorR},
+		};
+
+		for (auto& ch : chs) {
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, logX(0.f), plot.pos.y + plot.size.y);
+
+			for (int i = 0; i < numBins; i++) {
+				float freq = (float)i * binSpacingHz;
+				float mag = ch.mag[i] / (float)(FFT_SIZE / 2);
+				float db = 20.f * log10f(mag + 1e-6f);
+				float yNorm = clamp(rescale(db, -60.f, 0.f, 0.f, 1.f), 0.f, 1.f);
+				float y = plot.pos.y + plot.size.y * (1.f - yNorm);
+				nvgLineTo(args.vg, logX(freq), y);
+			}
+
+			nvgLineTo(args.vg, logX(maxLogFreq), plot.pos.y + plot.size.y);
+			nvgClosePath(args.vg);
+
+			nvgFillColor(args.vg, ch.color);
+			nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
+			nvgFill(args.vg);
+		}
+
+		nvgResetScissor(args.vg);
+
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+		nvgFontFaceId(args.vg, font ? font->handle : -1);
+		nvgTextLetterSpacing(args.vg, 0);
+		nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_TOP);
+
+		struct FreqMark { int freq; const char* label; };
+		FreqMark freqMarks[] = {{100, "100"}, {500, "500"}, {1000, "1k"}, {5000, "5k"}, {10000, "10k"}, {20000, "20k"}};
+		for (auto& fm : freqMarks) {
+			if (fm.freq > maxLogFreq) break;
+			float x = logX((float)fm.freq);
+
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x10));
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, x, plot.pos.y);
+			nvgLineTo(args.vg, x, plot.pos.y + plot.size.y);
+			nvgStroke(args.vg);
+
+			if (x - plot.pos.x < 20.f) continue;
+
+			nvgFontSize(args.vg, 10);
+			nvgFillColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x50));
+			nvgText(args.vg, x, plot.pos.y + plot.size.y + 4, fm.label, NULL);
+		}
+
+		nvgTextAlign(args.vg, NVG_ALIGN_RIGHT | NVG_ALIGN_MIDDLE);
+		nvgFontSize(args.vg, 10);
+
+		int dbMarks[] = {0, -20, -40, -60};
+		for (int db : dbMarks) {
+			float norm = rescale((float)db, -60.f, 0.f, 0.f, 1.f);
+			float y = plot.pos.y + plot.size.y * (1.f - norm);
+
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x10));
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, plot.pos.x, y);
+			nvgLineTo(args.vg, plot.pos.x + plot.size.x, y);
+			nvgStroke(args.vg);
+
+			if (db > -60) {
+				nvgFillColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x50));
+				nvgText(args.vg, plot.pos.x - 4, y, string::f("%d", db).c_str(), NULL);
+			}
+		}
+
+		nvgRestore(args.vg);
+	}
+
 	void drawLayer(const DrawArgs& args, int layer) override {
 		if (layer != 1)
 			return;
 
 		drawBackground(args);
 
-		float gainX = module ? module->params[VScopeModule::X_SCALE_PARAM].getValue() : 0.f;
-		gainX = std::pow(2.f, std::round(gainX)) / 10.f;
-		float gainY = module ? module->params[VScopeModule::Y_SCALE_PARAM].getValue() : 0.f;
-		gainY = std::pow(2.f, std::round(gainY)) / 10.f;
-		float offsetX = module ? module->params[VScopeModule::X_POS_PARAM].getValue() : 5.f;
-		float offsetY = module ? module->params[VScopeModule::Y_POS_PARAM].getValue() : -5.f;
+		int displayMode = module ? module->getMode() : 0;
 
-		PortWidget* inputX = moduleWidget->getInput(VScopeModule::X_INPUT);
-		PortWidget* inputY = moduleWidget->getInput(VScopeModule::Y_INPUT);
+		if (displayMode == 2) {
+			drawSpectrum(args);
+			return;
+		}
+
+		float gainX = module ? module->params[DScopeModule::X_SCALE_PARAM].getValue() : 0.f;
+		gainX = std::pow(2.f, std::round(gainX)) / 10.f;
+		float gainY = module ? module->params[DScopeModule::Y_SCALE_PARAM].getValue() : 0.f;
+		gainY = std::pow(2.f, std::round(gainY)) / 10.f;
+		float offsetX = module ? module->params[DScopeModule::X_POS_PARAM].getValue() : 5.f;
+		float offsetY = module ? module->params[DScopeModule::Y_POS_PARAM].getValue() : -5.f;
+
+		PortWidget* inputX = moduleWidget->getInput(DScopeModule::X_INPUT);
+		PortWidget* inputY = moduleWidget->getInput(DScopeModule::Y_INPUT);
 		CableWidget* inputXCable = APP->scene->rack->getTopCable(inputX);
 		CableWidget* inputYCable = APP->scene->rack->getTopCable(inputY);
 		NVGcolor inputXColor = inputXCable ? inputXCable->color : SCHEME_YELLOW;
@@ -430,7 +643,7 @@ struct VScopeDisplay : LedDisplay {
 
 		int channelsY = module ? module->channelsY : 1;
 		int channelsX = module ? module->channelsX : 1;
-		if (module && module->isLissajous()) {
+		if (displayMode == 1) {
 			int lissajousChannels = std::min(channelsX, channelsY);
 			for (int c = 0; c < lissajousChannels; c++) {
 				nvgStrokeColor(args.vg, SCHEME_YELLOW);
@@ -448,7 +661,7 @@ struct VScopeDisplay : LedDisplay {
 				drawWave(args, 0, c, offsetX, gainX);
 			}
 
-			float trigThreshold = module ? module->params[VScopeModule::THRESH_PARAM].getValue() : 0.f;
+			float trigThreshold = module ? module->params[DScopeModule::THRESH_PARAM].getValue() : 0.f;
 			trigThreshold = (trigThreshold + offsetX) * gainX;
 			drawTrig(args, trigThreshold);
 		}
@@ -465,37 +678,37 @@ struct VScopeDisplay : LedDisplay {
 };
 
 
-struct VScopeWidget : ModuleWidget {
-	VScopeWidget(VScopeModule* module) {
+struct DScopeWidget : ModuleWidget {
+	DScopeWidget(DScopeModule* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-vscope.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-dscope.svg")));
 
 		addChild(createWidget<RaScrew>(Vec(0, 0)));
 		addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
 		addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-		addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(30, 24), module, VScopeModule::LISSAJOUS_PARAM, VScopeModule::LISSAJOUS_LIGHT));
-		addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(30, 72), module, VScopeModule::TRIG_PARAM, VScopeModule::TRIG_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(30, 24), module, DScopeModule::MODE_PARAM, DScopeModule::MODE_LIGHT_R));
+		addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(30, 72), module, DScopeModule::TRIG_PARAM, DScopeModule::TRIG_LIGHT));
 
-		addParam(createParamCentered<RaKnob>(Vec(30, 120), module, VScopeModule::TIME_PARAM));
-		addParam(createParamCentered<RaKnob>(Vec(30, 168), module, VScopeModule::THRESH_PARAM));
+		addParam(createParamCentered<RaKnob>(Vec(30, 120), module, DScopeModule::TIME_PARAM));
+		addParam(createParamCentered<RaKnob>(Vec(30, 168), module, DScopeModule::THRESH_PARAM));
 
-		addInput(createInputCentered<RaPort>(Vec(30, 216), module, VScopeModule::X_INPUT));
-		addInput(createInputCentered<RaPort>(Vec(30, 264), module, VScopeModule::Y_INPUT));
+		addInput(createInputCentered<RaPort>(Vec(30, 216), module, DScopeModule::X_INPUT));
+		addInput(createInputCentered<RaPort>(Vec(30, 264), module, DScopeModule::Y_INPUT));
 
-		addInput(createInputCentered<RaPort>(Vec(30, 312), module, VScopeModule::TRIG_INPUT));
+		addInput(createInputCentered<RaPort>(Vec(30, 312), module, DScopeModule::TRIG_INPUT));
 
-		addParam(createParamCentered<RaKnob>(Vec(480, 24), module, VScopeModule::X_SCALE_PARAM));
-		addParam(createParamCentered<RaKnob>(Vec(480, 72), module, VScopeModule::Y_SCALE_PARAM));
+		addParam(createParamCentered<RaKnob>(Vec(480, 24), module, DScopeModule::X_SCALE_PARAM));
+		addParam(createParamCentered<RaKnob>(Vec(480, 72), module, DScopeModule::Y_SCALE_PARAM));
 
-		addParam(createParamCentered<RaKnob>(Vec(480, 120), module, VScopeModule::X_POS_PARAM));
-		addParam(createParamCentered<RaKnob>(Vec(480, 168), module, VScopeModule::Y_POS_PARAM));
+		addParam(createParamCentered<RaKnob>(Vec(480, 120), module, DScopeModule::X_POS_PARAM));
+		addParam(createParamCentered<RaKnob>(Vec(480, 168), module, DScopeModule::Y_POS_PARAM));
 
-		addOutput(createOutputCentered<RaPort>(Vec(480, 216), module, VScopeModule::X_OUTPUT));
-		addOutput(createOutputCentered<RaPort>(Vec(480, 264), module, VScopeModule::Y_OUTPUT));
+		addOutput(createOutputCentered<RaPort>(Vec(480, 216), module, DScopeModule::X_OUTPUT));
+		addOutput(createOutputCentered<RaPort>(Vec(480, 264), module, DScopeModule::Y_OUTPUT));
 
-		VScopeDisplay* display = createWidget<VScopeDisplay>(Vec(60, 4));
+		DScopeDisplay* display = createWidget<DScopeDisplay>(Vec(60, 4));
 		display->box.size = Vec(390, 380 - 8);
 		display->module = module;
 		display->moduleWidget = this;
@@ -504,4 +717,4 @@ struct VScopeWidget : ModuleWidget {
 };
 
 
-Model* modelRaVscope = createModel<VScopeModule, VScopeWidget>("ra-vscope");
+Model* modelRaDscope = createModel<DScopeModule, DScopeWidget>("ra-dscope");
