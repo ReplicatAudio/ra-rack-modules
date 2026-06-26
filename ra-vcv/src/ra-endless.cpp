@@ -36,6 +36,20 @@ struct RaEndlessModule : Module {
     dsp::PulseGenerator trigPulse[NUM_TRACKS];
     dsp::PulseGenerator endPulse[NUM_TRACKS];
     float seqCountKnobValue = 0.f;
+    float slewOutput[NUM_TRACKS] = {0.f, 0.f};
+    bool endReached[NUM_TRACKS] = {false, false};
+    int repeatCount[NUM_TRACKS] = {0, 0};
+
+    struct SlewParamQuantity : ParamQuantity {
+        std::string getDisplayValueString() override {
+            float v = getValue();
+            float slewMs = 10000.f * v * v * v * v;
+            if (slewMs < 0.01f) return "0 ms";
+            if (slewMs < 1.f) return string::f("%.2f ms", slewMs);
+            if (slewMs < 100.f) return string::f("%.1f ms", slewMs);
+            return string::f("%.0f ms", slewMs);
+        }
+    };
 
     static constexpr float REST_VALUE = -20.f;
 
@@ -51,8 +65,12 @@ struct RaEndlessModule : Module {
         SEQ_PREV_PARAM,
         SEQ_RESET_PARAM,
         SEQ_LENGTH_PARAM,
+        REPEATS_PARAM,
         RUN_PARAM,
         PASSTHROUGH_PARAM,
+        SONG_MODE_PARAM,
+        SLEW_A_PARAM,
+        SLEW_B_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -139,6 +157,7 @@ struct RaEndlessModule : Module {
         if (currentPos[t] >= (int)seq.size()) {
             currentPos[t] = 0;
             endPulse[t].trigger(1e-3f);
+            endReached[t] = true;
         }
     }
 
@@ -160,6 +179,8 @@ struct RaEndlessModule : Module {
             ensureSeqExists(t);
             trigPulse[t].trigger(1e-3f);
         }
+        repeatCount[0] = 0;
+        repeatCount[1] = 0;
     }
 
     void seqPrev() {
@@ -170,6 +191,8 @@ struct RaEndlessModule : Module {
             currentPos[t] = 0;
             trigPulse[t].trigger(1e-3f);
         }
+        repeatCount[0] = 0;
+        repeatCount[1] = 0;
     }
 
     void seqReset() {
@@ -178,6 +201,8 @@ struct RaEndlessModule : Module {
             currentPos[t] = 0;
             trigPulse[t].trigger(1e-3f);
         }
+        repeatCount[0] = 0;
+        repeatCount[1] = 0;
     }
 
     void setNumSequences(int n) {
@@ -206,6 +231,8 @@ struct RaEndlessModule : Module {
         configParam(SEQ_RESET_PARAM, 0.f, 1.f, 0.f, "Sequence reset");
         configParam(SEQ_LENGTH_PARAM, 0.f, 15.f, 0.f, "Sequences", "", 0.f, 1.f, 1.f);
         paramQuantities[SEQ_LENGTH_PARAM]->snapEnabled = true;
+        configParam(REPEATS_PARAM, 0.f, 15.f, 0.f, "Repeats", "", 0.f, 1.f, 1.f);
+        paramQuantities[REPEATS_PARAM]->snapEnabled = true;
         configInput(CV_INPUT, "Pitch CV (1V/oct)");
         configInput(POSITION_INPUT, "Position CV (0-10V)");
         configInput(WRITE_TRIG_INPUT, "Write trigger");
@@ -219,6 +246,9 @@ struct RaEndlessModule : Module {
         configInput(SEQ_RESET_TRIG_INPUT, "Sequence reset trigger");
         configParam(RUN_PARAM, 0.f, 1.f, 0.f, "Run");
         configSwitch(PASSTHROUGH_PARAM, 0.f, 1.f, 0.f, "Passthrough", {"Off", "On"});
+        configSwitch(SONG_MODE_PARAM, 0.f, 2.f, 0.f, "Song mode", {"OFF", "A", "B"});
+        configParam<SlewParamQuantity>(SLEW_A_PARAM, 0.f, 1.f, 0.f, "Track A slew");
+        configParam<SlewParamQuantity>(SLEW_B_PARAM, 0.f, 1.f, 0.f, "Track B slew");
         configInput(RUN_INPUT, "Run");
         configLight(RUN_LIGHT, "Run");
         for (int c = 0; c < 3; c++) {
@@ -348,15 +378,36 @@ struct RaEndlessModule : Module {
             }
         }
 
+        // Song mode auto-advance
+        int songMode = (int)roundf(params[SONG_MODE_PARAM].getValue());
+        int repeats = (int)params[REPEATS_PARAM].getValue() + 1;
+        bool didAdvance = false;
+        for (int i = 0; i < NUM_TRACKS; i++) {
+            if (!endReached[i]) continue;
+            endReached[i] = false;
+            if (didAdvance) continue;
+            bool trigger = (songMode == 1 && i == 0) || (songMode == 2 && i == 1);
+            if (!trigger) continue;
+            repeatCount[i]++;
+            if (repeatCount[i] >= repeats) {
+                repeatCount[0] = 0;
+                repeatCount[1] = 0;
+                seqNext();
+                didAdvance = true;
+            }
+        }
+
         bool passActive = params[PASSTHROUGH_PARAM].getValue() > 0.5f && !runActive;
 
         for (int i = 0; i < NUM_TRACKS; i++) {
             int cvOutId = (i == 0) ? TRACK_A_CV_OUTPUT : TRACK_B_CV_OUTPUT;
             int trigOutId = (i == 0) ? TRACK_A_TRIG_OUTPUT : TRACK_B_TRIG_OUTPUT;
             int endOutId = (i == 0) ? TRACK_A_END_OUTPUT : TRACK_B_END_OUTPUT;
+            int slewParamId = (i == 0) ? SLEW_A_PARAM : SLEW_B_PARAM;
 
+            float target;
             if (passActive && i == selectedTrack) {
-                outputs[cvOutId].setVoltage(inputs[CV_INPUT].getVoltage());
+                target = inputs[CV_INPUT].getVoltage();
                 outputs[trigOutId].setVoltage(10.f);
                 outputs[endOutId].setVoltage(0.f);
             } else {
@@ -365,17 +416,23 @@ struct RaEndlessModule : Module {
                 if (!seq.empty() && pos < (int)seq.size()) {
                     float v = seq[pos];
                     if (v == REST_VALUE) {
-                        outputs[cvOutId].setVoltage(lastCvValue[i]);
+                        target = lastCvValue[i];
                         trigPulse[i].reset();
                     } else {
-                        outputs[cvOutId].setVoltage(v);
+                        target = v;
                     }
                 } else {
-                    outputs[cvOutId].setVoltage(0.f);
+                    target = 0.f;
                 }
                 outputs[trigOutId].setVoltage(trigPulse[i].process(args.sampleTime) ? 10.f : 0.f);
                 outputs[endOutId].setVoltage(endPulse[i].process(args.sampleTime) ? 10.f : 0.f);
             }
+
+            float knobVal = params[slewParamId].getValue();
+            float slewMs = 10000.f * knobVal * knobVal * knobVal * knobVal;
+            float factor = (slewMs < 0.1f) ? 1.f : 1.f - expf(-args.sampleTime / (slewMs * 0.001f));
+            slewOutput[i] += (target - slewOutput[i]) * factor;
+            outputs[cvOutId].setVoltage(slewOutput[i]);
         }
     }
 
@@ -532,7 +589,7 @@ struct RaEndlessWidget : ModuleWidget {
         addChild(display);
 
         float xCol[] = {25, 63, 101, 139, 177, 215};
-        float xOut[] = {50, 120, 190};
+        float xOut[] = {24, 72, 120, 168};
 
         // Row 1 (y=128): CV In, Passthrough, Run Trig, Run Btn, Track Sel, Position CV
         addInput(createInputCentered<RaPort>(Vec(xCol[0], 128), module, RaEndlessModule::CV_INPUT));
@@ -566,16 +623,20 @@ struct RaEndlessWidget : ModuleWidget {
         addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[4], 254), module, RaEndlessModule::SEQ_RESET_PARAM, RaEndlessModule::SEQ_RESET_LIGHT_R));
         addInput(createInputCentered<RaPort>(Vec(xCol[5], 254), module, RaEndlessModule::SEQ_RESET_TRIG_INPUT));
 
-        // Seq Length Knob
-        addParam(createParamCentered<RaKnobSmall>(Vec(120, 303), module, RaEndlessModule::SEQ_LENGTH_PARAM));
+        // Seq Length Knob & Song Mode & Repeats
+        addParam(createParamCentered<RaSwitch3>(Vec(80, 295), module, RaEndlessModule::SONG_MODE_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(120, 295), module, RaEndlessModule::SEQ_LENGTH_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(172, 295), module, RaEndlessModule::REPEATS_PARAM));
 
         // Track A (y=338), Track B (y=365)
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[0], 338), module, RaEndlessModule::TRACK_A_CV_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[1], 338), module, RaEndlessModule::TRACK_A_TRIG_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[2], 338), module, RaEndlessModule::TRACK_A_END_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[0], 365), module, RaEndlessModule::TRACK_B_CV_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[1], 365), module, RaEndlessModule::TRACK_B_TRIG_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[2], 365), module, RaEndlessModule::TRACK_B_END_OUTPUT));
+        addParam(createParamCentered<RaKnobTrim>(Vec(32, 338), module, RaEndlessModule::SLEW_A_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[1], 338), module, RaEndlessModule::TRACK_A_CV_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[2], 338), module, RaEndlessModule::TRACK_A_TRIG_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[3], 338), module, RaEndlessModule::TRACK_A_END_OUTPUT));
+        addParam(createParamCentered<RaKnobTrim>(Vec(32, 365), module, RaEndlessModule::SLEW_B_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[1], 365), module, RaEndlessModule::TRACK_B_CV_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[2], 365), module, RaEndlessModule::TRACK_B_TRIG_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[3], 365), module, RaEndlessModule::TRACK_B_END_OUTPUT));
     }
 };
 
