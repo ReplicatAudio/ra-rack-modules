@@ -56,6 +56,7 @@ struct DScopeModule : Module {
 
 	int mode = 0;
 	dsp::SchmittTrigger modeCycleTrigger;
+	bool disableCableColors = false;
 
 	dsp::RealFFT* fft = nullptr;
 	float* fftInputL = nullptr;
@@ -313,11 +314,16 @@ struct DScopeModule : Module {
 			if (json_integer_value(externalJ))
 				params[TRIG_PARAM].setValue(1.f);
 		}
+
+		json_t* disableColorsJ = json_object_get(rootJ, "disableCableColors");
+		if (disableColorsJ)
+			disableCableColors = json_is_true(disableColorsJ);
 	}
 
 	json_t* dataToJson() override {
 		json_t* rootJ = json_object();
 		json_object_set_new(rootJ, "mode", json_integer(mode));
+		json_object_set_new(rootJ, "disableCableColors", json_boolean(disableCableColors));
 		return rootJ;
 	}
 };
@@ -460,19 +466,31 @@ struct DScopeDisplay : LedDisplay {
 		nvgStrokeWidth(args.vg, 1.5f);
 		nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
 
-		for (int i = 0; i < numValid - 1; i++) {
-			float t = (float)(i + 1) / numValid;
-			NVGcolor c;
-			c.r = colorOld.r + (colorNew.r - colorOld.r) * t;
-			c.g = colorOld.g + (colorNew.g - colorOld.g) * t;
-			c.b = colorOld.b + (colorNew.b - colorOld.b) * t;
-			c.a = colorOld.a + (colorNew.a - colorOld.a) * t;
-			nvgStrokeColor(args.vg, c);
-
+		if (module && module->disableCableColors) {
+			nvgStrokeColor(args.vg, colorNew);
 			nvgBeginPath(args.vg);
-			nvgMoveTo(args.vg, points[i].x, points[i].y);
-			nvgLineTo(args.vg, points[i + 1].x, points[i + 1].y);
+			for (int i = 0; i < numValid; i++) {
+				if (i == 0)
+					nvgMoveTo(args.vg, points[i].x, points[i].y);
+				else
+					nvgLineTo(args.vg, points[i].x, points[i].y);
+			}
 			nvgStroke(args.vg);
+		} else {
+			for (int i = 0; i < numValid - 1; i++) {
+				float t = (float)(i + 1) / numValid;
+				NVGcolor c;
+				c.r = colorOld.r + (colorNew.r - colorOld.r) * t;
+				c.g = colorOld.g + (colorNew.g - colorOld.g) * t;
+				c.b = colorOld.b + (colorNew.b - colorOld.b) * t;
+				c.a = colorOld.a + (colorNew.a - colorOld.a) * t;
+				nvgStrokeColor(args.vg, c);
+
+				nvgBeginPath(args.vg);
+				nvgMoveTo(args.vg, points[i].x, points[i].y);
+				nvgLineTo(args.vg, points[i + 1].x, points[i + 1].y);
+				nvgStroke(args.vg);
+			}
 		}
 
 		nvgResetScissor(args.vg);
@@ -590,8 +608,14 @@ struct DScopeDisplay : LedDisplay {
 		PortWidget* inputY = moduleWidget->getInput(DScopeModule::Y_INPUT);
 		CableWidget* inputXCable = APP->scene->rack->getTopCable(inputX);
 		CableWidget* inputYCable = APP->scene->rack->getTopCable(inputY);
-		NVGcolor colorL = inputXCable ? inputXCable->color : SCHEME_YELLOW;
-		NVGcolor colorR = inputYCable ? inputYCable->color : SCHEME_YELLOW;
+		NVGcolor colorL, colorR;
+		if (module->disableCableColors) {
+			colorL = SCHEME_PURPLE;
+			colorR = nvgRGB(0xff, 0x66, 0xaa);
+		} else {
+			colorL = inputXCable ? inputXCable->color : SCHEME_YELLOW;
+			colorR = inputYCable ? inputYCable->color : SCHEME_YELLOW;
+		}
 
 		struct ChannelSpec { float* mag; NVGcolor color; };
 		ChannelSpec chs[] = {
@@ -795,8 +819,14 @@ struct DScopeDisplay : LedDisplay {
 		PortWidget* inputY = moduleWidget->getInput(DScopeModule::Y_INPUT);
 		CableWidget* inputXCable = APP->scene->rack->getTopCable(inputX);
 		CableWidget* inputYCable = APP->scene->rack->getTopCable(inputY);
-		NVGcolor inputXColor = inputXCable ? inputXCable->color : SCHEME_YELLOW;
-		NVGcolor inputYColor = inputYCable ? inputYCable->color : SCHEME_YELLOW;
+		NVGcolor inputXColor, inputYColor;
+		if (module && module->disableCableColors) {
+			inputXColor = SCHEME_PURPLE;
+			inputYColor = nvgRGB(0xff, 0x66, 0xaa);
+		} else {
+			inputXColor = inputXCable ? inputXCable->color : SCHEME_YELLOW;
+			inputYColor = inputYCable ? inputYCable->color : SCHEME_YELLOW;
+		}
 
 		int channelsY = module ? module->channelsY : 1;
 		int channelsX = module ? module->channelsX : 1;
@@ -869,6 +899,28 @@ struct DScopeWidget : ModuleWidget {
 		display->module = module;
 		display->moduleWidget = this;
 		addChild(display);
+	}
+
+	void appendContextMenu(ui::Menu* menu) override {
+		DScopeModule* mod = dynamic_cast<DScopeModule*>(module);
+
+		menu->addChild(new ui::MenuSeparator);
+
+		struct CableColorsItem : ui::MenuItem {
+			DScopeModule* mod;
+			void onAction(const event::Action& e) override {
+				mod->disableCableColors = !mod->disableCableColors;
+			}
+			void step() override {
+				rightText = mod->disableCableColors ? "✔" : "";
+				MenuItem::step();
+			}
+		};
+
+		CableColorsItem* item = new CableColorsItem;
+		item->text = "Disable cable colors";
+		item->mod = mod;
+		menu->addChild(item);
 	}
 };
 
