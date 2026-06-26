@@ -141,6 +141,17 @@ struct RaM2Widget : ModuleWidget {
         addOutput(createOutputCentered<RaPort>(Vec(lx, 295), module, RaM2Module::L_OUTPUT));
         addOutput(createOutputCentered<RaPort>(Vec(rx, 295), module, RaM2Module::R_OUTPUT));
     }
+
+    void onSelectKey(const SelectKeyEvent &e) override {
+        if (e.action == GLFW_PRESS && e.key == GLFW_KEY_SPACE) {
+            if (RaM2Module *m = dynamic_cast<RaM2Module *>(module)) {
+                m->muteState = !m->muteState;
+            }
+            e.consume(this);
+            return;
+        }
+        ModuleWidget::onSelectKey(e);
+    }
 };
 
 Model *modelRaM2 = createModel<RaM2Module, RaM2Widget>("ra-m2");
