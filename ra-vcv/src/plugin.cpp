@@ -25,6 +25,8 @@ extern Model *modelRaThink;
 extern Model *modelRaAccumulator;
 extern Model *modelRaZeno;
 extern Model *modelRaDscope;
+extern Model *modelRaChord;
+extern Model *modelRaTracker;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -50,4 +52,6 @@ void init(Plugin *p) {
 	p->addModel(modelRaAccumulator);
 	p->addModel(modelRaZeno);
 	p->addModel(modelRaDscope);
+	p->addModel(modelRaChord);
+	p->addModel(modelRaTracker);
 }

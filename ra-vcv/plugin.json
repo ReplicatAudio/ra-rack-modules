@@ -136,6 +136,18 @@
       "name": "ra-dscope",
       "description": "Dual oscilloscope — scope, Lissajous, and 1024-bin spectrum analyzer with colored mode indicator",
       "tags": ["Visual", "Utility"]
+    },
+    {
+      "slug": "ra-chord",
+      "name": "ra-chord",
+      "description": "4-channel CV transposer — each input has an offset of ±16 semitones (1/12 V per step)",
+      "tags": ["Utility", "CV source"]
+    },
+    {
+      "slug": "ra-tracker",
+      "name": "ra-tracker",
+      "description": "4-channel tracker style sequencer with screen, 4 knobs, write/clear, and pickup navigation",
+      "tags": ["Sequencer", "Utility"]
     }
   ]
 }
