@@ -26,7 +26,8 @@ SOURCES = \
 	src/ra-dscope.cpp \
 	src/ra-zeno.cpp \
 	src/ra-chord.cpp \
-	src/ra-tracker.cpp
+	src/ra-tracker.cpp \
+	src/ra-just.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)

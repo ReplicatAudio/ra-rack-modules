@@ -148,6 +148,12 @@
       "name": "ra-tracker",
       "description": "4-channel tracker style sequencer with screen, 4 knobs, write/clear, and pickup navigation",
       "tags": ["Sequencer", "Utility"]
+    },
+    {
+      "slug": "ra-just",
+      "name": "ra-just",
+      "description": "Just intonation CV quantizer — 6 channels, Ptolemaic scale, root transpose",
+      "tags": ["Utility", "Quantizer"]
     }
   ]
 }
