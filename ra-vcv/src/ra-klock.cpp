@@ -30,6 +30,9 @@ struct RaKlockModule : Module {
         DIV2_OUTPUT,
         DIV4_OUTPUT,
         DIV8_OUTPUT,
+        X16_OUTPUT,
+        DIV16_OUTPUT,
+        DIV32_OUTPUT,
         NUM_OUTPUTS
     };
     enum LightIds {
@@ -55,9 +58,12 @@ struct RaKlockModule : Module {
     dsp::PulseGenerator x2Pulse;
     dsp::PulseGenerator x4Pulse;
     dsp::PulseGenerator x8Pulse;
+    dsp::PulseGenerator x16Pulse;
     dsp::PulseGenerator div2Pulse;
     dsp::PulseGenerator div4Pulse;
     dsp::PulseGenerator div8Pulse;
+    dsp::PulseGenerator div16Pulse;
+    dsp::PulseGenerator div32Pulse;
     dsp::PulseGenerator resetPulse;
     dsp::PulseGenerator beatPulse;
 
@@ -82,9 +88,12 @@ struct RaKlockModule : Module {
         configOutput(X2_OUTPUT, "x2");
         configOutput(X4_OUTPUT, "x4");
         configOutput(X8_OUTPUT, "x8");
+        configOutput(X16_OUTPUT, "x16");
         configOutput(DIV2_OUTPUT, "/2");
         configOutput(DIV4_OUTPUT, "/4");
         configOutput(DIV8_OUTPUT, "/8");
+        configOutput(DIV16_OUTPUT, "/16");
+        configOutput(DIV32_OUTPUT, "/32");
         configLight(BEAT_LIGHT, "Beat");
         configLight(RUN_LIGHT, "Run");
         configLight(RESET_LIGHT, "Reset");
@@ -162,9 +171,12 @@ struct RaKlockModule : Module {
             x2Pulse.trigger(1e-3f);
             x4Pulse.trigger(1e-3f);
             x8Pulse.trigger(1e-3f);
+            x16Pulse.trigger(1e-3f);
             div2Pulse.trigger(1e-3f);
             div4Pulse.trigger(1e-3f);
             div8Pulse.trigger(1e-3f);
+            div16Pulse.trigger(1e-3f);
+            div32Pulse.trigger(1e-3f);
             beatPulse.trigger(50e-3f);
         }
 
@@ -173,9 +185,12 @@ struct RaKlockModule : Module {
             outputs[X2_OUTPUT].setVoltage(0.f);
             outputs[X4_OUTPUT].setVoltage(0.f);
             outputs[X8_OUTPUT].setVoltage(0.f);
+            outputs[X16_OUTPUT].setVoltage(0.f);
             outputs[DIV2_OUTPUT].setVoltage(0.f);
             outputs[DIV4_OUTPUT].setVoltage(0.f);
             outputs[DIV8_OUTPUT].setVoltage(0.f);
+            outputs[DIV16_OUTPUT].setVoltage(0.f);
+            outputs[DIV32_OUTPUT].setVoltage(0.f);
             outputs[RUN_OUTPUT].setVoltage(0.f);
             lights[BEAT_LIGHT].setBrightnessSmooth(0.f, args.sampleTime);
             lights[RUN_LIGHT].setBrightnessSmooth(0.f, args.sampleTime);
@@ -203,6 +218,11 @@ struct RaKlockModule : Module {
         prevTick = tick;
         tick = clamp(tickFromPhase(phase, swing), 0, 7);
 
+        int prevSixteenth = (int)(prevPhase * 16.f);
+        int sixteenth = (int)(phase * 16.f);
+        if (sixteenth != prevSixteenth)
+            x16Pulse.trigger(1e-3f);
+
         bool tickChanged = (tick != prevTick);
         bool wrapped = (phase < prevPhase);
         if (tickChanged || wrapped) {
@@ -224,6 +244,10 @@ struct RaKlockModule : Module {
                 div4Pulse.trigger(1e-3f);
             if (beatCount % 8 == 0)
                 div8Pulse.trigger(1e-3f);
+            if (beatCount % 16 == 0)
+                div16Pulse.trigger(1e-3f);
+            if (beatCount % 32 == 0)
+                div32Pulse.trigger(1e-3f);
             prevBeatCount = beatCount;
         }
 
@@ -232,9 +256,12 @@ struct RaKlockModule : Module {
         bool x2Active = x2Pulse.process(delta);
         bool x4Active = x4Pulse.process(delta);
         bool x8Active = x8Pulse.process(delta);
+        bool x16Active = x16Pulse.process(delta);
         bool div2Active = div2Pulse.process(delta);
         bool div4Active = div4Pulse.process(delta);
         bool div8Active = div8Pulse.process(delta);
+        bool div16Active = div16Pulse.process(delta);
+        bool div32Active = div32Pulse.process(delta);
         bool resetActive = resetPulse.process(delta);
         bool beatActive = beatPulse.process(delta);
 
@@ -242,9 +269,12 @@ struct RaKlockModule : Module {
         outputs[X2_OUTPUT].setVoltage(x2Active ? 10.f : 0.f);
         outputs[X4_OUTPUT].setVoltage(x4Active ? 10.f : 0.f);
         outputs[X8_OUTPUT].setVoltage(x8Active ? 10.f : 0.f);
+        outputs[X16_OUTPUT].setVoltage(x16Active ? 10.f : 0.f);
         outputs[DIV2_OUTPUT].setVoltage(div2Active ? 10.f : 0.f);
         outputs[DIV4_OUTPUT].setVoltage(div4Active ? 10.f : 0.f);
         outputs[DIV8_OUTPUT].setVoltage(div8Active ? 10.f : 0.f);
+        outputs[DIV16_OUTPUT].setVoltage(div16Active ? 10.f : 0.f);
+        outputs[DIV32_OUTPUT].setVoltage(div32Active ? 10.f : 0.f);
         outputs[RESET_OUTPUT].setVoltage(resetActive ? 10.f : 0.f);
 
         lights[BEAT_LIGHT].setBrightnessSmooth(beatActive ? 1.f : 0.f, delta);
@@ -308,6 +338,12 @@ struct BpmDisplay : Widget {
     }
 };
 
+struct PurpleLight : GrayModuleLightWidget {
+    PurpleLight() {
+        addBaseColor(nvgRGB(0x99, 0x6d, 0xd2));
+    }
+};
+
 struct RaKlockWidget : ModuleWidget {
     RaKlockWidget(RaKlockModule *module) {
         setModule(module);
@@ -320,7 +356,7 @@ struct RaKlockWidget : ModuleWidget {
 
         addInput(createInputCentered<RaPort>(Vec(22, 40), module, RaKlockModule::V_OCT_INPUT));
         addParam(createParamCentered<RaKnobLarge>(Vec(75, 40), module, RaKlockModule::BPM_PARAM));
-        addChild(createLightCentered<TinyLight<RedLight>>(Vec(128, 40), module, RaKlockModule::BEAT_LIGHT));
+        addChild(createLightCentered<LargeLight<PurpleLight>>(Vec(128, 40), module, RaKlockModule::BEAT_LIGHT));
 
         addInput(createInputCentered<RaPort>(Vec(22, 118), module, RaKlockModule::SWING_INPUT));
 
@@ -337,16 +373,19 @@ struct RaKlockWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(128, 174), module, RaKlockModule::RESET_INPUT));
 
         addOutput(createOutputCentered<RaPort>(Vec(25, 232), module, RaKlockModule::CLK_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(75, 232), module, RaKlockModule::RUN_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(125, 232), module, RaKlockModule::RESET_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(58.33, 232), module, RaKlockModule::RUN_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(91.67, 232), module, RaKlockModule::RESET_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(125, 232), module, RaKlockModule::DIV32_OUTPUT));
 
         addOutput(createOutputCentered<RaPort>(Vec(25, 277), module, RaKlockModule::X2_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(75, 277), module, RaKlockModule::X4_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(125, 277), module, RaKlockModule::X8_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(58.33, 277), module, RaKlockModule::X4_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(91.67, 277), module, RaKlockModule::X8_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(125, 277), module, RaKlockModule::X16_OUTPUT));
 
         addOutput(createOutputCentered<RaPort>(Vec(25, 322), module, RaKlockModule::DIV2_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(75, 322), module, RaKlockModule::DIV4_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(125, 322), module, RaKlockModule::DIV8_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(58.33, 322), module, RaKlockModule::DIV4_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(91.67, 322), module, RaKlockModule::DIV8_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(125, 322), module, RaKlockModule::DIV16_OUTPUT));
     }
 };
 

@@ -116,8 +116,8 @@
     <circle cx="25.40" cy="13.55" r="6.10" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
     <circle cx="25.40" cy="13.55" r="2.13" fill="#333" opacity="0.4"/>
     <line x1="25.40" y1="13.55" x2="29.36" y2="13.55" stroke="#666" stroke-width="0.5" opacity="0.6"/>
-    <circle cx="43.35" cy="13.55" r="1.35" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
-    <circle cx="43.35" cy="13.55" r="0.47" fill="#333" opacity="0.5"/>
+    <circle cx="43.35" cy="13.55" r="2.85" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="43.35" cy="13.55" r="1.25" fill="#333" opacity="0.5"/>
     <circle cx="7.45" cy="39.96" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
     <circle cx="7.45" cy="39.96" r="1.40" fill="#996dd2" opacity="0.5"/>
     <circle cx="25.40" cy="39.96" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
@@ -133,20 +133,26 @@
     <circle cx="43.35" cy="58.93" r="1.40" fill="#996dd2" opacity="0.5"/>
     <rect x="3.65" y="73.76" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="8.47" cy="78.57" r="2.61" fill="#111" opacity="0.5"/>
-    <rect x="20.59" y="73.76" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
-    <circle cx="25.40" cy="78.57" r="2.61" fill="#111" opacity="0.5"/>
+    <rect x="14.94" y="73.76" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
+    <circle cx="19.76" cy="78.57" r="2.61" fill="#111" opacity="0.5"/>
+    <rect x="26.23" y="73.76" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
+    <circle cx="31.05" cy="78.57" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="37.52" y="73.76" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="42.33" cy="78.57" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="3.65" y="89.00" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="8.47" cy="93.81" r="2.61" fill="#111" opacity="0.5"/>
-    <rect x="20.59" y="89.00" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
-    <circle cx="25.40" cy="93.81" r="2.61" fill="#111" opacity="0.5"/>
+    <rect x="14.94" y="89.00" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
+    <circle cx="19.76" cy="93.81" r="2.61" fill="#111" opacity="0.5"/>
+    <rect x="26.23" y="89.00" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
+    <circle cx="31.05" cy="93.81" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="37.52" y="89.00" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="42.33" cy="93.81" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="3.65" y="104.24" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="8.47" cy="109.05" r="2.61" fill="#111" opacity="0.5"/>
-    <rect x="20.59" y="104.24" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
-    <circle cx="25.40" cy="109.05" r="2.61" fill="#111" opacity="0.5"/>
+    <rect x="14.94" y="104.24" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
+    <circle cx="19.76" cy="109.05" r="2.61" fill="#111" opacity="0.5"/>
+    <rect x="26.23" y="104.24" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
+    <circle cx="31.05" cy="109.05" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="37.52" y="104.24" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="42.33" cy="109.05" r="2.61" fill="#111" opacity="0.5"/>
   </g>
@@ -162,13 +168,16 @@
     <text x="32.17" y="64.53" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">RESET</text>
     <text x="43.35" y="64.94" fill="#996dd2" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Reset</text>
     <text x="8.47" y="84.58" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">CLK</text>
-    <text x="25.40" y="84.58" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Run</text>
-    <text x="42.33" y="84.58" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Reset</text>
+    <text x="19.76" y="84.58" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Run</text>
+    <text x="31.05" y="84.58" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Reset</text>
+    <text x="42.33" y="84.58" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">/32</text>
     <text x="8.47" y="99.82" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">x2</text>
-    <text x="25.40" y="99.82" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">x4</text>
-    <text x="42.33" y="99.82" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">x8</text>
+    <text x="19.76" y="99.82" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">x4</text>
+    <text x="31.05" y="99.82" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">x8</text>
+    <text x="42.33" y="99.82" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">x16</text>
     <text x="8.47" y="115.06" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">/2</text>
-    <text x="25.40" y="115.06" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">/4</text>
-    <text x="42.33" y="115.06" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">/8</text>
+    <text x="19.76" y="115.06" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">/4</text>
+    <text x="31.05" y="115.06" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">/8</text>
+    <text x="42.33" y="115.06" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">/16</text>
   </g>
 </svg>
