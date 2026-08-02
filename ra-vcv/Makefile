@@ -13,7 +13,7 @@ SOURCES = \
 	src/ra-gnawbz.cpp \
 	src/ra-klock.cpp \
 	src/ra-m2.cpp \
-	src/ra-scaler.cpp \
+	src/ra-ranger.cpp \
 	src/ra-magus.cpp \
 	src/ra-seer.cpp \
 	src/ra-shapes.cpp \

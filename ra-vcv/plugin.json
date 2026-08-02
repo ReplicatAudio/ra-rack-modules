@@ -30,8 +30,8 @@
       "tags": ["LFO", "Utility"]
     },
     {
-      "slug": "ra-scaler",
-      "name": "ra-scaler",
+      "slug": "ra-ranger",
+      "name": "ra-ranger",
       "description": "4-channel signal scaler with power scaling, multi-mode clipping, and wave folding",
       "tags": ["Utility", "Waveshaper", "Distortion"]
     },

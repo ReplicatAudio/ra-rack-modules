@@ -4,7 +4,7 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 
-struct RaScalerModule : Module {
+struct RaRangerModule : Module {
     enum ParamIds {
         SCALE_PARAM,
         CLIP_PARAM,
@@ -35,10 +35,10 @@ struct RaScalerModule : Module {
 
     int lastRange = -1;
 
-    RaScalerModule() {
+    RaRangerModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(SCALE_PARAM, 0.f, 1.f, 1.f, "Scale amount", "", 0.f, 10.f);
-        configParam(CLIP_PARAM, 0.f, 1.f, 1.f, "Clip");
+        configParam(CLIP_PARAM, 0.f, 1.f, 1.f, "Clip", "%", 0.f, 100.f);
         configSwitch(POWER_PARAM, 0.f, 1.f, 0.f, "Power scale", {"Off", "On"});
         configSwitch(CLIP_MODE_PARAM, 0.f, 2.f, 0.f, "Clip mode", {"Hard", "Soft", "Fold"});
         configSwitch(RANGE_PARAM, 0.f, 2.f, 0.f, "Range", {"0\u201310", "\u00B15", "0\u20131"});
@@ -142,10 +142,10 @@ struct RaScalerModule : Module {
     }
 };
 
-struct RaScalerWidget : ModuleWidget {
-    RaScalerWidget(RaScalerModule *module) {
+struct RaRangerWidget : ModuleWidget {
+    RaRangerWidget(RaRangerModule *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-scaler.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-ranger.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
@@ -154,20 +154,20 @@ struct RaScalerWidget : ModuleWidget {
 
         float cx = box.size.x / 2;
 
-        addParam(createParamCentered<RaKnob>(Vec(cx, 74.5), module, RaScalerModule::SCALE_PARAM));
-        addParam(createParamCentered<RaKnobSmall>(Vec(cx, 108.5), module, RaScalerModule::CLIP_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(16, 136.5), module, RaScalerModule::SCALE_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(44, 136.5), module, RaScalerModule::CLIP_INPUT));
-        addParam(createParamCentered<RaSwitch3>(Vec(16, 170.5), module, RaScalerModule::RANGE_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(30, 170.5), module, RaScalerModule::POWER_PARAM));
-        addParam(createParamCentered<RaSwitch3>(Vec(44, 170.5), module, RaScalerModule::CLIP_MODE_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(cx, 74.5), module, RaRangerModule::SCALE_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(cx, 108.5), module, RaRangerModule::CLIP_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(16, 136.5), module, RaRangerModule::SCALE_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(44, 136.5), module, RaRangerModule::CLIP_INPUT));
+        addParam(createParamCentered<RaSwitch3>(Vec(16, 170.5), module, RaRangerModule::RANGE_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(30, 170.5), module, RaRangerModule::POWER_PARAM));
+        addParam(createParamCentered<RaSwitch3>(Vec(44, 170.5), module, RaRangerModule::CLIP_MODE_PARAM));
 
-        float rows[] = {205, 233, 261, 289};
+        float rows[] = {225, 253, 281, 309};
         for (int i = 0; i < 4; i++) {
-            addInput(createInputCentered<RaPort>(Vec(16, rows[i]), module, RaScalerModule::INPUT1 + i));
-            addOutput(createOutputCentered<RaPort>(Vec(44, rows[i]), module, RaScalerModule::OUTPUT1 + i));
+            addInput(createInputCentered<RaPort>(Vec(16, rows[i]), module, RaRangerModule::INPUT1 + i));
+            addOutput(createOutputCentered<RaPort>(Vec(44, rows[i]), module, RaRangerModule::OUTPUT1 + i));
         }
     }
 };
 
-Model *modelRaScaler = createModel<RaScalerModule, RaScalerWidget>("ra-scaler");
+Model *modelRaRanger = createModel<RaRangerModule, RaRangerWidget>("ra-ranger");
