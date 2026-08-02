@@ -28,6 +28,7 @@ extern Model *modelRaDscope;
 extern Model *modelRaChord;
 extern Model *modelRaTracker;
 extern Model *modelRaJust;
+extern Model *modelRaQuant;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -56,4 +57,5 @@ void init(Plugin *p) {
 	p->addModel(modelRaChord);
 	p->addModel(modelRaTracker);
 	p->addModel(modelRaJust);
+	p->addModel(modelRaQuant);
 }

@@ -21,6 +21,7 @@ SOURCES = \
 	src/ra-vca.cpp \
 	src/ra-ntet.cpp \
 	src/ra-think.cpp \
+	src/ra-quant.cpp \
 	src/ra-accumulator.cpp \
 	src/ra-glitch.cpp \
 	src/ra-dscope.cpp \
