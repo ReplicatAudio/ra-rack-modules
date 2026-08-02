@@ -128,11 +128,11 @@
     <line x1="4.74" y1="60.28" x2="7.24" y2="60.28" stroke="#666" stroke-width="0.5" opacity="0.6"/>
     <circle cx="15.58" cy="60.28" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
     <circle cx="15.58" cy="60.28" r="1.40" fill="#996dd2" opacity="0.5"/>
-    <circle cx="4.74" cy="71.12" r="3.84" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
-    <circle cx="4.74" cy="71.12" r="1.34" fill="#333" opacity="0.4"/>
-    <line x1="4.74" y1="71.12" x2="7.24" y2="71.12" stroke="#666" stroke-width="0.5" opacity="0.6"/>
-    <circle cx="15.58" cy="71.12" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="15.58" cy="71.12" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <circle cx="4.74" cy="74.51" r="3.84" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="4.74" cy="74.51" r="1.34" fill="#333" opacity="0.4"/>
+    <line x1="4.74" y1="74.51" x2="7.24" y2="74.51" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+    <circle cx="15.58" cy="74.51" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
+    <circle cx="15.58" cy="74.51" r="1.40" fill="#996dd2" opacity="0.5"/>
     <rect x="-0.07" y="87.98" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="4.74" cy="92.79" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="10.77" y="87.98" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
@@ -153,8 +153,8 @@
     <text x="15.58" y="55.46" fill="#996dd2" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">FM 1</text>
     <text x="4.74" y="66.12" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">FM 2 attenuation</text>
     <text x="15.58" y="66.30" fill="#996dd2" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">FM 2</text>
-    <text x="4.74" y="76.96" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">FM 3 attenuation</text>
-    <text x="15.58" y="77.13" fill="#996dd2" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">FM 3</text>
+    <text x="4.74" y="80.35" fill="#888" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Phase offset</text>
+    <text x="15.58" y="80.52" fill="#996dd2" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Phase CV</text>
     <text x="4.74" y="98.81" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Sine</text>
     <text x="15.58" y="98.81" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Triangle</text>
     <text x="4.74" y="109.65" fill="#c8b7c7" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">Saw up</text>

@@ -11,11 +11,14 @@ static const float JI_CENTS[12] = {
 
 static float quantizeJI(float semitones) {
     float cents = semitones * 100.f;
-    float norm = fmodf(cents + 600.f, 1200.f) - 600.f;
+    float norm = fmodf(cents, 1200.f);
+    if (norm < 0.f) norm += 1200.f;
+
     int best = 0;
-    float bestDist = fabsf(norm);
-    for (int i = 1; i < 12; i++) {
+    float bestDist = 1200.f;
+    for (int i = 0; i < 12; i++) {
         float d = fabsf(norm - JI_CENTS[i]);
+        if (d > 600.f) d = 1200.f - d;
         if (d < bestDist) {
             bestDist = d;
             best = i;
@@ -97,7 +100,10 @@ struct RaJustModule : Module {
                     outputs[out].setVoltage(v, c);
                 } else {
                     float st = v * 12.f + root;
-                    outputs[out].setVoltage(quantizeJI(st), c);
+                    float oct = floorf(st / 12.f);
+                    float frac = st - oct * 12.f;
+                    float q = quantizeJI(frac);
+                    outputs[out].setVoltage(oct + q, c);
                 }
             }
         }

@@ -24,14 +24,14 @@ struct RaShapesModule : Module {
         SLOW_PARAM,
         FM1_ATTN_PARAM,
         FM2_ATTN_PARAM,
-        FM3_ATTN_PARAM,
+        PHASE_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
         PITCH_INPUT,
         FM1_INPUT,
         FM2_INPUT,
-        FM3_INPUT,
+        PHASE_CV_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -57,11 +57,11 @@ struct RaShapesModule : Module {
         configSwitch(SLOW_PARAM, 0.f, 1.f, 0.f, "Slow mode", {"Normal", "/8"});
         configParam(FM1_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 1 attenuation", "%", 0.f, 100.f);
         configParam(FM2_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 2 attenuation", "%", 0.f, 100.f);
-        configParam(FM3_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 3 attenuation", "%", 0.f, 100.f);
+        configParam(PHASE_PARAM, 0.f, 1.f, 0.f, "Phase offset", "%", 0.f, 100.f);
         configInput(PITCH_INPUT, "1V/Oct");
         configInput(FM1_INPUT, "FM 1");
         configInput(FM2_INPUT, "FM 2");
-        configInput(FM3_INPUT, "FM 3");
+        configInput(PHASE_CV_INPUT, "Phase CV");
         configOutput(SINE_OUTPUT, "Sine");
         configOutput(TRI_OUTPUT, "Triangle");
         configOutput(SAW_UP_OUTPUT, "Saw up");
@@ -73,8 +73,7 @@ struct RaShapesModule : Module {
         float freq = MIN_FREQ * powf(MAX_FREQ / MIN_FREQ, params[FREQ_PARAM].getValue());
         float pitch = inputs[PITCH_INPUT].getVoltage()
             + inputs[FM1_INPUT].getVoltage() * params[FM1_ATTN_PARAM].getValue()
-            + inputs[FM2_INPUT].getVoltage() * params[FM2_ATTN_PARAM].getValue()
-            + inputs[FM3_INPUT].getVoltage() * params[FM3_ATTN_PARAM].getValue();
+            + inputs[FM2_INPUT].getVoltage() * params[FM2_ATTN_PARAM].getValue();
         freq *= powf(2.f, pitch);
         freq = clamp(freq, 0.1f, 20000.f);
 
@@ -85,7 +84,12 @@ struct RaShapesModule : Module {
         if (phase >= 1.f)
             phase -= 1.f;
 
-        float p = phase;
+        float phaseOffset = params[PHASE_PARAM].getValue();
+        if (inputs[PHASE_CV_INPUT].isConnected())
+            phaseOffset += inputs[PHASE_CV_INPUT].getVoltage() / 10.f;
+        phaseOffset = clamp(phaseOffset, 0.f, 1.f);
+
+        float p = fmodf(phase + phaseOffset, 1.f);
 
         float sine = sinf(2.f * M_PI * p);
         float tri = 1.f - 4.f * fabsf(p - 0.5f);
@@ -120,8 +124,8 @@ struct RaShapesWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(46, 146), module, RaShapesModule::FM1_INPUT));
         addParam(createParamCentered<RaKnobSmall>(Vec(14, 178), module, RaShapesModule::FM2_ATTN_PARAM));
         addInput(createInputCentered<RaPort>(Vec(46, 178), module, RaShapesModule::FM2_INPUT));
-        addParam(createParamCentered<RaKnobSmall>(Vec(14, 210), module, RaShapesModule::FM3_ATTN_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(46, 210), module, RaShapesModule::FM3_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(14, 220), module, RaShapesModule::PHASE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(46, 220), module, RaShapesModule::PHASE_CV_INPUT));
 
         addOutput(createOutputCentered<RaPort>(Vec(14, 274), module, RaShapesModule::SINE_OUTPUT));
         addOutput(createOutputCentered<RaPort>(Vec(46, 274), module, RaShapesModule::TRI_OUTPUT));
