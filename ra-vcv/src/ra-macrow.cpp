@@ -4,6 +4,18 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 
+static constexpr int RA_MACROW_RANGE_PARAM = 1;
+
+struct RaMacroQuantity : ParamQuantity {
+    float getDisplayValue() override {
+        float v = getValue();
+        if (module && module->params[RA_MACROW_RANGE_PARAM].getValue() > 0.5f)
+            return v * 10.f;
+        else
+            return v * 10.f - 5.f;
+    }
+};
+
 struct RaGnawbz1x4Module : Module {
     enum ParamIds {
         MACRO_PARAM,
@@ -50,7 +62,7 @@ struct RaGnawbz1x4Module : Module {
 
     RaGnawbz1x4Module() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(MACRO_PARAM, 0.f, 1.f, 0.5f, "Macro", "V", 0.f, 10.f);
+        configParam<RaMacroQuantity>(MACRO_PARAM, 0.f, 1.f, 0.5f, "Macro", "V");
         configSwitch(RANGE_PARAM, 0.f, 1.f, 0.f, "Range", {"\u00B15V", "0\u201310V"});
         configInput(MACRO_CV_INPUT, "Macro CV");
         for (int i = 0; i < 4; i++) {
