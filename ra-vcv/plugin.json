@@ -32,7 +32,7 @@
     {
       "slug": "ra-scaler",
       "name": "ra-scaler",
-      "description": "Signal scaler with power scaling, multi-mode clipping, and wave folding",
+      "description": "4-channel signal scaler with power scaling, multi-mode clipping, and wave folding",
       "tags": ["Utility", "Waveshaper", "Distortion"]
     },
     {

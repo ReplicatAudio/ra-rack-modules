@@ -1,5 +1,4 @@
 #include "ra-components.hpp"
-#include <atomic>
 
 using namespace rack;
 
@@ -15,11 +14,19 @@ struct RaScalerModule : Module {
         NUM_PARAMS
     };
     enum InputIds {
-        CV_INPUT,
+        SCALE_INPUT,
+        CLIP_INPUT,
+        INPUT1,
+        INPUT2,
+        INPUT3,
+        INPUT4,
         NUM_INPUTS
     };
     enum OutputIds {
-        OUTPUT,
+        OUTPUT1,
+        OUTPUT2,
+        OUTPUT3,
+        OUTPUT4,
         NUM_OUTPUTS
     };
     enum LightIds {
@@ -28,25 +35,22 @@ struct RaScalerModule : Module {
 
     int lastRange = -1;
 
-    std::atomic<float> displayIn{0.f};
-    std::atomic<float> displayDiff{0.f};
-    std::atomic<float> displayOut{0.f};
-
     RaScalerModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(SCALE_PARAM, 0.f, 1.f, 1.f, "Scale amount", "", 0.f, 10.f);
-        configParam(CLIP_PARAM, 0.f, 1.f, 0.f, "Clip");
+        configParam(CLIP_PARAM, 0.f, 1.f, 1.f, "Clip");
         configSwitch(POWER_PARAM, 0.f, 1.f, 0.f, "Power scale", {"Off", "On"});
         configSwitch(CLIP_MODE_PARAM, 0.f, 2.f, 0.f, "Clip mode", {"Hard", "Soft", "Fold"});
         configSwitch(RANGE_PARAM, 0.f, 2.f, 0.f, "Range", {"0\u201310", "\u00B15", "0\u20131"});
-        configInput(CV_INPUT, "Signal");
-        configOutput(OUTPUT, "Output");
+        configInput(SCALE_INPUT, "Scale amount");
+        configInput(CLIP_INPUT, "Clip");
+        for (int i = 0; i < 4; i++) {
+            configInput(INPUT1 + i, string::f("Input %d", i + 1));
+            configOutput(OUTPUT1 + i, string::f("Output %d", i + 1));
+        }
     }
 
     void process(const ProcessArgs &args) override {
-        float in = inputs[CV_INPUT].getVoltage();
-        float scale = params[SCALE_PARAM].getValue();
-
         int range = (int)std::round(params[RANGE_PARAM].getValue());
         float fullScale;
         float scaleDisplayMul = 1.f;
@@ -67,50 +71,52 @@ struct RaScalerModule : Module {
             }
         }
 
+        float scale = clamp(params[SCALE_PARAM].getValue() + inputs[SCALE_INPUT].getVoltage() / 10.f, 0.f, 1.f);
         float scaleFactor = scale * scaleDisplayMul + scaleDisplayOff;
-
-        float scaled;
-        if (params[POWER_PARAM].getValue() > 0.5f) {
-            float exponent = scale * 10.f;
-            float sign = in >= 0.f ? 1.f : -1.f;
-            scaled = sign * powf(fabs(in) + 1e-10f, exponent);
-        } else {
-            scaled = in * scaleFactor;
-        }
-
-        float clip = params[CLIP_PARAM].getValue();
+        float clip = clamp(params[CLIP_PARAM].getValue() + inputs[CLIP_INPUT].getVoltage() / 10.f, 0.f, 1.f);
         float threshold = clip * fullScale;
+        int clipMode = (int)std::round(params[CLIP_MODE_PARAM].getValue());
+        bool power = params[POWER_PARAM].getValue() > 0.5f;
 
-        float out;
-        switch ((int)std::round(params[CLIP_MODE_PARAM].getValue())) {
-            case 0: {
-                out = clamp(scaled, -threshold, threshold);
-                break;
+        for (int i = 0; i < 4; i++) {
+            float in = inputs[INPUT1 + i].getVoltage();
+
+            float scaled;
+            if (power) {
+                float exponent = scale * 10.f;
+                float sign = in >= 0.f ? 1.f : -1.f;
+                scaled = sign * powf(fabs(in) + 1e-10f, exponent);
+            } else {
+                scaled = in * scaleFactor;
             }
-            case 1: {
-                if (threshold <= 0.001f) {
-                    out = 0.f;
-                } else {
-                    float ratio = clamp(scaled / threshold, -1.f, 1.f);
-                    out = threshold * (1.5f * ratio - 0.5f * ratio * ratio * ratio);
+
+            float out;
+            switch (clipMode) {
+                case 0: {
+                    out = clamp(scaled, -threshold, threshold);
+                    break;
                 }
-                break;
+                case 1: {
+                    if (threshold <= 0.001f) {
+                        out = 0.f;
+                    } else {
+                        float ratio = clamp(scaled / threshold, -1.f, 1.f);
+                        out = threshold * (1.5f * ratio - 0.5f * ratio * ratio * ratio);
+                    }
+                    break;
+                }
+                case 2: {
+                    out = waveFold(scaled, threshold);
+                    break;
+                }
+                default: {
+                    out = scaled;
+                    break;
+                }
             }
-            case 2: {
-                out = waveFold(scaled, threshold);
-                break;
-            }
-            default: {
-                out = scaled;
-                break;
-            }
+
+            outputs[OUTPUT1 + i].setVoltage(out);
         }
-
-        outputs[OUTPUT].setVoltage(out);
-
-        displayIn.store(in, std::memory_order_relaxed);
-        displayDiff.store(out - in, std::memory_order_relaxed);
-        displayOut.store(out, std::memory_order_relaxed);
     }
 
     float waveFold(float x, float t) {
@@ -136,52 +142,6 @@ struct RaScalerModule : Module {
     }
 };
 
-struct ScalerDisplay : Widget {
-    RaScalerModule *module;
-    std::shared_ptr<Font> font;
-
-    ScalerDisplay() {
-        font = APP->window->loadFont(asset::system("res/fonts/DejaVuSans.ttf"));
-    }
-
-    void draw(const DrawArgs &args) override {
-        nvgBeginPath(args.vg);
-        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 2);
-        nvgFillColor(args.vg, nvgRGB(0x10, 0x10, 0x10));
-        nvgFill(args.vg);
-
-        if (!module || !font) return;
-
-        nvgFontFaceId(args.vg, font->handle);
-
-        float in = module->displayIn.load(std::memory_order_relaxed);
-        float diff = module->displayDiff.load(std::memory_order_relaxed);
-        float out = module->displayOut.load(std::memory_order_relaxed);
-
-        struct Row { const char *label; float labelY; float valY; };
-        Row rows[] = {
-            {"IN",   10.f, 20.f},
-            {"DIFF", 32.f, 42.f},
-            {"OUT",  54.f, 64.f},
-        };
-
-        nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
-
-        for (int r = 0; r < 3; r++) {
-            nvgFontSize(args.vg, 9);
-            nvgFillColor(args.vg, nvgRGBA(0x88, 0x88, 0x88, 0xff));
-            nvgText(args.vg, 5, rows[r].labelY, rows[r].label, NULL);
-
-            char buf[32];
-            float vals[] = {in, diff, out};
-            snprintf(buf, sizeof(buf), "%+.2fV", vals[r]);
-            nvgFontSize(args.vg, 10);
-            nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
-            nvgText(args.vg, 10, rows[r].valY, buf, NULL);
-        }
-    }
-};
-
 struct RaScalerWidget : ModuleWidget {
     RaScalerWidget(RaScalerModule *module) {
         setModule(module);
@@ -196,17 +156,17 @@ struct RaScalerWidget : ModuleWidget {
 
         addParam(createParamCentered<RaKnob>(Vec(cx, 74.5), module, RaScalerModule::SCALE_PARAM));
         addParam(createParamCentered<RaKnobSmall>(Vec(cx, 108.5), module, RaScalerModule::CLIP_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(cx, 136.5), module, RaScalerModule::CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(16, 136.5), module, RaScalerModule::SCALE_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(44, 136.5), module, RaScalerModule::CLIP_INPUT));
         addParam(createParamCentered<RaSwitch3>(Vec(16, 170.5), module, RaScalerModule::RANGE_PARAM));
         addParam(createParamCentered<RaSwitch2>(Vec(30, 170.5), module, RaScalerModule::POWER_PARAM));
         addParam(createParamCentered<RaSwitch3>(Vec(44, 170.5), module, RaScalerModule::CLIP_MODE_PARAM));
-        addOutput(createOutputCentered<RaPort>(Vec(cx, 210.5), module, RaScalerModule::OUTPUT));
 
-        auto *display = new ScalerDisplay();
-        display->box.pos = Vec(6, 224.5);
-        display->box.size = Vec(48, 80);
-        display->module = module;
-        addChild(display);
+        float rows[] = {205, 233, 261, 289};
+        for (int i = 0; i < 4; i++) {
+            addInput(createInputCentered<RaPort>(Vec(16, rows[i]), module, RaScalerModule::INPUT1 + i));
+            addOutput(createOutputCentered<RaPort>(Vec(44, rows[i]), module, RaScalerModule::OUTPUT1 + i));
+        }
     }
 };
 
