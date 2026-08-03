@@ -1,36 +1,25 @@
-## AI Policy
+# RA-VCV
 
-### LLM Usage
+A collection of VCV Rack modules. 
 
-This project includes code that was generated with the assistance of LLMs. However, this is not a "vibe coded" project. This is not slop. I have a deep love for programming and have been doing it professionally for over a decade. Long before AI was capable of doing it for us. I understand ALL of this code. This code is virtually indistiguishable from code I would have written myself. 
+**Major work in progress. Many things are incomplete and will change. Do not use these in serious projects that you want to come back to later!** 
 
-As said, I have a deep love for music, math and computing. It stresses me out to see how generative AI has led to such an alarming and overwhelming amount of slop. Software stores and music streaming platforms are now full of low effort, low creativity shovelware and soulless drivel. This is not that.  
+Docs and graphics coming soon. 
 
-This being said so bluntly, I do believe its possible to responsibly (if not ethically) use LLMs to aid in a certain class of programming tasks. To be clear, significant portions of the code in this repo have been created with the assistance of LLMs. LLMs are one tool in my tool kit among many. These are my ideas and my implementations.  
+## Docs
 
-NO:
-- Module ideas
-- Creative decisions
-- Architectural/engineering decisions
-- UI/UX decisions
-- Generally just no serious decisions
-- Commits without review
-- ABSOLUTELY no AI generated art or audio assets EVER
+For now, see [dev docs](./doc-dev/) for development and building info. Specifially the [tips doc](./doc-dev/tips.md). 
 
-SOMETIMES:
-- Bug hunting
-- Textbook algo implementations
-- Rapid prototyping
-- Bulk changes
+I'm also working on [user docs](./doc-user/)!
 
-Diffs are always audited and verified by a human. LLMs are never the last tool to touch the code and they never make any commits to this repo themselves. 
+## Building
 
-I won't go into my personal views on the state / ethics of generative AI usage in this readme.
+```bash
+./util/make.sh
+```
 
-### LLM PR Policy
+This will automatically install the modules as well (at least for linux).
 
-Pull requests are welcome. That being said, if I have any reason to believe a PR has been "vibe coded" or that the submitter doesn't understand their code, the PR will be rejected with no further explanation. 
+## License
 
-Absolutely NO "coauthored by $AGENT" commits will be merged. Ever. No exceptions. Take that somewhere else.  
-
-
+All code is GPL3 or later unless otherwise specified. 
