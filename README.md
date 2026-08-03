@@ -36,3 +36,8 @@ Contibutions are limited to people I know personally at this time. If you know m
 ## License
 
 All code is GPL3 or later unless otherwise specified. 
+
+### Font
+
+Internal svg font is `Bitstream Vera Sans Mono` (OFL)
+
