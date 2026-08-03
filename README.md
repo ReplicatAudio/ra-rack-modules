@@ -15,10 +15,10 @@ I'm also working on [user docs](./doc-user/)!
 ## Usage
 
 ```bash
-git clone https://github.com/ReplicatAudio/rackmods
+git clone https://github.com/ReplicatAudio/ra-rack-modules
 
 # project root
-cd ra-vcv/modules
+cd ra-rack-modules/modules
 
 # pull the vcv rack sdk
 ./util/pull-sdk.sh
