@@ -1,4 +1,4 @@
-# RA-VCV
+# Rackmods (RA-VCV)
 
 A collection of free ReplicatAudio VCV-Rack modules. 
 
