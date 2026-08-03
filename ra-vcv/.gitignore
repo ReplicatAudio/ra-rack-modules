@@ -1,6 +1,0 @@
-build/*
-.cache/*
-dist/*
-compile_commands.json
-plugin.so
-Rack-SDK/
