@@ -1,6 +1,6 @@
 # RA-VCV
 
-A collection of VCV Rack modules. 
+A collection of free ReplicatAudio VCV-Rack modules. 
 
 **Major work in progress. Many things are incomplete and will change. Do not use these in serious projects that you want to come back to later!** 
 
