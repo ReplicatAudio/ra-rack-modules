@@ -140,7 +140,7 @@
     {
       "slug": "ra-chord",
       "name": "ra-chord",
-      "description": "4-channel CV transposer — each input has an offset of ±16 semitones (1/12 V per step)",
+      "description": "CV transposer — single input with 4 outputs, each offset by ±16 semitones (1/12 V per step)",
       "tags": ["Utility", "CV source"]
     },
     {

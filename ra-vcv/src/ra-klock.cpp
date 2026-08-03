@@ -317,7 +317,7 @@ struct BpmDisplay : Widget {
 
         int alpha = (int)(brightness * 240 + 15);
         alpha = clamp(alpha, 0, 255);
-        NVGcolor col = nvgRGBA(0xff, 0xcc, 0x00, alpha);
+        NVGcolor col = nvgRGBA(0x99, 0x6d, 0xd2, alpha);
 
         char bpmText[8];
         if (running)
@@ -333,7 +333,7 @@ struct BpmDisplay : Widget {
         snprintf(swingText, sizeof(swingText), "S%d", (int)(swing * 100.f));
 
         nvgFontSize(args.vg, 10);
-        nvgFillColor(args.vg, nvgRGBA(0xff, 0xcc, 0x00, alpha));
+        nvgFillColor(args.vg, nvgRGBA(0x99, 0x6d, 0xd2, alpha));
         nvgText(args.vg, box.size.x / 2, 32, swingText, NULL);
     }
 };
@@ -361,8 +361,8 @@ struct RaKlockWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(22, 118), module, RaKlockModule::SWING_INPUT));
 
         auto *display = new BpmDisplay();
-        display->box.pos = Vec(97, 98);
-        display->box.size = Vec(30, 40);
+        display->box.pos = Vec(94, 68);
+        display->box.size = Vec(52, 90);
         display->module = module;
         addChild(display);
         addParam(createParamCentered<RaKnob>(Vec(75, 118), module, RaKlockModule::SWING_PARAM));
