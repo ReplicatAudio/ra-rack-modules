@@ -10,8 +10,10 @@ struct RaEndlessModule : Module {
     int currentSeq[NUM_TRACKS] = {0, 0};
     int currentPos[NUM_TRACKS] = {0, 0};
     int selectedTrack = 0;
+    bool screenMode = false; // false = Simple, true = Advanced
 
     dsp::SchmittTrigger trackSelTrigger;
+    dsp::SchmittTrigger screenModeTrigger;
     dsp::SchmittTrigger writeExtTrigger;
     dsp::SchmittTrigger restExtTrigger;
     dsp::SchmittTrigger clearExtTrigger;
@@ -71,6 +73,7 @@ struct RaEndlessModule : Module {
         SONG_MODE_PARAM,
         SLEW_A_PARAM,
         SLEW_B_PARAM,
+        SCREEN_MODE_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -249,6 +252,7 @@ struct RaEndlessModule : Module {
         configSwitch(SONG_MODE_PARAM, 0.f, 2.f, 0.f, "Song mode", {"OFF", "A", "B"});
         configParam<SlewParamQuantity>(SLEW_A_PARAM, 0.f, 1.f, 0.f, "Track A slew");
         configParam<SlewParamQuantity>(SLEW_B_PARAM, 0.f, 1.f, 0.f, "Track B slew");
+        configParam(SCREEN_MODE_PARAM, 0.f, 1.f, 0.f, "screen mode");
         configInput(RUN_INPUT, "Run");
         configLight(RUN_LIGHT, "Run");
         for (int c = 0; c < 3; c++) {
@@ -272,6 +276,8 @@ struct RaEndlessModule : Module {
     void process(const ProcessArgs &args) override {
         if (trackSelTrigger.process(params[TRACK_SELECT_PARAM].getValue() * 10.f))
             selectedTrack = 1 - selectedTrack;
+        if (screenModeTrigger.process(params[SCREEN_MODE_PARAM].getValue() * 10.f))
+            screenMode = !screenMode;
         int t = selectedTrack;
 
         if (writeBtnTrigger.process(params[WRITE_PARAM].getValue() * 10.f) ||
@@ -526,6 +532,32 @@ struct EndlessDisplay : LedDisplay {
 
         if (!module) return;
 
+        if (!module->screenMode) {
+            // Simple mode: A <step> | <sequence>
+            int t = module->selectedTrack;
+            auto simpleInfo = [&](int i) -> std::string {
+                auto& seq = module->sequences[i][module->currentSeq[i]];
+                int sc = (int)seq.size();
+                int pos = module->currentPos[i];
+                int dp = (sc > 0) ? clamp(pos, 0, sc - 1) + 1 : 0;
+                int sq = module->currentSeq[i] + 1;
+                char label = (i == 0) ? 'A' : 'B';
+                return rack::string::f("%c %d | %d", label, dp, sq);
+            };
+            if (font) {
+                nvgFontFaceId(args.vg, font->handle);
+                nvgFontSize(args.vg, 24);
+                nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+                std::string lineA = simpleInfo(0);
+                std::string lineB = simpleInfo(1);
+                nvgFillColor(args.vg, t == 0 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74));
+                nvgText(args.vg, box.size.x / 2, box.size.y * 0.3, lineA.c_str(), nullptr);
+                nvgFillColor(args.vg, t == 1 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74));
+                nvgText(args.vg, box.size.x / 2, box.size.y * 0.7, lineB.c_str(), nullptr);
+            }
+            return;
+        }
+
         float inV = module->inputs[RaEndlessModule::CV_INPUT].getVoltage();
         int t = module->selectedTrack;
 
@@ -619,7 +651,8 @@ struct RaEndlessWidget : ModuleWidget {
         addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[4], 254), module, RaEndlessModule::SEQ_RESET_PARAM, RaEndlessModule::SEQ_RESET_LIGHT_R));
         addInput(createInputCentered<RaPort>(Vec(xCol[5], 254), module, RaEndlessModule::SEQ_RESET_TRIG_INPUT));
 
-        // Seq Length Knob & Song Mode & Repeats
+        // Screen Mode, Song Mode, Sequences & Repeats
+        addParam(createParamCentered<RaButton>(Vec(32, 295), module, RaEndlessModule::SCREEN_MODE_PARAM));
         addParam(createParamCentered<RaSwitch3>(Vec(72, 295), module, RaEndlessModule::SONG_MODE_PARAM));
         addParam(createParamCentered<RaKnobSmall>(Vec(120, 295), module, RaEndlessModule::SEQ_LENGTH_PARAM));
         addParam(createParamCentered<RaKnobSmall>(Vec(168, 295), module, RaEndlessModule::REPEATS_PARAM));
