@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SDK_VERSION="${1:-2.6.2}"
-RACK_SDK_DIR="../Rack-SDK"
+RACK_SDK_DIR="./Rack-SDK"
 
 # Platform detection
 case "$(uname)" in

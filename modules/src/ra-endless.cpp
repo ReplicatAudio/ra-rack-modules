@@ -16,8 +16,8 @@ struct RaEndlessModule : Module {
     dsp::SchmittTrigger restExtTrigger;
     dsp::SchmittTrigger clearExtTrigger;
     dsp::SchmittTrigger resetExtTrigger;
-    dsp::SchmittTrigger stepFwdExtTrigger;
-    dsp::SchmittTrigger stepBackExtTrigger;
+    dsp::SchmittTrigger stepNextExtTrigger;
+    dsp::SchmittTrigger stepPrevExtTrigger;
     dsp::SchmittTrigger seqNextExtTrigger;
     dsp::SchmittTrigger seqPrevExtTrigger;
     dsp::SchmittTrigger seqResetExtTrigger;
@@ -25,8 +25,8 @@ struct RaEndlessModule : Module {
     dsp::SchmittTrigger restBtnTrigger;
     dsp::SchmittTrigger clearBtnTrigger;
     dsp::SchmittTrigger resetBtnTrigger;
-    dsp::SchmittTrigger stepFwdBtnTrigger;
-    dsp::SchmittTrigger stepBackBtnTrigger;
+    dsp::SchmittTrigger stepNextBtnTrigger;
+    dsp::SchmittTrigger stepPrevBtnTrigger;
     dsp::SchmittTrigger seqNextBtnTrigger;
     dsp::SchmittTrigger seqPrevBtnTrigger;
     dsp::SchmittTrigger seqResetBtnTrigger;
@@ -59,8 +59,8 @@ struct RaEndlessModule : Module {
         REST_PARAM,
         CLEAR_PARAM,
         RESET_PARAM,
-        STEP_FWD_PARAM,
-        STEP_BACK_PARAM,
+        STEP_NEXT_PARAM,
+        STEP_PREV_PARAM,
         SEQ_NEXT_PARAM,
         SEQ_PREV_PARAM,
         SEQ_RESET_PARAM,
@@ -80,8 +80,8 @@ struct RaEndlessModule : Module {
         REST_TRIG_INPUT,
         CLEAR_TRIG_INPUT,
         RESET_TRIG_INPUT,
-        STEP_FWD_TRIG_INPUT,
-        STEP_BACK_TRIG_INPUT,
+        STEP_NEXT_TRIG_INPUT,
+        STEP_PREV_TRIG_INPUT,
         SEQ_NEXT_TRIG_INPUT,
         SEQ_PREV_TRIG_INPUT,
         SEQ_RESET_TRIG_INPUT,
@@ -99,12 +99,12 @@ struct RaEndlessModule : Module {
     };
     enum LightIds {
         RUN_LIGHT,
-        STEP_FWD_LIGHT_R,
-        STEP_FWD_LIGHT_G,
-        STEP_FWD_LIGHT_B,
-        STEP_BACK_LIGHT_R,
-        STEP_BACK_LIGHT_G,
-        STEP_BACK_LIGHT_B,
+        STEP_NEXT_LIGHT_R,
+        STEP_NEXT_LIGHT_G,
+        STEP_NEXT_LIGHT_B,
+        STEP_PREV_LIGHT_R,
+        STEP_PREV_LIGHT_G,
+        STEP_PREV_LIGHT_B,
         SEQ_NEXT_LIGHT_R,
         SEQ_NEXT_LIGHT_G,
         SEQ_NEXT_LIGHT_B,
@@ -149,7 +149,7 @@ struct RaEndlessModule : Module {
         currentPos[t]++;
     }
 
-    void stepFwd(int t) {
+    void stepNext(int t) {
         auto& seq = getSeq(t);
         if (seq.empty()) return;
         currentPos[t]++;
@@ -161,7 +161,7 @@ struct RaEndlessModule : Module {
         }
     }
 
-    void stepBack(int t) {
+    void stepPrev(int t) {
         auto& seq = getSeq(t);
         if (seq.empty()) return;
         currentPos[t]--;
@@ -224,8 +224,8 @@ struct RaEndlessModule : Module {
         configParam(REST_PARAM, 0.f, 1.f, 0.f, "Rest");
         configParam(CLEAR_PARAM, 0.f, 1.f, 0.f, "Clear");
         configParam(RESET_PARAM, 0.f, 1.f, 0.f, "Reset position");
-        configParam(STEP_FWD_PARAM, 0.f, 1.f, 0.f, "Step forward");
-        configParam(STEP_BACK_PARAM, 0.f, 1.f, 0.f, "Step back");
+        configParam(STEP_NEXT_PARAM, 0.f, 1.f, 0.f, "Step next");
+        configParam(STEP_PREV_PARAM, 0.f, 1.f, 0.f, "Step prev");
         configParam(SEQ_NEXT_PARAM, 0.f, 1.f, 0.f, "Sequence next");
         configParam(SEQ_PREV_PARAM, 0.f, 1.f, 0.f, "Sequence prev");
         configParam(SEQ_RESET_PARAM, 0.f, 1.f, 0.f, "Sequence reset");
@@ -239,8 +239,8 @@ struct RaEndlessModule : Module {
         configInput(REST_TRIG_INPUT, "Rest trigger");
         configInput(CLEAR_TRIG_INPUT, "Clear trigger");
         configInput(RESET_TRIG_INPUT, "Reset trigger");
-        configInput(STEP_FWD_TRIG_INPUT, "Step forward trigger");
-        configInput(STEP_BACK_TRIG_INPUT, "Step back trigger");
+        configInput(STEP_NEXT_TRIG_INPUT, "Step next trigger");
+        configInput(STEP_PREV_TRIG_INPUT, "Step prev trigger");
         configInput(SEQ_NEXT_TRIG_INPUT, "Sequence next trigger");
         configInput(SEQ_PREV_TRIG_INPUT, "Sequence prev trigger");
         configInput(SEQ_RESET_TRIG_INPUT, "Sequence reset trigger");
@@ -252,8 +252,8 @@ struct RaEndlessModule : Module {
         configInput(RUN_INPUT, "Run");
         configLight(RUN_LIGHT, "Run");
         for (int c = 0; c < 3; c++) {
-            configLight(STEP_FWD_LIGHT_R + c, "Step forward light");
-            configLight(STEP_BACK_LIGHT_R + c, "Step back light");
+            configLight(STEP_NEXT_LIGHT_R + c, "Step next light");
+            configLight(STEP_PREV_LIGHT_R + c, "Step prev light");
             configLight(SEQ_NEXT_LIGHT_R + c, "Sequence next light");
             configLight(SEQ_PREV_LIGHT_R + c, "Sequence prev light");
             configLight(SEQ_RESET_LIGHT_R + c, "Sequence reset light");
@@ -323,12 +323,12 @@ struct RaEndlessModule : Module {
 
         float glow = !runActive ? 1.f : 0.f;
 
-        lights[STEP_FWD_LIGHT_R].setBrightness(glow);
-        lights[STEP_FWD_LIGHT_G].setBrightness(glow);
-        lights[STEP_FWD_LIGHT_B].setBrightness(0.f);
-        lights[STEP_BACK_LIGHT_R].setBrightness(glow);
-        lights[STEP_BACK_LIGHT_G].setBrightness(glow);
-        lights[STEP_BACK_LIGHT_B].setBrightness(0.f);
+        lights[STEP_NEXT_LIGHT_R].setBrightness(glow);
+        lights[STEP_NEXT_LIGHT_G].setBrightness(glow);
+        lights[STEP_NEXT_LIGHT_B].setBrightness(0.f);
+        lights[STEP_PREV_LIGHT_R].setBrightness(glow);
+        lights[STEP_PREV_LIGHT_G].setBrightness(glow);
+        lights[STEP_PREV_LIGHT_B].setBrightness(0.f);
 
         lights[SEQ_NEXT_LIGHT_R].setBrightness(glow);
         lights[SEQ_NEXT_LIGHT_G].setBrightness(glow);
@@ -344,22 +344,22 @@ struct RaEndlessModule : Module {
         bool posActive = inputs[POSITION_INPUT].isConnected() && fabsf(posVoltage) >= 0.001f && runActive;
 
         if (!posActive) {
-            if (stepFwdBtnTrigger.process(params[STEP_FWD_PARAM].getValue() * 10.f)) {
-                stepFwd(0);
-                stepFwd(1);
+            if (stepNextBtnTrigger.process(params[STEP_NEXT_PARAM].getValue() * 10.f)) {
+                stepNext(0);
+                stepNext(1);
             }
-            if (stepBackBtnTrigger.process(params[STEP_BACK_PARAM].getValue() * 10.f)) {
-                stepBack(0);
-                stepBack(1);
+            if (stepPrevBtnTrigger.process(params[STEP_PREV_PARAM].getValue() * 10.f)) {
+                stepPrev(0);
+                stepPrev(1);
             }
             if (runActive) {
-                if (stepFwdExtTrigger.process(inputs[STEP_FWD_TRIG_INPUT].getVoltage())) {
-                    stepFwd(0);
-                    stepFwd(1);
+                if (stepNextExtTrigger.process(inputs[STEP_NEXT_TRIG_INPUT].getVoltage())) {
+                    stepNext(0);
+                    stepNext(1);
                 }
-                if (stepBackExtTrigger.process(inputs[STEP_BACK_TRIG_INPUT].getVoltage())) {
-                    stepBack(0);
-                    stepBack(1);
+                if (stepPrevExtTrigger.process(inputs[STEP_PREV_TRIG_INPUT].getVoltage())) {
+                    stepPrev(0);
+                    stepPrev(1);
                 }
             }
         }
@@ -599,34 +599,34 @@ struct RaEndlessWidget : ModuleWidget {
         addParam(createParamCentered<RaButton>(Vec(xCol[4], 128), module, RaEndlessModule::TRACK_SELECT_PARAM));
         addInput(createInputCentered<RaPort>(Vec(xCol[5], 128), module, RaEndlessModule::POSITION_INPUT));
 
-        // Row 2 (y=170): Write, Write Trig, Rest, Rest Trig, Seq Next, Seq Next Trig
+        // Row 2 (y=170): Write, Write Trig, Rest, Rest Trig, Reset, Reset Trig
         addParam(createParamCentered<RaButton>(Vec(xCol[0], 170), module, RaEndlessModule::WRITE_PARAM));
         addInput(createInputCentered<RaPort>(Vec(xCol[1], 170), module, RaEndlessModule::WRITE_TRIG_INPUT));
         addParam(createParamCentered<RaButton>(Vec(xCol[2], 170), module, RaEndlessModule::REST_PARAM));
         addInput(createInputCentered<RaPort>(Vec(xCol[3], 170), module, RaEndlessModule::REST_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[4], 170), module, RaEndlessModule::SEQ_NEXT_PARAM, RaEndlessModule::SEQ_NEXT_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(xCol[5], 170), module, RaEndlessModule::SEQ_NEXT_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(xCol[4], 170), module, RaEndlessModule::RESET_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(xCol[5], 170), module, RaEndlessModule::RESET_TRIG_INPUT));
 
-        // Row 3 (y=212): Back, Back Trig, Fwd, Fwd Trig, Seq Prev, Seq Prev Trig
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[0], 212), module, RaEndlessModule::STEP_BACK_PARAM, RaEndlessModule::STEP_BACK_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(xCol[1], 212), module, RaEndlessModule::STEP_BACK_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[2], 212), module, RaEndlessModule::STEP_FWD_PARAM, RaEndlessModule::STEP_FWD_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(xCol[3], 212), module, RaEndlessModule::STEP_FWD_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[4], 212), module, RaEndlessModule::SEQ_PREV_PARAM, RaEndlessModule::SEQ_PREV_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(xCol[5], 212), module, RaEndlessModule::SEQ_PREV_TRIG_INPUT));
+        // Row 3 (y=212): Prev, Prev Trig, Next, Next Trig, Clear, Clear Trig
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[0], 212), module, RaEndlessModule::STEP_PREV_PARAM, RaEndlessModule::STEP_PREV_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(xCol[1], 212), module, RaEndlessModule::STEP_PREV_TRIG_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[2], 212), module, RaEndlessModule::STEP_NEXT_PARAM, RaEndlessModule::STEP_NEXT_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(xCol[3], 212), module, RaEndlessModule::STEP_NEXT_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(xCol[4], 212), module, RaEndlessModule::CLEAR_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(xCol[5], 212), module, RaEndlessModule::CLEAR_TRIG_INPUT));
 
-        // Row 4 (y=254): Clear, Clear Trig, Reset, Reset Trig, Seq Reset, Seq Reset Trig
-        addParam(createParamCentered<RaButton>(Vec(xCol[0], 254), module, RaEndlessModule::CLEAR_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(xCol[1], 254), module, RaEndlessModule::CLEAR_TRIG_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(xCol[2], 254), module, RaEndlessModule::RESET_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(xCol[3], 254), module, RaEndlessModule::RESET_TRIG_INPUT));
+        // Row 4 (y=254): Seq Prev, Seq Prev Trig, Seq Next, Seq Next Trig, Seq Reset, Seq Reset Trig
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[0], 254), module, RaEndlessModule::SEQ_PREV_PARAM, RaEndlessModule::SEQ_PREV_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(xCol[1], 254), module, RaEndlessModule::SEQ_PREV_TRIG_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[2], 254), module, RaEndlessModule::SEQ_NEXT_PARAM, RaEndlessModule::SEQ_NEXT_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(xCol[3], 254), module, RaEndlessModule::SEQ_NEXT_TRIG_INPUT));
         addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[4], 254), module, RaEndlessModule::SEQ_RESET_PARAM, RaEndlessModule::SEQ_RESET_LIGHT_R));
         addInput(createInputCentered<RaPort>(Vec(xCol[5], 254), module, RaEndlessModule::SEQ_RESET_TRIG_INPUT));
 
         // Seq Length Knob & Song Mode & Repeats
-        addParam(createParamCentered<RaSwitch3>(Vec(80, 295), module, RaEndlessModule::SONG_MODE_PARAM));
+        addParam(createParamCentered<RaSwitch3>(Vec(72, 295), module, RaEndlessModule::SONG_MODE_PARAM));
         addParam(createParamCentered<RaKnobSmall>(Vec(120, 295), module, RaEndlessModule::SEQ_LENGTH_PARAM));
-        addParam(createParamCentered<RaKnobSmall>(Vec(172, 295), module, RaEndlessModule::REPEATS_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(168, 295), module, RaEndlessModule::REPEATS_PARAM));
 
         // Track A (y=338), Track B (y=365)
         addParam(createParamCentered<RaKnobTrim>(Vec(32, 338), module, RaEndlessModule::SLEW_A_PARAM));
