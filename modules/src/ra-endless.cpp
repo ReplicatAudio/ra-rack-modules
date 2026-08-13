@@ -324,21 +324,11 @@ struct RaEndlessModule : Module {
         float glow = !runActive ? 1.f : 0.f;
 
         lights[STEP_NEXT_LIGHT_R].setBrightness(glow);
-        lights[STEP_NEXT_LIGHT_G].setBrightness(glow);
-        lights[STEP_NEXT_LIGHT_B].setBrightness(0.f);
         lights[STEP_PREV_LIGHT_R].setBrightness(glow);
-        lights[STEP_PREV_LIGHT_G].setBrightness(glow);
-        lights[STEP_PREV_LIGHT_B].setBrightness(0.f);
 
         lights[SEQ_NEXT_LIGHT_R].setBrightness(glow);
-        lights[SEQ_NEXT_LIGHT_G].setBrightness(glow);
-        lights[SEQ_NEXT_LIGHT_B].setBrightness(0.f);
         lights[SEQ_PREV_LIGHT_R].setBrightness(glow);
-        lights[SEQ_PREV_LIGHT_G].setBrightness(glow);
-        lights[SEQ_PREV_LIGHT_B].setBrightness(0.f);
         lights[SEQ_RESET_LIGHT_R].setBrightness(glow);
-        lights[SEQ_RESET_LIGHT_G].setBrightness(glow);
-        lights[SEQ_RESET_LIGHT_B].setBrightness(0.f);
 
         float posVoltage = inputs[POSITION_INPUT].getVoltage();
         bool posActive = inputs[POSITION_INPUT].isConnected() && fabsf(posVoltage) >= 0.001f && runActive;
@@ -556,7 +546,7 @@ struct EndlessDisplay : LedDisplay {
         if (font) {
             nvgFontFaceId(args.vg, font->handle);
             nvgFontSize(args.vg, 16);
-            nvgFillColor(args.vg, nvgRGB(0xaa, 0xcc, 0x88));
+            nvgFillColor(args.vg, nvgRGB(0x99, 0x6d, 0xd2));
             nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
 
             std::string line1 = rack::string::f("IN  %+.2fV", inV);
@@ -564,11 +554,17 @@ struct EndlessDisplay : LedDisplay {
             std::string line3 = trackInfo(1);
 
             nvgText(args.vg, box.size.x / 2, box.size.y * 0.2, line1.c_str(), nullptr);
-            nvgFillColor(args.vg, t == 0 ? nvgRGB(0xaa, 0xcc, 0x88) : nvgRGB(0x55, 0x77, 0x44));
+            nvgFillColor(args.vg, t == 0 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74));
             nvgText(args.vg, box.size.x / 2, box.size.y * 0.5, line2.c_str(), nullptr);
-            nvgFillColor(args.vg, t == 1 ? nvgRGB(0xaa, 0xcc, 0x88) : nvgRGB(0x55, 0x77, 0x44));
+            nvgFillColor(args.vg, t == 1 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74));
             nvgText(args.vg, box.size.x / 2, box.size.y * 0.75, line3.c_str(), nullptr);
         }
+    }
+};
+
+struct PurpleLight : GrayModuleLightWidget {
+    PurpleLight() {
+        addBaseColor(nvgRGB(0x99, 0x6d, 0xd2));
     }
 };
 
@@ -595,7 +591,7 @@ struct RaEndlessWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(xCol[0], 128), module, RaEndlessModule::CV_INPUT));
         addParam(createParamCentered<RaSwitch2>(Vec(xCol[1], 128), module, RaEndlessModule::PASSTHROUGH_PARAM));
         addInput(createInputCentered<RaPort>(Vec(xCol[2], 128), module, RaEndlessModule::RUN_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(xCol[3], 128), module, RaEndlessModule::RUN_PARAM, RaEndlessModule::RUN_LIGHT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[3], 128), module, RaEndlessModule::RUN_PARAM, RaEndlessModule::RUN_LIGHT));
         addParam(createParamCentered<RaButton>(Vec(xCol[4], 128), module, RaEndlessModule::TRACK_SELECT_PARAM));
         addInput(createInputCentered<RaPort>(Vec(xCol[5], 128), module, RaEndlessModule::POSITION_INPUT));
 
@@ -608,19 +604,19 @@ struct RaEndlessWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(xCol[5], 170), module, RaEndlessModule::RESET_TRIG_INPUT));
 
         // Row 3 (y=212): Prev, Prev Trig, Next, Next Trig, Clear, Clear Trig
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[0], 212), module, RaEndlessModule::STEP_PREV_PARAM, RaEndlessModule::STEP_PREV_LIGHT_R));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[0], 212), module, RaEndlessModule::STEP_PREV_PARAM, RaEndlessModule::STEP_PREV_LIGHT_R));
         addInput(createInputCentered<RaPort>(Vec(xCol[1], 212), module, RaEndlessModule::STEP_PREV_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[2], 212), module, RaEndlessModule::STEP_NEXT_PARAM, RaEndlessModule::STEP_NEXT_LIGHT_R));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[2], 212), module, RaEndlessModule::STEP_NEXT_PARAM, RaEndlessModule::STEP_NEXT_LIGHT_R));
         addInput(createInputCentered<RaPort>(Vec(xCol[3], 212), module, RaEndlessModule::STEP_NEXT_TRIG_INPUT));
         addParam(createParamCentered<RaButton>(Vec(xCol[4], 212), module, RaEndlessModule::CLEAR_PARAM));
         addInput(createInputCentered<RaPort>(Vec(xCol[5], 212), module, RaEndlessModule::CLEAR_TRIG_INPUT));
 
         // Row 4 (y=254): Seq Prev, Seq Prev Trig, Seq Next, Seq Next Trig, Seq Reset, Seq Reset Trig
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[0], 254), module, RaEndlessModule::SEQ_PREV_PARAM, RaEndlessModule::SEQ_PREV_LIGHT_R));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[0], 254), module, RaEndlessModule::SEQ_PREV_PARAM, RaEndlessModule::SEQ_PREV_LIGHT_R));
         addInput(createInputCentered<RaPort>(Vec(xCol[1], 254), module, RaEndlessModule::SEQ_PREV_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[2], 254), module, RaEndlessModule::SEQ_NEXT_PARAM, RaEndlessModule::SEQ_NEXT_LIGHT_R));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[2], 254), module, RaEndlessModule::SEQ_NEXT_PARAM, RaEndlessModule::SEQ_NEXT_LIGHT_R));
         addInput(createInputCentered<RaPort>(Vec(xCol[3], 254), module, RaEndlessModule::SEQ_NEXT_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(xCol[4], 254), module, RaEndlessModule::SEQ_RESET_PARAM, RaEndlessModule::SEQ_RESET_LIGHT_R));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[4], 254), module, RaEndlessModule::SEQ_RESET_PARAM, RaEndlessModule::SEQ_RESET_LIGHT_R));
         addInput(createInputCentered<RaPort>(Vec(xCol[5], 254), module, RaEndlessModule::SEQ_RESET_TRIG_INPUT));
 
         // Seq Length Knob & Song Mode & Repeats
