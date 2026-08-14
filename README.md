@@ -44,3 +44,5 @@ All code is GPL3 or later unless otherwise specified.
 
 Internal svg font is `Bitstream Vera Sans Mono` (OFL)
 
+URW GOTHIC
+

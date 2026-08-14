@@ -74,6 +74,7 @@ struct RaEndlessModule : Module {
         SLEW_A_PARAM,
         SLEW_B_PARAM,
         SCREEN_MODE_PARAM,
+        BMODE_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -173,29 +174,35 @@ struct RaEndlessModule : Module {
         trigPulse[t].trigger(1e-3f);
     }
 
+    void seqNextTrack(int t) {
+        currentSeq[t]++;
+        if (currentSeq[t] >= (int)sequences[t].size())
+            currentSeq[t] = 0;
+        currentPos[t] = 0;
+        ensureSeqExists(t);
+        trigPulse[t].trigger(1e-3f);
+        repeatCount[0] = 0;
+        repeatCount[1] = 0;
+    }
+
     void seqNext() {
-        for (int t = 0; t < NUM_TRACKS; t++) {
-            currentSeq[t]++;
-            if (currentSeq[t] >= (int)sequences[t].size())
-                currentSeq[t] = 0;
-            currentPos[t] = 0;
-            ensureSeqExists(t);
-            trigPulse[t].trigger(1e-3f);
-        }
+        for (int t = 0; t < NUM_TRACKS; t++)
+            seqNextTrack(t);
+    }
+
+    void seqPrevTrack(int t) {
+        currentSeq[t]--;
+        if (currentSeq[t] < 0)
+            currentSeq[t] = (int)sequences[t].size() - 1;
+        currentPos[t] = 0;
+        trigPulse[t].trigger(1e-3f);
         repeatCount[0] = 0;
         repeatCount[1] = 0;
     }
 
     void seqPrev() {
-        for (int t = 0; t < NUM_TRACKS; t++) {
-            currentSeq[t]--;
-            if (currentSeq[t] < 0)
-                currentSeq[t] = (int)sequences[t].size() - 1;
-            currentPos[t] = 0;
-            trigPulse[t].trigger(1e-3f);
-        }
-        repeatCount[0] = 0;
-        repeatCount[1] = 0;
+        for (int t = 0; t < NUM_TRACKS; t++)
+            seqPrevTrack(t);
     }
 
     void seqReset() {
@@ -253,6 +260,7 @@ struct RaEndlessModule : Module {
         configParam<SlewParamQuantity>(SLEW_A_PARAM, 0.f, 1.f, 0.f, "Track A slew");
         configParam<SlewParamQuantity>(SLEW_B_PARAM, 0.f, 1.f, 0.f, "Track B slew");
         configParam(SCREEN_MODE_PARAM, 0.f, 1.f, 0.f, "screen mode");
+        configSwitch(BMODE_PARAM, 0.f, 1.f, 0.f, "bmode", {"Off", "On"});
         configInput(RUN_INPUT, "Run");
         configLight(RUN_LIGHT, "Run");
         for (int c = 0; c < 3; c++) {
@@ -303,13 +311,23 @@ struct RaEndlessModule : Module {
             }
         }
 
-        if (seqNextBtnTrigger.process(params[SEQ_NEXT_PARAM].getValue() * 10.f) ||
-            seqNextExtTrigger.process(inputs[SEQ_NEXT_TRIG_INPUT].getVoltage()))
-            seqNext();
+        bool bmode = params[BMODE_PARAM].getValue() > 0.5f;
 
-        if (seqPrevBtnTrigger.process(params[SEQ_PREV_PARAM].getValue() * 10.f) ||
-            seqPrevExtTrigger.process(inputs[SEQ_PREV_TRIG_INPUT].getVoltage()))
+        if (seqNextBtnTrigger.process(params[SEQ_NEXT_PARAM].getValue() * 10.f))
+            seqNext();
+        if (seqPrevBtnTrigger.process(params[SEQ_PREV_PARAM].getValue() * 10.f))
             seqPrev();
+        if (bmode) {
+            if (seqNextExtTrigger.process(inputs[SEQ_NEXT_TRIG_INPUT].getVoltage()))
+                seqNextTrack(0);
+            if (seqPrevExtTrigger.process(inputs[SEQ_PREV_TRIG_INPUT].getVoltage()))
+                seqNextTrack(1);
+        } else {
+            if (seqNextExtTrigger.process(inputs[SEQ_NEXT_TRIG_INPUT].getVoltage()))
+                seqNext();
+            if (seqPrevExtTrigger.process(inputs[SEQ_PREV_TRIG_INPUT].getVoltage()))
+                seqPrev();
+        }
 
         if (seqResetBtnTrigger.process(params[SEQ_RESET_PARAM].getValue() * 10.f) ||
             seqResetExtTrigger.process(inputs[SEQ_RESET_TRIG_INPUT].getVoltage()))
@@ -349,13 +367,20 @@ struct RaEndlessModule : Module {
                 stepPrev(1);
             }
             if (runActive) {
-                if (stepNextExtTrigger.process(inputs[STEP_NEXT_TRIG_INPUT].getVoltage())) {
-                    stepNext(0);
-                    stepNext(1);
-                }
-                if (stepPrevExtTrigger.process(inputs[STEP_PREV_TRIG_INPUT].getVoltage())) {
-                    stepPrev(0);
-                    stepPrev(1);
+                if (bmode) {
+                    if (stepNextExtTrigger.process(inputs[STEP_NEXT_TRIG_INPUT].getVoltage()))
+                        stepNext(0);
+                    if (stepPrevExtTrigger.process(inputs[STEP_PREV_TRIG_INPUT].getVoltage()))
+                        stepNext(1);
+                } else {
+                    if (stepNextExtTrigger.process(inputs[STEP_NEXT_TRIG_INPUT].getVoltage())) {
+                        stepNext(0);
+                        stepNext(1);
+                    }
+                    if (stepPrevExtTrigger.process(inputs[STEP_PREV_TRIG_INPUT].getVoltage())) {
+                        stepPrev(0);
+                        stepPrev(1);
+                    }
                 }
             }
         }
@@ -657,11 +682,12 @@ struct RaEndlessWidget : ModuleWidget {
         addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[4], 254), module, RaEndlessModule::SEQ_RESET_PARAM, RaEndlessModule::SEQ_RESET_LIGHT_R));
         addInput(createInputCentered<RaPort>(Vec(xCol[5], 254), module, RaEndlessModule::SEQ_RESET_TRIG_INPUT));
 
-        // Screen Mode, Song Mode, Sequences & Repeats
+        // Screen Mode, Song Mode, Sequences, Repeats, Bmode
         addParam(createParamCentered<RaButton>(Vec(32, 295), module, RaEndlessModule::SCREEN_MODE_PARAM));
         addParam(createParamCentered<RaSwitch3>(Vec(72, 295), module, RaEndlessModule::SONG_MODE_PARAM));
         addParam(createParamCentered<RaKnobSmall>(Vec(120, 295), module, RaEndlessModule::SEQ_LENGTH_PARAM));
         addParam(createParamCentered<RaKnobSmall>(Vec(168, 295), module, RaEndlessModule::REPEATS_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(215, 295), module, RaEndlessModule::BMODE_PARAM));
 
         // Track A (y=338), Track B (y=365)
         addParam(createParamCentered<RaKnobTrim>(Vec(32, 338), module, RaEndlessModule::SLEW_A_PARAM));
