@@ -533,7 +533,7 @@ struct EndlessDisplay : LedDisplay {
         if (!module) return;
 
         if (!module->screenMode) {
-            // Simple mode: A <step> | <sequence>
+            // Simple mode: A <step> | <sequence>  B <step> | <sequence>
             int t = module->selectedTrack;
             auto simpleInfo = [&](int i) -> std::string {
                 auto& seq = module->sequences[i][module->currentSeq[i]];
@@ -546,14 +546,20 @@ struct EndlessDisplay : LedDisplay {
             };
             if (font) {
                 nvgFontFaceId(args.vg, font->handle);
-                nvgFontSize(args.vg, 24);
+                nvgFontSize(args.vg, 26);
                 nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                std::string lineA = simpleInfo(0);
-                std::string lineB = simpleInfo(1);
+                nvgSave(args.vg);
+                nvgTranslate(args.vg, box.size.x * 0.25, box.size.y * 0.5);
+                nvgScale(args.vg, 1.f, 1.5f);
                 nvgFillColor(args.vg, t == 0 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74));
-                nvgText(args.vg, box.size.x / 2, box.size.y * 0.3, lineA.c_str(), nullptr);
+                nvgText(args.vg, 0, 0, simpleInfo(0).c_str(), nullptr);
+                nvgRestore(args.vg);
+                nvgSave(args.vg);
+                nvgTranslate(args.vg, box.size.x * 0.75, box.size.y * 0.5);
+                nvgScale(args.vg, 1.f, 1.5f);
                 nvgFillColor(args.vg, t == 1 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74));
-                nvgText(args.vg, box.size.x / 2, box.size.y * 0.7, lineB.c_str(), nullptr);
+                nvgText(args.vg, 0, 0, simpleInfo(1).c_str(), nullptr);
+                nvgRestore(args.vg);
             }
             return;
         }
