@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "name": "ReplicatAudio",
   "author": "ReplicatAudio",
-  "license": "CC0-1.0",
+  "license": "GPL3",
   "modules": [
     {
       "slug": "ra-vca",
