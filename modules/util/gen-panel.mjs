@@ -32,6 +32,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import * as opentype from 'opentype.js';
 
 // ============================================================
 // Configuration — default visual style
@@ -92,6 +94,49 @@ function resolveBaseType(typeStr) {
 
 // Convert rack-units to millimetres (1hp = 5.08mm = 15 rack-units)
 const ru2mm = (ru) => ru * 5.08 / 15;
+
+// ============================================================
+// Font-to-path rendering
+//
+// VCV Rack's SVG rasteriser ignores <text> elements, so all text
+// is converted to vector paths at generate time with opentype.js
+// using the bundled panel font (./font).
+// ============================================================
+
+const FONT_SIZE_NAME = 2.0;   // module name, mm (was 2.8)
+const FONT_SIZE_LABEL = 1.4;  // control/port labels, mm (was 2.0)
+
+// Resolve the panel font relative to this script: util/ -> repo root ./font
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+let FONT_PATH = path.resolve(scriptDir, '../../font/URWGothic-Book.otf');
+let font = null;
+
+function loadPanelFont(p) {
+	font = null;
+	try {
+		const buf = fs.readFileSync(p);
+		font = opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+	} catch (e) {
+		console.error('Warning: could not load panel font (' + p + '):', e.message);
+	}
+}
+
+// Render a string to a single-line SVG <path> outline, horizontally centred
+// on x with the baseline at y. Font sizes are in mm (SVG user units). Falls
+// back to a <text> element if the font is unavailable.
+function textToPath(text, x, y, fontSize, color, opacity = 1) {
+	const op = (opacity < 1) ? ` opacity="${opacity}"` : '';
+	if (font) {
+		try {
+			const advance = font.getAdvanceWidth(text, fontSize);
+			const p = font.getPath(text, x - advance / 2, y, fontSize);
+			const d = p.toPathData(2);
+			if (d)
+				return `<path d="${d}" fill="${color}"${op}/>`;
+		} catch (e) { /* fall through to <text> */ }
+	}
+	return `<text x="${x.toFixed(2)}" y="${y.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="${fontSize}" text-anchor="middle"${op}>${text}</text>`;
+}
 
 // ============================================================
 // Expression resolver
@@ -763,7 +808,7 @@ function generateSVG(info) {
 
   // Module name
   const displayName = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
-  svg += `    <text x="${cx.toFixed(2)}" y="${ru2mm(10).toFixed(2)}" fill="#555" font-family="sans-serif" font-size="2.8" text-anchor="middle" font-weight="bold">${displayName}</text>\n`;
+  svg += `    ${textToPath(displayName, cx, ru2mm(10), FONT_SIZE_NAME, '#555')}\n`;
 
   // Draw widget labels
   for (const w of widgets) {
@@ -826,7 +871,7 @@ function generateSVG(info) {
         continue;
     }
 
-    svg += `    <text x="${mx.toFixed(2)}" y="${ly.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="2.0" text-anchor="middle" opacity="0.7">${label}</text>\n`;
+    svg += `    ${textToPath(label, mx, ly, FONT_SIZE_LABEL, color, 0.7)}\n`;
   }
 
   svg += `  </g>\n`;
@@ -862,10 +907,14 @@ for (let i = 2; i < process.argv.length; i++) {
     CFG.bg.end = arg.slice(9);
   } else if (arg.startsWith('--bg-mid=')) {
     CFG.bg.mid = Math.max(0, Math.min(100, parseInt(arg.slice(9), 10)));
+  } else if (arg.startsWith('--font=')) {
+    FONT_PATH = arg.slice(7);
   } else if (!arg.startsWith('--')) {
     moduleName = arg;
   }
 }
+
+loadPanelFont(FONT_PATH);
 
 // ---- Batch mode: scan src/ for ra-*.cpp, write each SVG to res/ ----
 if (allFlag) {

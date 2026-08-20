@@ -4,3 +4,5 @@ dist/*
 compile_commands.json
 plugin.so
 Rack-SDK/
+node_modules/
+package-lock.json
