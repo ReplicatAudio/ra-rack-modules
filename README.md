@@ -37,6 +37,8 @@ Contibutions are limited to people I know personally at this time. If you know m
 
 All code is GPL3 or later unless otherwise specified. 
 
+All art assets are copyright Mathieu Dombrock. No 3rd party artwork has been used. 
+
 ### Font
 
 Internal svg font is `Bitstream Vera Sans Mono` (OFL)
