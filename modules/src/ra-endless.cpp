@@ -10,7 +10,7 @@ struct RaEndlessModule : Module {
     int currentSeq[NUM_TRACKS] = {0, 0};
     int currentPos[NUM_TRACKS] = {0, 0};
     int selectedTrack = 0;
-    bool screenMode = false; // false = Simple, true = Advanced
+    int screenMode = 0; // 0 = Simple, 1 = Advanced, 2 = Tracker
 
     dsp::SchmittTrigger trackSelTrigger;
     dsp::SchmittTrigger screenModeTrigger;
@@ -284,8 +284,11 @@ struct RaEndlessModule : Module {
     void process(const ProcessArgs &args) override {
         if (trackSelTrigger.process(params[TRACK_SELECT_PARAM].getValue() * 10.f))
             selectedTrack = 1 - selectedTrack;
-        if (screenModeTrigger.process(params[SCREEN_MODE_PARAM].getValue() * 10.f))
-            screenMode = !screenMode;
+        if (screenModeTrigger.process(params[SCREEN_MODE_PARAM].getValue() * 10.f)) {
+            screenMode++;
+            if (screenMode > 2)
+                screenMode = 0;
+        }
         int t = selectedTrack;
 
         if (writeBtnTrigger.process(params[WRITE_PARAM].getValue() * 10.f) ||
@@ -557,7 +560,7 @@ struct EndlessDisplay : LedDisplay {
 
         if (!module) return;
 
-        if (!module->screenMode) {
+        if (module->screenMode == 0) {
             // Simple mode: A <step> | <sequence>  B <step> | <sequence>
             int t = module->selectedTrack;
             auto simpleInfo = [&](int i) -> std::string {
@@ -586,6 +589,11 @@ struct EndlessDisplay : LedDisplay {
                 nvgText(args.vg, 0, 0, simpleInfo(1).c_str(), nullptr);
                 nvgRestore(args.vg);
             }
+            return;
+        }
+
+        if (module->screenMode == 2) {
+            drawTracker(args);
             return;
         }
 
@@ -621,6 +629,93 @@ struct EndlessDisplay : LedDisplay {
             nvgText(args.vg, box.size.x / 2, box.size.y * 0.5, line2.c_str(), nullptr);
             nvgFillColor(args.vg, t == 1 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74));
             nvgText(args.vg, box.size.x / 2, box.size.y * 0.75, line3.c_str(), nullptr);
+        }
+    }
+
+    void drawTracker(const DrawArgs &args) {
+        if (!font) return;
+        const float headerH = 16.f;
+        const float rowH = 10.f;
+        const float stepColW = 30.f;
+        const float aColW = 92.f;
+        const float bColX = stepColW + aColW;
+        const int rowsVisible = (int)((box.size.y - headerH) / rowH); // 6
+
+        auto& seqA = module->sequences[0][module->currentSeq[0]];
+        auto& seqB = module->sequences[1][module->currentSeq[1]];
+        int lenA = (int)seqA.size();
+        int lenB = (int)seqB.size();
+        int maxSteps = std::max(lenA, lenB);
+        int cur = module->currentPos[module->selectedTrack];
+
+        // Keep the current step centered in the view, clamped at the edges
+        int scrollTop = clamp(cur - rowsVisible / 2, 0, std::max(0, maxSteps - rowsVisible));
+
+        // Column separators
+        nvgStrokeColor(args.vg, nvgRGBA(0x55, 0x55, 0x55, 140));
+        nvgStrokeWidth(args.vg, 1);
+        nvgBeginPath(args.vg);
+        nvgMoveTo(args.vg, stepColW, 0);
+        nvgLineTo(args.vg, stepColW, box.size.y);
+        nvgMoveTo(args.vg, bColX, 0);
+        nvgLineTo(args.vg, bColX, box.size.y);
+        nvgStroke(args.vg);
+
+        // Row separators
+        nvgStrokeColor(args.vg, nvgRGBA(0x44, 0x44, 0x44, 120));
+        for (int i = 1; i < rowsVisible; i++) {
+            float y = headerH + i * rowH;
+            nvgBeginPath(args.vg);
+            nvgMoveTo(args.vg, 0, y);
+            nvgLineTo(args.vg, box.size.x, y);
+            nvgStroke(args.vg);
+        }
+
+        // Header: sequence numbers and position
+        nvgFontFaceId(args.vg, font->handle);
+        nvgFontSize(args.vg, 10);
+        nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+        nvgFillColor(args.vg, nvgRGB(0x88, 0x88, 0x88));
+        std::string header = rack::string::f("A %d/%d  B %d/%d  P %d/%d",
+            module->currentSeq[0] + 1, (int)module->sequences[0].size(),
+            module->currentSeq[1] + 1, (int)module->sequences[1].size(),
+            cur + 1, std::max(1, maxSteps));
+        nvgText(args.vg, box.size.x / 2, headerH / 2, header.c_str(), nullptr);
+
+        nvgFontSize(args.vg, 9);
+        nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+
+        for (int i = 0; i < rowsVisible; i++) {
+            int stepIndex = scrollTop + i;
+            float y = headerH + i * rowH + rowH / 2;
+
+            // Current step cursor row
+            if (stepIndex == cur) {
+                nvgBeginPath(args.vg);
+                nvgRect(args.vg, 0, headerH + i * rowH, box.size.x, rowH);
+                nvgFillColor(args.vg, nvgRGBA(0x99, 0x6d, 0xd2, 70));
+                nvgFill(args.vg);
+            }
+
+            nvgFillColor(args.vg, (stepIndex == cur) ? nvgRGB(0xff, 0xff, 0xff) : nvgRGB(0x77, 0x77, 0x77));
+            nvgText(args.vg, 4, y, rack::string::f("%02X", stepIndex).c_str(), nullptr);
+
+            // Track A
+            if (stepIndex < lenA) {
+                float v = seqA[stepIndex];
+                nvgFillColor(args.vg, (stepIndex == cur) ? nvgRGB(0xff, 0xff, 0xff)
+                    : (module->selectedTrack == 0 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74)));
+                std::string s = (v == RaEndlessModule::REST_VALUE) ? "RST" : rack::string::f("%+.2f", v);
+                nvgText(args.vg, stepColW + 4, y, s.c_str(), nullptr);
+            }
+            // Track B
+            if (stepIndex < lenB) {
+                float v = seqB[stepIndex];
+                nvgFillColor(args.vg, (stepIndex == cur) ? nvgRGB(0xff, 0xff, 0xff)
+                    : (module->selectedTrack == 1 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74)));
+                std::string s = (v == RaEndlessModule::REST_VALUE) ? "RST" : rack::string::f("%+.2f", v);
+                nvgText(args.vg, bColX + 4, y, s.c_str(), nullptr);
+            }
         }
     }
 };
