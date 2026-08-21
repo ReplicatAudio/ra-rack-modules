@@ -108,7 +108,7 @@ const FONT_SIZE_LABEL = 1.4;  // control/port labels, mm (was 2.0)
 
 // Resolve the panel font relative to this script: util/ -> repo root ./font
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-let FONT_PATH = path.resolve(scriptDir, '../../font/URWGothic-Book.otf');
+let FONT_PATH = path.resolve(scriptDir, '../font/URWGothic-Book.otf');
 let font = null;
 
 function loadPanelFont(p) {
@@ -158,6 +158,10 @@ class ExprContext {
   resolve(expr) {
     if (typeof expr === 'number') return expr;
     expr = expr.trim();
+
+    // Strip C/C++ float literal suffixes (e.g. "20.f", "2.5f", "20f") so
+    // they parse as plain numbers in both the number check and eval below.
+    expr = expr.replace(/(\d)\.?f\b/gi, '$1');
 
     // Try direct variable lookup
     if (this.vars[expr] !== undefined) return this.vars[expr];
@@ -442,23 +446,24 @@ function processBlock(lines, ctx, components, loopVars = {}) {
       continue;
     }
 
+    // ---- Single-line array declarations ----
+    // Pattern: float/int NAME[N] = { val1, val2, ... };
+    // Must come before variable declarations since float colX[8] = {...} matches both patterns.
+    const arrDeclMatch = line.match(/^\s*(?:float|int)\s+(\w+)\[\d*\]\s*=\s*\{(.+?)\}\s*;/);
+    if (arrDeclMatch) {
+      const values = arrDeclMatch[2].split(',').map(s => ctx.resolve(s.trim()));
+      // Keep only numeric values; discard enum references we can't resolve
+      ctx.setArray(arrDeclMatch[1], values.filter(v => isFinite(v)));
+      i++;
+      continue;
+    }
+
     // ---- Variable declarations (with initialiser) ----
     // Pattern: float/int VAR = EXPR;
     const varMatch = line.match(/^\s*(?:float|int)\s+(\w+)\s*=\s*(.+?);\s*$/);
     if (varMatch) {
       const val = ctx.resolve(varMatch[2]);
       ctx.setVar(varMatch[1], val);
-      i++;
-      continue;
-    }
-
-    // ---- Single-line array declarations ----
-    // Pattern: float/int NAME[] = { val1, val2, ... };
-    const arrMatch = line.match(/^\s*(?:float|int)\s+(\w+)\[\]\s*=\s*\{(.+?)\}\s*;/);
-    if (arrMatch) {
-      const values = arrMatch[2].split(',').map(s => ctx.resolve(s.trim()));
-      // Keep only numeric values; discard enum references we can't resolve
-      ctx.setArray(arrMatch[1], values.filter(v => isFinite(v)));
       i++;
       continue;
     }
@@ -918,11 +923,11 @@ loadPanelFont(FONT_PATH);
 
 // ---- Batch mode: scan src/ for ra-*.cpp, write each SVG to res/ ----
 if (allFlag) {
-  const files = fs.readdirSync('src').filter(f => f.startsWith('ra-') && f.endsWith('.cpp'));
-  const dir = path.resolve('res');
+  const files = fs.readdirSync('modules/src').filter(f => f.startsWith('ra-') && f.endsWith('.cpp'));
+  const dir = path.resolve('modules/res');
   fs.mkdirSync(dir, { recursive: true });
   for (const f of files) {
-    const fp = path.resolve('src', f);
+    const fp = path.resolve('modules/src', f);
     const info = parseModule(fp);
     if (overrideHP) info.HP = overrideHP;
     const svg = generateSVG(info);
@@ -934,7 +939,7 @@ if (allFlag) {
 }
 
 // ---- Single-file mode: read one source, write SVG to res/ ----
-const srcPath = path.resolve('src', moduleName + '.cpp');
+const srcPath = path.resolve('modules/src', moduleName + '.cpp');
 
 if (!fs.existsSync(srcPath)) {
   console.error('File not found:', srcPath);
@@ -946,7 +951,7 @@ if (overrideHP) info.HP = overrideHP;
 const svg = generateSVG(info);
 
 const outName = moduleName + '.svg';
-const outDir = path.resolve('res');
+const outDir = path.resolve('modules/res');
 fs.mkdirSync(outDir, { recursive: true });
 const outPath = path.join(outDir, outName);
 fs.writeFileSync(outPath, svg);

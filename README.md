@@ -15,16 +15,17 @@ See [Dev docs](./doc-dev/) for development and building info. Specifially the [t
 ## Usage
 
 ```bash
+# Clone
 git clone https://github.com/ReplicatAudio/ra-rack-modules
 
-# project root
-cd ra-rack-modules/modules
+# Move to project root
+cd ra-rack-modules
 
-# pull the vcv rack sdk
-./modules/util/pull-sdk.sh
+# Pull the vcv rack sdk
+./util/pull-sdk.sh
 
-# build and install the plugin (all modules)
-./modules/util/make.sh
+# Build and install the plugin (all modules)
+./util/make.sh
 ```
 
 This will automatically install the modules as well (at least for linux).

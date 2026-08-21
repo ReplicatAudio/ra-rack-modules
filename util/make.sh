@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")"/..
+cd "$(dirname "$0")/../modules"
 
 RACK_DIR="${RACK_DIR:-../Rack-SDK}"
 

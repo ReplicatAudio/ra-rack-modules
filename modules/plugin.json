@@ -160,6 +160,12 @@
       "name": "ra-quant",
       "description": "8-channel pitch quantizer with selectable scale notes",
       "tags": ["Quantizer", "Utility"]
+    },
+    {
+      "slug": "ra-mothership",
+      "name": "ra-mothership",
+      "description": "8-oscillator LFO/VCO with wave morphing, phase, filter, and FM per oscillator",
+      "tags": ["LFO", "VCO", "Oscillator"]
     }
   ]
 }
