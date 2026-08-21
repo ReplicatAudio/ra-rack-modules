@@ -28,8 +28,5 @@ reflecting pool?
 add detune to each voice
 
 # ra-add
-Update so bars expand from center
-
-fm on sine voices?
 
 additup
