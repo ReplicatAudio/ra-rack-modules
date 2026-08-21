@@ -31,3 +31,5 @@ add detune to each voice
 Update so bars expand from center
 
 fm on sine voices?
+
+additup
