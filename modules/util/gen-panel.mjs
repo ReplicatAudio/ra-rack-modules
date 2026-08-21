@@ -409,7 +409,7 @@ function processBlock(lines, ctx, components, loopVars = {}) {
     //   display->box.pos = Vec(x, y);
     //   display->box.size = Vec(w, h);
     // or with createWidget<SomeDisplay>(Vec(x, y))
-    const dispMatch = line.match(/^\s*(?:\w+\s*\*?\s+)?\w+\s*=\s*(?:new\s+|createWidget<)(\w+Display)\s*[^(]*\(/);
+    const dispMatch = line.match(/^\s*(?:\w+(?:\s*[*&]\s*|\s+))?\w+\s*=\s*(?:new\s+|createWidget<)(\w+Display)\s*[^(]*\(/);
     if (dispMatch) {
       // Look ahead a few lines for ->box.pos / ->box.size assignments
       let pos = null, size = null;
