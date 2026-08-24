@@ -224,7 +224,7 @@
     {
       "slug": "ra-dseq",
       "name": "ra-dseq",
-      "description": "64-step drum sequencer — 8 sequences of 64 steps on an 8×8 pad grid, song or multi output mode",
+      "description": "64-step drum sequencer — 8 sequences of 64 steps on an 8×8 pad grid with Game of Life evolution, per-sequence lengths, run/reset transport, song or multi output mode",
       "tags": ["Sequencer", "Drum", "Utility"]
     }
   ]

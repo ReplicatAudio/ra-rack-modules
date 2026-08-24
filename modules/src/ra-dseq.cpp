@@ -32,6 +32,7 @@ struct RaDseqModule : Module {
         RESET_PARAM,
         SEQ_RESET_PARAM,
         RUN_PARAM,
+        GOL_STEP_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -46,6 +47,7 @@ struct RaDseqModule : Module {
         RESET_TRIG_INPUT,
         SEQ_RESET_TRIG_INPUT,
         RUN_INPUT,
+        GOL_TRIG_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -91,6 +93,8 @@ struct RaDseqModule : Module {
     dsp::SchmittTrigger seqResetTrigger;
     dsp::SchmittTrigger seqResetButtonTrigger;
     dsp::SchmittTrigger runBtnTrigger;
+    dsp::SchmittTrigger golTrigger;
+    dsp::SchmittTrigger golButtonTrigger;
     bool running = false;
     bool hit[8] = {};
 
@@ -111,6 +115,7 @@ struct RaDseqModule : Module {
         configButton(RESET_PARAM, "Reset");
         configButton(SEQ_RESET_PARAM, "Reset sequence");
         configButton(RUN_PARAM, "Run");
+        configButton(GOL_STEP_PARAM, "GOL step");
         configParam(CHANCE_PARAM, 0.f, 1.f, 1.f, "Chance", "%", 0, 100);
         configParam(RAND_CHANCE_PARAM, 0.f, 1.f, 0.5f, "Randomize chance", "%", 0, 100);
 
@@ -126,6 +131,7 @@ struct RaDseqModule : Module {
         configInput(SEQ_RESET_TRIG_INPUT, "Reset sequence");
         configInput(RUN_INPUT, "Run");
         configLight(RUN_LIGHT, "Run");
+        configInput(GOL_TRIG_INPUT, "GOL step");
 
         configOutput(OUT1_OUTPUT, "Out 1");
         configOutput(OUT2_OUTPUT, "Out 2");
@@ -190,6 +196,30 @@ struct RaDseqModule : Module {
 
     void toggleStep(int step) {
         steps[displayedSeq][step] ^= true;
+    }
+
+    // Conway's Game of Life on the displayed sequence's 8x8 grid, with
+    // toroidal wrap: live cells survive with 2-3 neighbours, dead cells
+    // revive with exactly 3
+    void runGolStep() {
+        bool next[64] = {};
+        for (int i = 0; i < 64; i++) {
+            int row = i / 8;
+            int col = i % 8;
+            int alive = 0;
+            for (int dr = -1; dr <= 1; dr++) {
+                for (int dc = -1; dc <= 1; dc++) {
+                    if (dr == 0 && dc == 0)
+                        continue;
+                    int ni = eucMod(row + dr, 8) * 8 + eucMod(col + dc, 8);
+                    if (steps[displayedSeq][ni])
+                        alive++;
+                }
+            }
+            bool cur = steps[displayedSeq][i];
+            next[i] = (cur && (alive == 2 || alive == 3)) || (!cur && alive == 3);
+        }
+        memcpy(steps[displayedSeq], next, sizeof(next));
     }
 
     void onReset() override {
@@ -267,6 +297,12 @@ struct RaDseqModule : Module {
                     steps[displayedSeq][i] = random::uniform() < 0.5f;
             }
         }
+
+        // Game of Life: button or trigger input advances the displayed
+        // sequence's grid by one generation
+        if (golButtonTrigger.process(params[GOL_STEP_PARAM].getValue())
+            || golTrigger.process(inputs[GOL_TRIG_INPUT].getVoltage()))
+            runGolStep();
 
         // Roll per-hit chance and fire the set steps at the current position
         auto fireStep = [&]() {
@@ -528,6 +564,10 @@ struct RaDseqWidget : ModuleWidget {
         grid->box.size = Vec(182, 168);
         grid->setModule(module);
         addChild(grid);
+
+        // Left of the grid: Game of Life step button + trigger input
+        addParam(createParamCentered<RaButton>(Vec(22, 100), module, RaDseqModule::GOL_STEP_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(22, 144), module, RaDseqModule::GOL_TRIG_INPUT));
 
         // Controls below the grid on a strict 9-column grid: buttons over their
         // trig inputs, settings row underneath, centred on the module (x=158).

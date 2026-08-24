@@ -9,7 +9,8 @@ Eight sequences of 64 steps, edited on an 8×8 pad grid and played through 8 tri
 - **Reset**: button that jumps back to step 1 of the current sequence and plays it immediately.
 - **Reset sequence**: button that jumps to sequence 1 at step 1 and plays it immediately.
 - **Run**: latching button that starts/stops the transport. While stopped, the external **Step next** / **Step prev** trigger inputs are ignored; the **Step next** / **Step prev** buttons still step the sequencer.
-- **Seq prev / Seq next**: buttons that step through the 8 sequences (displayed/edited, and played in song mode) — empty sequences are not skipped when using the buttons.
+- **GOL step**: button that evolves the **currently displayed sequence's** grid by one generation of Conway's Game of Life. The whole 8×8 pad grid is the universe — all 64 cells, including steps beyond the loop length. Neighbours wrap around the edges (toroidal). Rules: a live cell survives with 2–3 live neighbours; a dead cell becomes live with exactly 3; everything else dies or stays dead. **Randomize** the sequence first to seed a pattern, then press repeatedly or clock the trigger input to watch it evolve.
+- **Seq prev / Seq next**: buttons that step through all 8 sequences (displayed/edited, and played in song mode) — zero-length sequences are not skipped when using the buttons.
 - **Step prev / Step next**: buttons that step the sequencer backward/forward manually, sounding the new step.
 - **Shift left / Shift right**: buttons that rotate the current sequence's steps, wrapping around the full 64.
 - **Clear**: clears all steps of the currently selected sequence.
@@ -21,6 +22,7 @@ Eight sequences of 64 steps, edited on an 8×8 pad grid and played through 8 tri
 - The **current step** is shown as an extra-bright LED with a glow halo.
 - A column of LED buttons to the **left** of the grid (sequence 1 at top → 8 at bottom) selects the current sequence directly; the lit one is active.
 - Click a pad to toggle its step; drag across pads to paint.
+- The pad grid doubles as the Game of Life universe: **GOL step** evolves it and **Randomize** can seed it.
 
 ## Inputs
 - **Step next**: trigger input that advances the sequencer one step on each rising edge.
@@ -32,6 +34,7 @@ Eight sequences of 64 steps, edited on an 8×8 pad grid and played through 8 tri
 - **Reset sequence**: trigger input that returns to sequence 1 at step 1 on each rising edge, playing it immediately.
 - **Chance CV**: bipolar CV added to the Chance knob (±10 V = full range).
 - **Run**: gate input — the sequencer runs while this is high or while the Run button is latched.
+- **GOL step**: trigger input that runs the next Game of Life generation on the displayed sequence's grid on each rising edge — same as the button, useful for clocking the evolution.
 
 ## Outputs
 - **Out 1–8**: trigger/gate outputs as described above.
