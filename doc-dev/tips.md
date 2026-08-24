@@ -134,7 +134,7 @@ extern Model *modelRaEndless;
 extern Model *modelRaYscope;
 extern Model *modelRaShapes;
 extern Model *modelRaChance;
-extern Model *modelRaAdd;
+extern Model *modelRaVipberus;
 extern Model *modelRaSeer;
 extern Model *modelRaBlank;
 extern Model *modelRaAdsr;
@@ -153,7 +153,7 @@ void init(Plugin *p) {
     p->addModel(modelRaYscope);
     p->addModel(modelRaShapes);
     p->addModel(modelRaChance);
-    p->addModel(modelRaAdd);
+    p->addModel(modelRaVipberus);
     p->addModel(modelRaSeer);
     p->addModel(modelRaBlank);
     p->addModel(modelRaAdsr);

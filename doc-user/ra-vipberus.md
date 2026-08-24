@@ -1,4 +1,4 @@
-# ra-add — Additive Oscillator
+# ra-vipberus — Additive Oscillator
 
 Additive synth VCO with 16 selectable harmonic amplitudes. Output is normalized by the sum of active harmonic levels. A vertical bar graph on the panel shows the effective level of all 16 channels.
 

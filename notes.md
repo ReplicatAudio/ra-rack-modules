@@ -27,6 +27,6 @@ reflecting pool?
 
 add detune to each voice
 
-# ra-add
+# ra-vipberus
 
 additup

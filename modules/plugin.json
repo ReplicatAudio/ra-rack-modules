@@ -54,10 +54,10 @@
       "tags": ["Probability", "Utility", "Random"]
     },
     {
-      "slug": "ra-add",
-      "name": "ra-add",
-      "description": "Additive synth with 16 individual harmonic amplitudes",
-      "tags": ["VCO", "Oscillator"]
+      "slug": "ra-vipberus",
+      "name": "ra-vipberus",
+      "description": "Polyphonic additive synth with 16 individual harmonic amplitudes",
+      "tags": ["VCO", "Oscillator", "Polyphonic"]
     },
     {
       "slug": "ra-seer",

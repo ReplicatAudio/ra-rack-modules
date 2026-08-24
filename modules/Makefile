@@ -3,7 +3,7 @@ RACK_DIR ?= Rack-SDK
 SOURCES = \
 	dep/s7/s7.c \
 	src/plugin.cpp \
-	src/ra-add.cpp \
+	src/ra-vipberus.cpp \
 	src/ra-adsr.cpp \
 	src/ra-blank.cpp \
 	src/ra-buttons.cpp \

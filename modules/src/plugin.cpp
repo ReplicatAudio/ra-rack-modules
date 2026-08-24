@@ -12,7 +12,7 @@ extern Model *modelRaEndless;
 extern Model *modelRaGlitch;
 extern Model *modelRaShapes;
 extern Model *modelRaTyche;
-extern Model *modelRaAdd;
+extern Model *modelRaVipberus;
 extern Model *modelRaSeer;
 extern Model *modelRaBlank;
 extern Model *modelRaAdsr;
@@ -42,7 +42,7 @@ void init(Plugin *p) {
     p->addModel(modelRaGlitch);
     p->addModel(modelRaShapes);
     p->addModel(modelRaTyche);
-    p->addModel(modelRaAdd);
+    p->addModel(modelRaVipberus);
     p->addModel(modelRaSeer);
     p->addModel(modelRaBlank);
     p->addModel(modelRaAdsr);

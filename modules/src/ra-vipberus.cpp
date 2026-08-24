@@ -4,10 +4,11 @@
 #include <cstdio>
 
 using namespace rack;
+using simd::float_4;
 
 extern Plugin *pluginInstance;
 
-struct RaAddModule : Module {
+struct RaVipberusModule : Module {
     enum ParamIds {
         FREQ_PARAM,
         FM_ATTN_PARAM,
@@ -92,13 +93,14 @@ struct RaAddModule : Module {
 
     static constexpr int NUM_HARMS = 16;
 
-    std::array<float, NUM_HARMS> phase;
+    float_4 phase[NUM_HARMS][4] = {};
+    int channels = 1;
     std::array<std::atomic<float>, NUM_HARMS> displayAmp;
 
     static constexpr float MIN_FREQ = 2.f;
     static constexpr float MAX_FREQ = 8000.f;
 
-    RaAddModule() {
+    RaVipberusModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(FREQ_PARAM, 0.f, 1.f, 0.588f, "Frequency", " Hz");
         configParam(FM_ATTN_PARAM, 0.f, 1.f, 0.f, "FM attenuation", "%", 0.f, 100.f);
@@ -170,49 +172,72 @@ struct RaAddModule : Module {
         configInput(FM16_CV_INPUT, "FM 16 CV");
         configOutput(AUDIO_OUTPUT, "Audio");
 
-        phase.fill(0.f);
+        for (int h = 0; h < NUM_HARMS; h++)
+            for (int l = 0; l < 4; l++)
+                phase[h][l] = float_4::zero();
         for (auto &a : displayAmp)
             a.store(0.f, std::memory_order_relaxed);
     }
 
     void process(const ProcessArgs &args) override {
+        channels = std::max(1, inputs[PITCH_INPUT].getChannels());
+
         float freq = MIN_FREQ * powf(MAX_FREQ / MIN_FREQ, params[FREQ_PARAM].getValue());
-        float pitch = inputs[PITCH_INPUT].getVoltage()
-            + inputs[FM_INPUT].getVoltage() * params[FM_ATTN_PARAM].getValue();
-        freq *= powf(2.f, pitch);
-        freq = clamp(freq, 0.1f, 20000.f);
+        float fmAtten = params[FM_ATTN_PARAM].getValue();
+        float fmInput = inputs[FM_INPUT].getVoltage();
 
-        float output = 0.f;
-        float totalAmp = 0.f;
+        for (int c = 0; c < channels; c += 4) {
+            float_4 pitch = inputs[PITCH_INPUT].getPolyVoltageSimd<float_4>(c)
+                + fmInput * fmAtten;
+            float_4 freq4 = freq * simd::pow(2.f, pitch);
+            freq4 = simd::clamp(freq4, 0.1f, 20000.f);
 
+            float_4 output = float_4::zero();
+            float_4 totalAmp = float_4::zero();
+
+            for (int n = 1; n <= NUM_HARMS; n++) {
+                float knob = params[HARM1_PARAM + n - 1].getValue();
+                float_4 amp = float_4(knob);
+                if (inputs[HARM1_CV_INPUT + n - 1].isConnected()) {
+                    float_4 cv = inputs[HARM1_CV_INPUT + n - 1].getPolyVoltageSimd<float_4>(c) / 10.f;
+                    amp *= simd::clamp(cv, 0.f, 1.f);
+                }
+
+                totalAmp += amp;
+
+                float_4 fm = inputs[FM1_CV_INPUT + n - 1].getPolyVoltageSimd<float_4>(c)
+                    * params[FM1_PARAM + n - 1].getValue();
+                float_4 harmFreq = float_4(n) * freq4 * simd::pow(2.f, fm);
+
+                phase[n - 1][c / 4] += harmFreq * args.sampleTime;
+                phase[n - 1][c / 4] -= simd::floor(phase[n - 1][c / 4]);
+
+                // sin() per lane — no SIMD sin in VCV Rack
+                for (int j = 0; j < 4 && (c + j) < channels; j++) {
+                    output[j] += amp[j] * sinf(2.f * M_PI * phase[n - 1][c / 4][j]);
+                }
+            }
+
+            float_4 safeTotal = simd::ifelse(totalAmp > 0.f, totalAmp, float_4(1.f));
+            output = output / safeTotal * 5.f;
+            outputs[AUDIO_OUTPUT].setVoltageSimd(output, c);
+        }
+
+        outputs[AUDIO_OUTPUT].setChannels(channels);
+
+        // Display: show channel 0 harmonic amplitudes
         for (int n = 1; n <= NUM_HARMS; n++) {
             float knob = params[HARM1_PARAM + n - 1].getValue();
             float amp = knob;
             if (inputs[HARM1_CV_INPUT + n - 1].isConnected())
-                amp = knob * clamp(inputs[HARM1_CV_INPUT + n - 1].getVoltage() / 10.f, 0.f, 1.f);
-
-            totalAmp += amp;
-
-            // Per-harmonic FM — the knob is an attenuator for the FM CV.
-            float fm = inputs[FM1_CV_INPUT + n - 1].getVoltage() * params[FM1_PARAM + n - 1].getValue();
-            float harmFreq = n * freq * powf(2.f, fm);
-
-            phase[n - 1] += harmFreq * args.sampleTime;
-            phase[n - 1] -= floorf(phase[n - 1]);
-
-            output += amp * sinf(2.f * M_PI * phase[n - 1]);
+                amp = knob * clamp(inputs[HARM1_CV_INPUT + n - 1].getVoltage(0) / 10.f, 0.f, 1.f);
             displayAmp[n - 1].store(amp, std::memory_order_relaxed);
         }
-
-        if (totalAmp > 0.f)
-            output /= totalAmp;
-
-        outputs[AUDIO_OUTPUT].setVoltage(output * 5.f);
     }
 };
 
 struct HarmBarDisplay : Widget {
-    RaAddModule *module;
+    RaVipberusModule *module;
 
     void draw(const DrawArgs &args) override {
         nvgBeginPath(args.vg);
@@ -228,7 +253,7 @@ struct HarmBarDisplay : Widget {
 
         if (!module) return;
 
-        const int n = RaAddModule::NUM_HARMS;
+        const int n = RaVipberusModule::NUM_HARMS;
         const float padTop = 4.f;
         const float padBottom = 4.f;
         const float barX = 2.f;
@@ -259,10 +284,10 @@ struct HarmBarDisplay : Widget {
     }
 };
 
-struct RaAddWidget : ModuleWidget {
-    RaAddWidget(RaAddModule *module) {
+struct RaVipberusWidget : ModuleWidget {
+    RaVipberusWidget(RaVipberusModule *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-add.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-vipberus.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
@@ -270,10 +295,10 @@ struct RaAddWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         // Voice controls across the top: left = freq knob + freq CV, right = FM knob + FM CV
-        addParam(createParamCentered<RaKnobLarge>(Vec(30, 55), module, RaAddModule::FREQ_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(70, 55), module, RaAddModule::PITCH_INPUT));
-        addParam(createParamCentered<RaKnobSmall>(Vec(210, 55), module, RaAddModule::FM_ATTN_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(240, 55), module, RaAddModule::FM_INPUT));
+        addParam(createParamCentered<RaKnobLarge>(Vec(30, 55), module, RaVipberusModule::FREQ_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(70, 55), module, RaVipberusModule::PITCH_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(210, 55), module, RaVipberusModule::FM_ATTN_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(240, 55), module, RaVipberusModule::FM_INPUT));
 
         // Harmonic rows — harmonics 1-8 in the left block, 9-16 in the right block.
         // Each harmonic has a level knob with a CV input below it, followed by an
@@ -282,22 +307,22 @@ struct RaAddWidget : ModuleWidget {
             int y = 100 + row * 64;
             int leftIdx = row * 2;
             int rightIdx = 8 + row * 2;
-            addParam(createParamCentered<RaKnobSmall>(Vec(30, y), module, RaAddModule::HARM1_PARAM + leftIdx));
-            addInput(createInputCentered<RaPort>(Vec(30, y + 28), module, RaAddModule::HARM1_CV_INPUT + leftIdx));
-            addParam(createParamCentered<RaKnobSmall>(Vec(60, y), module, RaAddModule::FM1_PARAM + leftIdx));
-            addInput(createInputCentered<RaPort>(Vec(60, y + 28), module, RaAddModule::FM1_CV_INPUT + leftIdx));
-            addParam(createParamCentered<RaKnobSmall>(Vec(90, y), module, RaAddModule::HARM1_PARAM + leftIdx + 1));
-            addInput(createInputCentered<RaPort>(Vec(90, y + 28), module, RaAddModule::HARM1_CV_INPUT + leftIdx + 1));
-            addParam(createParamCentered<RaKnobSmall>(Vec(120, y), module, RaAddModule::FM1_PARAM + leftIdx + 1));
-            addInput(createInputCentered<RaPort>(Vec(120, y + 28), module, RaAddModule::FM1_CV_INPUT + leftIdx + 1));
-            addParam(createParamCentered<RaKnobSmall>(Vec(210, y), module, RaAddModule::HARM1_PARAM + rightIdx));
-            addInput(createInputCentered<RaPort>(Vec(210, y + 28), module, RaAddModule::HARM1_CV_INPUT + rightIdx));
-            addParam(createParamCentered<RaKnobSmall>(Vec(240, y), module, RaAddModule::FM1_PARAM + rightIdx));
-            addInput(createInputCentered<RaPort>(Vec(240, y + 28), module, RaAddModule::FM1_CV_INPUT + rightIdx));
-            addParam(createParamCentered<RaKnobSmall>(Vec(270, y), module, RaAddModule::HARM1_PARAM + rightIdx + 1));
-            addInput(createInputCentered<RaPort>(Vec(270, y + 28), module, RaAddModule::HARM1_CV_INPUT + rightIdx + 1));
-            addParam(createParamCentered<RaKnobSmall>(Vec(300, y), module, RaAddModule::FM1_PARAM + rightIdx + 1));
-            addInput(createInputCentered<RaPort>(Vec(300, y + 28), module, RaAddModule::FM1_CV_INPUT + rightIdx + 1));
+            addParam(createParamCentered<RaKnobSmall>(Vec(30, y), module, RaVipberusModule::HARM1_PARAM + leftIdx));
+            addInput(createInputCentered<RaPort>(Vec(30, y + 28), module, RaVipberusModule::HARM1_CV_INPUT + leftIdx));
+            addParam(createParamCentered<RaKnobSmall>(Vec(60, y), module, RaVipberusModule::FM1_PARAM + leftIdx));
+            addInput(createInputCentered<RaPort>(Vec(60, y + 28), module, RaVipberusModule::FM1_CV_INPUT + leftIdx));
+            addParam(createParamCentered<RaKnobSmall>(Vec(90, y), module, RaVipberusModule::HARM1_PARAM + leftIdx + 1));
+            addInput(createInputCentered<RaPort>(Vec(90, y + 28), module, RaVipberusModule::HARM1_CV_INPUT + leftIdx + 1));
+            addParam(createParamCentered<RaKnobSmall>(Vec(120, y), module, RaVipberusModule::FM1_PARAM + leftIdx + 1));
+            addInput(createInputCentered<RaPort>(Vec(120, y + 28), module, RaVipberusModule::FM1_CV_INPUT + leftIdx + 1));
+            addParam(createParamCentered<RaKnobSmall>(Vec(210, y), module, RaVipberusModule::HARM1_PARAM + rightIdx));
+            addInput(createInputCentered<RaPort>(Vec(210, y + 28), module, RaVipberusModule::HARM1_CV_INPUT + rightIdx));
+            addParam(createParamCentered<RaKnobSmall>(Vec(240, y), module, RaVipberusModule::FM1_PARAM + rightIdx));
+            addInput(createInputCentered<RaPort>(Vec(240, y + 28), module, RaVipberusModule::FM1_CV_INPUT + rightIdx));
+            addParam(createParamCentered<RaKnobSmall>(Vec(270, y), module, RaVipberusModule::HARM1_PARAM + rightIdx + 1));
+            addInput(createInputCentered<RaPort>(Vec(270, y + 28), module, RaVipberusModule::HARM1_CV_INPUT + rightIdx + 1));
+            addParam(createParamCentered<RaKnobSmall>(Vec(300, y), module, RaVipberusModule::FM1_PARAM + rightIdx + 1));
+            addInput(createInputCentered<RaPort>(Vec(300, y + 28), module, RaVipberusModule::FM1_CV_INPUT + rightIdx + 1));
         }
 
         // Bar graph display — all 16 harmonic levels, 1 at the top, 16 at the bottom
@@ -306,8 +331,8 @@ struct RaAddWidget : ModuleWidget {
         display->module = module;
         addChild(display);
 
-        addOutput(createOutputCentered<RaPort>(Vec(165, 356), module, RaAddModule::AUDIO_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(165, 356), module, RaVipberusModule::AUDIO_OUTPUT));
     }
 };
 
-Model *modelRaAdd = createModel<RaAddModule, RaAddWidget>("ra-add");
+Model *modelRaVipberus = createModel<RaVipberusModule, RaVipberusWidget>("ra-vipberus");
