@@ -19,16 +19,24 @@ struct RaDseqModule : Module {
         SEQ_PARAM,
         MODE_PARAM,
         OUT_PARAM,
-        ADVANCE_PARAM,
+        STEP_NEXT_PARAM,
         CLEAR_PARAM,
         SEQ_PREV_PARAM,
         SEQ_NEXT_PARAM,
+        STEP_PREV_PARAM,
+        SHIFT_L_PARAM,
+        SHIFT_R_PARAM,
+        CHANCE_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
-        TRIG_INPUT,
+        STEP_NEXT_TRIG_INPUT,
         SEQ_PREV_TRIG_INPUT,
         SEQ_NEXT_TRIG_INPUT,
+        STEP_PREV_TRIG_INPUT,
+        SHIFT_L_TRIG_INPUT,
+        SHIFT_R_TRIG_INPUT,
+        CHANCE_CV_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -51,13 +59,20 @@ struct RaDseqModule : Module {
     int stepIndex = 0;
     float pulse[8] = {};
 
-    dsp::SchmittTrigger advanceTrigger;
-    dsp::SchmittTrigger buttonTrigger;
+    dsp::SchmittTrigger stepNextTrigger;
+    dsp::SchmittTrigger stepNextButtonTrigger;
     dsp::SchmittTrigger clearTrigger;
     dsp::SchmittTrigger seqPrevTrigger;
     dsp::SchmittTrigger seqNextTrigger;
     dsp::SchmittTrigger seqPrevButtonTrigger;
     dsp::SchmittTrigger seqNextButtonTrigger;
+    dsp::SchmittTrigger stepPrevTrigger;
+    dsp::SchmittTrigger shiftLTrigger;
+    dsp::SchmittTrigger shiftRTrigger;
+    dsp::SchmittTrigger stepPrevButtonTrigger;
+    dsp::SchmittTrigger shiftLButtonTrigger;
+    dsp::SchmittTrigger shiftRButtonTrigger;
+    bool hit[8] = {};
 
     RaDseqModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -67,12 +82,20 @@ struct RaDseqModule : Module {
         configSwitch(OUT_PARAM, 0.f, 1.f, 0.f, "Output", {"Gate", "Trig"});
         configButton(SEQ_PREV_PARAM, "Seq prev");
         configButton(SEQ_NEXT_PARAM, "Seq next");
-        configButton(ADVANCE_PARAM, "Advance");
+        configButton(STEP_PREV_PARAM, "Step prev");
+        configButton(SHIFT_L_PARAM, "Shift left");
+        configButton(SHIFT_R_PARAM, "Shift right");
+        configButton(STEP_NEXT_PARAM, "Step next");
         configButton(CLEAR_PARAM, "Clear");
+        configParam(CHANCE_PARAM, 0.f, 1.f, 1.f, "Chance", "%", 0, 100);
 
-        configInput(TRIG_INPUT, "Trigger");
-        configInput(SEQ_PREV_TRIG_INPUT, "Prev");
-        configInput(SEQ_NEXT_TRIG_INPUT, "Next");
+        configInput(STEP_NEXT_TRIG_INPUT, "Step next");
+        configInput(SEQ_PREV_TRIG_INPUT, "Seq prev");
+        configInput(SEQ_NEXT_TRIG_INPUT, "Seq next");
+        configInput(STEP_PREV_TRIG_INPUT, "Step prev");
+        configInput(SHIFT_L_TRIG_INPUT, "Shift left");
+        configInput(SHIFT_R_TRIG_INPUT, "Shift right");
+        configInput(CHANCE_CV_INPUT, "Chance CV");
 
         configOutput(OUT1_OUTPUT, "Out 1");
         configOutput(OUT2_OUTPUT, "Out 2");
@@ -92,6 +115,22 @@ struct RaDseqModule : Module {
         displayedSeq = eucMod(displayedSeq + delta, 8);
     }
 
+    void shiftSteps(int dir) {
+        // Rotate the current sequence's steps, wrapping around the full 64
+        if (dir > 0) {
+            bool last = steps[displayedSeq][63];
+            for (int i = 63; i > 0; i--)
+                steps[displayedSeq][i] = steps[displayedSeq][i - 1];
+            steps[displayedSeq][0] = last;
+        }
+        else {
+            bool first = steps[displayedSeq][0];
+            for (int i = 0; i < 63; i++)
+                steps[displayedSeq][i] = steps[displayedSeq][i + 1];
+            steps[displayedSeq][63] = first;
+        }
+    }
+
     bool isStepSet(int step) {
         return steps[displayedSeq][step];
     }
@@ -108,12 +147,14 @@ struct RaDseqModule : Module {
         memset(steps, 0, sizeof(steps));
         stepIndex = 0;
         memset(pulse, 0, sizeof(pulse));
+        memset(hit, 0, sizeof(hit));
     }
 
     void process(const ProcessArgs& args) override {
         int length = getLength();
         bool songMode = params[MODE_PARAM].getValue() > 0.5f;
         bool trigMode = params[OUT_PARAM].getValue() > 0.5f;
+        float chance = clamp(params[CHANCE_PARAM].getValue() + inputs[CHANCE_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
 
         // Sequence selection: prev/next trigger inputs and buttons
         if (seqPrevTrigger.process(inputs[SEQ_PREV_TRIG_INPUT].getVoltage()))
@@ -125,40 +166,57 @@ struct RaDseqModule : Module {
         if (seqNextButtonTrigger.process(params[SEQ_NEXT_PARAM].getValue()))
             selectSeq(1);
 
-        // Keep the position in range if the length is shortened
-        if (stepIndex >= length)
-            stepIndex = 0;
+        // Shifts rotate the current sequence's steps, wrapping around
+        if (shiftLTrigger.process(inputs[SHIFT_L_TRIG_INPUT].getVoltage()))
+            shiftSteps(-1);
+        if (shiftRTrigger.process(inputs[SHIFT_R_TRIG_INPUT].getVoltage()))
+            shiftSteps(1);
+        if (shiftLButtonTrigger.process(params[SHIFT_L_PARAM].getValue()))
+            shiftSteps(-1);
+        if (shiftRButtonTrigger.process(params[SHIFT_R_PARAM].getValue()))
+            shiftSteps(1);
 
-        bool advanced = false;
-        if (advanceTrigger.process(inputs[TRIG_INPUT].getVoltage()))
-            advanced = true;
-        if (buttonTrigger.process(params[ADVANCE_PARAM].getValue()))
-            advanced = true;
+        // Keep the position in range if the length is shortened
+        if (stepIndex >= length) {
+            stepIndex = 0;
+            memset(hit, 0, sizeof(hit));
+        }
 
         if (clearTrigger.process(params[CLEAR_PARAM].getValue())) {
             for (int i = 0; i < 64; i++)
                 steps[displayedSeq][i] = false;
         }
 
-        if (advanced) {
-            stepIndex++;
-            if (stepIndex >= length)
-                stepIndex = 0;
-            // Fire triggers for set steps at the new position
+        // Roll per-hit chance and fire the set steps at the current position
+        auto fireStep = [&]() {
             for (int k = 0; k < 8; k++) {
                 bool active = !songMode || k == 0;
                 int seq = songMode ? displayedSeq : k;
-                if (active && steps[seq][stepIndex])
+                bool set = active && steps[seq][stepIndex];
+                hit[k] = set && (random::uniform() < chance);
+                if (hit[k] && trigMode)
                     pulse[k] = 0.01f;
             }
+        };
+
+        if (stepNextTrigger.process(inputs[STEP_NEXT_TRIG_INPUT].getVoltage())
+            || stepNextButtonTrigger.process(params[STEP_NEXT_PARAM].getValue())) {
+            stepIndex++;
+            if (stepIndex >= length)
+                stepIndex = 0;
+            fireStep();
+        }
+
+        if (stepPrevTrigger.process(inputs[STEP_PREV_TRIG_INPUT].getVoltage())
+            || stepPrevButtonTrigger.process(params[STEP_PREV_PARAM].getValue())) {
+            stepIndex--;
+            if (stepIndex < 0)
+                stepIndex = length - 1;
+            fireStep();
         }
 
         // Output stage
         for (int k = 0; k < 8; k++) {
-            bool active = !songMode || k == 0;
-            int seq = songMode ? displayedSeq : k;
-            bool set = active && steps[seq][stepIndex];
-
             float v = 0.f;
             if (trigMode) {
                 if (pulse[k] > 0.f) {
@@ -167,7 +225,7 @@ struct RaDseqModule : Module {
                 }
             }
             else {
-                if (set)
+                if (hit[k])
                     v = 10.f;
             }
             outputs[OUT1_OUTPUT + k].setVoltage(v);
@@ -344,17 +402,27 @@ struct RaDseqWidget : ModuleWidget {
         grid->setModule(module);
         addChild(grid);
 
-        // Controls below the grid
-        addParam(createParamCentered<RaKnob>(Vec(26, 258), module, RaDseqModule::LENGTH_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(64, 258), module, RaDseqModule::SEQ_PREV_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(102, 258), module, RaDseqModule::SEQ_NEXT_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(140, 258), module, RaDseqModule::SEQ_PREV_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(178, 258), module, RaDseqModule::SEQ_NEXT_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(26, 318), module, RaDseqModule::TRIG_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(64, 318), module, RaDseqModule::ADVANCE_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(102, 318), module, RaDseqModule::CLEAR_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(140, 318), module, RaDseqModule::MODE_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(178, 318), module, RaDseqModule::OUT_PARAM));
+        // Controls below the grid — each trigger input sits directly beside its button
+        addParam(createParamCentered<RaKnob>(Vec(26, 248), module, RaDseqModule::LENGTH_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(60, 248), module, RaDseqModule::CHANCE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(94, 248), module, RaDseqModule::CHANCE_CV_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(128, 248), module, RaDseqModule::CLEAR_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(162, 248), module, RaDseqModule::MODE_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(196, 248), module, RaDseqModule::OUT_PARAM));
+
+        addParam(createParamCentered<RaButton>(Vec(26, 290), module, RaDseqModule::SEQ_PREV_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(60, 290), module, RaDseqModule::SEQ_PREV_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(94, 290), module, RaDseqModule::SEQ_NEXT_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(128, 290), module, RaDseqModule::SEQ_NEXT_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(162, 290), module, RaDseqModule::STEP_PREV_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(196, 290), module, RaDseqModule::STEP_PREV_TRIG_INPUT));
+
+        addParam(createParamCentered<RaButton>(Vec(26, 332), module, RaDseqModule::STEP_NEXT_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(60, 332), module, RaDseqModule::STEP_NEXT_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(94, 332), module, RaDseqModule::SHIFT_L_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(128, 332), module, RaDseqModule::SHIFT_L_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(162, 332), module, RaDseqModule::SHIFT_R_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(196, 332), module, RaDseqModule::SHIFT_R_TRIG_INPUT));
 
         // Right: 8 trigger outputs
         addOutput(createOutputCentered<RaPort>(Vec(224, 65), module, RaDseqModule::OUT1_OUTPUT));
