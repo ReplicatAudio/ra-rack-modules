@@ -176,13 +176,13 @@
     {
       "slug": "ra-snare",
       "name": "ra-snare",
-      "description": "808 style snare drum — pitch-swept tone with a noise rattle, snap, and level controls",
+      "description": "808 style snare drum — pitch-swept tone with a highpassed noise rattle, snap, and level controls",
       "tags": ["Drum", "Sound source"]
     },
     {
       "slug": "ra-tom",
       "name": "ra-tom",
-      "description": "808 style tom — pitch-swept tonal body with harmonic brightness, snap, and level controls",
+      "description": "808 style tom — pitch-swept tonal body with harmonic brightness, beater attack, and level controls",
       "tags": ["Drum", "Sound source"]
     },
     {
@@ -207,6 +207,12 @@
       "slug": "ra-ride",
       "name": "ra-ride",
       "description": "808 style ride cymbal — metallic partials with a long-ringing bell ping and brightness controls",
+      "tags": ["Drum", "Sound source"]
+    },
+    {
+      "slug": "ra-meteor",
+      "name": "ra-meteor",
+      "description": "808 style metallic percussion — hat, crash, and ride cymbals from one engine: inharmonic partials, noise body, bell ping, and brightness controls",
       "tags": ["Drum", "Sound source"]
     },
     {

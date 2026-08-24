@@ -50,19 +50,21 @@ struct RaSnareModule : Module {
     static constexpr float MAX_DECAY = 1.0f;      // 1000 ms
     static constexpr float MIN_SNAP = 0.005f;     // 5 ms
     static constexpr float MAX_SNAP = 0.3f;       // 300 ms
+    static constexpr float NOISE_HP_FREQ = 2000.f; // fixed one-pole highpass on the rattle (~2 kHz)
 
     dsp::SchmittTrigger trigger;
     float phase = 0.f;
     float env = 0.f;
     float pitchEnv = 0.f;
     float noiseEnv = 0.f;
+    float noiseLp = 0.f;                         // one-pole lowpass state for the noise highpass
     bool accentActive = false;
 
     RaSnareModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(PITCH_PARAM, 0.f, 1.f, 0.5f, "1V/Oct", " st", 0.f, 48.f, -24.f);
         configParam(FM_ATTN_PARAM, -1.f, 1.f, 0.f, "FM attn", "%", 0, 100);
-        configParam(TONE_PARAM, 0.f, 1.f, 0.6f, "Tone", "%", 0, 100);
+        configParam(TONE_PARAM, 0.f, 1.f, 0.6f, "Body", "%", 0, 100);
         configParam(NOISE_PARAM, 0.f, 1.f, 0.8f, "Noise", "%", 0, 100);
         configParam(DECAY_PARAM, 0.f, 1.f, 0.3f, "Decay", "%", 0, 100);
         configParam(SNAP_PARAM, 0.f, 1.f, 0.5f, "Snap", "%", 0, 100);
@@ -111,6 +113,7 @@ struct RaSnareModule : Module {
         float decayTime = MIN_DECAY * powf(MAX_DECAY / MIN_DECAY, decay);
         float snapTime = MIN_SNAP * powf(MAX_SNAP / MIN_SNAP, snap);
         float driveGain = 1.f + 6.f * drive;
+        float noiseAlpha = 1.f - std::exp(-2.f * M_PI * NOISE_HP_FREQ * args.sampleTime);
 
         if (trigger.process(inputs[TRIG_INPUT].getVoltage())) {
             phase = 0.f;
@@ -135,9 +138,11 @@ struct RaSnareModule : Module {
             pitchEnv *= std::exp(-args.sampleTime / sweepTime);
         }
 
-        // Noise: white noise rattle with its own (snappier) decay
+        // Noise: highpassed white-noise rattle (fixed ~2 kHz) with its own (snappier) decay
         if (noiseEnv > 1e-4f) {
-            out += (random::uniform() * 2.f - 1.f) * noiseEnv * noise;
+            float noise = random::uniform() * 2.f - 1.f;
+            noiseLp += noiseAlpha * (noise - noiseLp);
+            out += (noise - noiseLp) * noiseEnv * noise;
             noiseEnv *= std::exp(-args.sampleTime / snapTime);
         }
 

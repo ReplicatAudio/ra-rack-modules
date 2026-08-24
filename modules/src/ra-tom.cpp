@@ -62,12 +62,12 @@ struct RaTomModule : Module {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(PITCH_PARAM, 0.f, 1.f, 0.5f, "1V/Oct", " st", 0.f, 48.f, -24.f);
         configParam(FM_ATTN_PARAM, -1.f, 1.f, 0.f, "FM attn", "%", 0, 100);
-        configParam(TONE_PARAM, 0.f, 1.f, 0.3f, "Tone", "%", 0, 100);
+        configParam(TONE_PARAM, 0.f, 1.f, 0.3f, "Bright", "%", 0, 100);
         configParam(BODY_PARAM, 0.f, 1.f, 1.f, "Body", "%", 0, 100);
         configParam(PITCH_DROP_PARAM, 0.f, 1.f, 0.4f, "Pitch drop", "%", 0, 100);
         configParam(PITCH_TIME_PARAM, 0.f, 1.f, 0.25f, "Pitch drop time", " ms", 0.f, 148.f, 2.f);
         configParam(DECAY_PARAM, 0.f, 1.f, 0.4f, "Decay", "%", 0, 100);
-        configParam(SNAP_PARAM, 0.f, 1.f, 0.1f, "Snap", "%", 0, 100);
+        configParam(SNAP_PARAM, 0.f, 1.f, 0.1f, "Beater", "%", 0, 100);
         configParam(DRIVE_PARAM, 0.f, 1.f, 0.3f, "Drive", "%", 0, 100);
         configParam(ACCENT_PARAM, 0.f, 1.f, 0.5f, "Accent", "%", 0, 100);
         configParam(LEVEL_PARAM, 0.f, 1.f, 1.f, "Level", "%", 0, 100);

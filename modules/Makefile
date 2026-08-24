@@ -37,6 +37,7 @@ SOURCES = \
 	src/ra-hat.cpp \
 	src/ra-cymbal.cpp \
 	src/ra-ride.cpp \
+	src/ra-meteor.cpp \
 	src/ra-tuner.cpp \
 	src/ra-dseq.cpp
 

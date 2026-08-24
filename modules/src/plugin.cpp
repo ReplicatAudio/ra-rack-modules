@@ -37,6 +37,7 @@ extern Model *modelRaClap;
 extern Model *modelRaHat;
 extern Model *modelRaCymbal;
 extern Model *modelRaRide;
+extern Model *modelRaMeteor;
 extern Model *modelRaTuner;
 extern Model *modelRaDseq;
 
@@ -76,6 +77,7 @@ void init(Plugin *p) {
 	p->addModel(modelRaHat);
 	p->addModel(modelRaCymbal);
 	p->addModel(modelRaRide);
+	p->addModel(modelRaMeteor);
 	p->addModel(modelRaTuner);
 	p->addModel(modelRaDseq);
 }

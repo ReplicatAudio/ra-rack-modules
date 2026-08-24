@@ -6,12 +6,12 @@ extern Plugin *pluginInstance;
 
 struct RaKickModule : Module {
     enum ParamIds {
-        TONE_PARAM,
+        PITCH_PARAM,
         FM_ATTN_PARAM,
         DECAY_PARAM,
         CLICK_PARAM,
         LEVEL_PARAM,
-        PITCH_PARAM,
+        PITCH_DROP_PARAM,
         DRIVE_PARAM,
         PITCH_TIME_PARAM,
         CLICK_TONE_PARAM,
@@ -65,12 +65,12 @@ struct RaKickModule : Module {
 
     RaKickModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(TONE_PARAM, 0.f, 1.f, 0.5f, "1V/Oct", " st", 0.f, 48.f, -24.f);
+        configParam(PITCH_PARAM, 0.f, 1.f, 0.5f, "1V/Oct", " st", 0.f, 48.f, -24.f);
         configParam(FM_ATTN_PARAM, -1.f, 1.f, 0.f, "FM attn", "%", 0, 100);
         configParam(DECAY_PARAM, 0.f, 1.f, 0.4f, "Decay", "%", 0, 100);
         configParam(CLICK_PARAM, 0.f, 1.f, 0.25f, "Click", "%", 0, 100);
         configParam(LEVEL_PARAM, 0.f, 1.f, 1.f, "Level", "%", 0, 100);
-        configParam(PITCH_PARAM, 0.f, 1.f, 0.5f, "Pitch drop", "%", 0, 100);
+        configParam(PITCH_DROP_PARAM, 0.f, 1.f, 0.5f, "Pitch drop", "%", 0, 100);
         configParam(DRIVE_PARAM, 0.f, 1.f, 0.3f, "Drive", "%", 0, 100);
         configParam(PITCH_TIME_PARAM, 0.f, 1.f, 0.25f, "Pitch drop time", " ms", 0.f, 148.f, 2.f);
         configParam(CLICK_TONE_PARAM, 0.f, 1.f, 0.4f, "Click tone", " Hz", 10.f, MIN_CLICK_FREQ, 0.f);
@@ -93,11 +93,11 @@ struct RaKickModule : Module {
     }
 
     void process(const ProcessArgs& args) override {
-        float toneSemis = params[TONE_PARAM].getValue() * 48.f - 24.f;
+        float toneSemis = params[PITCH_PARAM].getValue() * 48.f - 24.f;
         float decay = clamp(params[DECAY_PARAM].getValue() + inputs[DECAY_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
         float clickAmt = clamp(params[CLICK_PARAM].getValue() + inputs[CLICK_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
         float level = clamp(params[LEVEL_PARAM].getValue() + inputs[LEVEL_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
-        float pitchDrop = clamp(params[PITCH_PARAM].getValue() + inputs[PITCH_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+        float pitchDrop = clamp(params[PITCH_DROP_PARAM].getValue() + inputs[PITCH_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
         float drive = clamp(params[DRIVE_PARAM].getValue() + inputs[DRIVE_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
         float pitchTime = clamp(params[PITCH_TIME_PARAM].getValue() + inputs[PITCH_TIME_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
         float clickTone = clamp(params[CLICK_TONE_PARAM].getValue() + inputs[CLICK_TONE_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
@@ -182,7 +182,7 @@ struct RaKickWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(cx, 25), module, RaKickModule::TRIG_INPUT));
 
         // Pitch section (left column): 1V/Oct knob + CV, FM attn + input, aligned to grid IO rows
-        addParam(createParamCentered<RaKnob>(Vec(20, 75), module, RaKickModule::TONE_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(20, 75), module, RaKickModule::PITCH_PARAM));
         addInput(createInputCentered<RaPort>(Vec(20, 112), module, RaKickModule::TONE_CV_INPUT));
         addParam(createParamCentered<RaKnob>(Vec(20, 160), module, RaKickModule::FM_ATTN_PARAM));
         addInput(createInputCentered<RaPort>(Vec(20, 197), module, RaKickModule::FM_INPUT));
@@ -196,7 +196,7 @@ struct RaKickWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(130, 112), module, RaKickModule::SUB_CV_INPUT));
 
         // Row 2
-        addParam(createParamCentered<RaKnob>(Vec(57, 160), module, RaKickModule::PITCH_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(57, 160), module, RaKickModule::PITCH_DROP_PARAM));
         addParam(createParamCentered<RaKnob>(Vec(93, 160), module, RaKickModule::CLICK_TONE_PARAM));
         addParam(createParamCentered<RaKnob>(Vec(130, 160), module, RaKickModule::ACCENT_PARAM));
         addInput(createInputCentered<RaPort>(Vec(57, 197), module, RaKickModule::PITCH_CV_INPUT));

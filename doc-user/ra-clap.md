@@ -5,11 +5,11 @@ Classic 808-style handclap made from white-noise bursts through a resonant bandp
 ## Controls
 - **1V/Oct**: pitch knob — a semitone knob (±24 st from C3) that tunes the noise bandpass and thump.
 - **FM attn**: attenuverter (bipolar) scaling the dedicated FM input.
-- **Tone**: bandpass resonance/Q (bandwidth) of the noise filter.
+- **Q**: bandpass resonance (bandwidth) of the noise filter.
 - **Taps**: number of retrigger bursts per hit (1–4, ~12 ms apart).
 - **Pitch drop**: how far the thump sweeps down on each hit.
 - **Pitch drop time**: how fast that sweep happens (2–150 ms).
-- **Decay**: length of the thump tail (20 ms–1 s).
+- **Thump**: length of the thump tail (20 ms–1 s).
 - **Snap**: decay time of each noise burst (10–300 ms).
 - **Drive**: tanh saturation amount.
 - **Accent**: extra level boost applied to hits that arrive while the Accent input is high (up to +6 dB).
@@ -19,7 +19,7 @@ Classic 808-style handclap made from white-noise bursts through a resonant bandp
 - **Trigger**: fires a hit on each rising edge.
 - **1V/Oct**: dedicated standard 1V/oct pitch CV.
 - **FM**: dedicated frequency-modulation CV, scaled by the FM attn knob.
-- **Tone / Taps / Pitch drop / Pitch drop time / Decay / Snap / Drive / Level CV**: bipolar CV (±10 V = full range) added to the matching knob.
+- **Q / Taps / Pitch drop / Pitch drop time / Thump / Snap / Drive / Level CV**: bipolar CV (±10 V = full range) added to the matching knob.
 - **Accent**: gate that boosts the level of triggers that occur while high.
 
 ## Outputs
