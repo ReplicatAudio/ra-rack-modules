@@ -415,47 +415,49 @@ struct RaDseqWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        // 8x8 step grid + sequence LED column on the left — centered
-        StepGridDisplay* grid = createWidget<StepGridDisplay>(Vec(56, 40));
+        // 8x8 step grid + sequence LED column on the left, cleared of the
+        // output stacks on the right (grid centre x=127)
+        StepGridDisplay* grid = createWidget<StepGridDisplay>(Vec(36, 40));
         grid->box.size = Vec(182, 168);
         grid->setModule(module);
         addChild(grid);
 
         // Controls below the grid on a strict 7-column grid: buttons over their
-        // trig inputs, settings row underneath. Columns: 26 64 102 140 178 216 254
-        addParam(createParamCentered<RaButton>(Vec(26, 246), module, RaDseqModule::STEP_PREV_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(64, 246), module, RaDseqModule::STEP_NEXT_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(102, 246), module, RaDseqModule::SEQ_PREV_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(140, 246), module, RaDseqModule::SEQ_NEXT_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(178, 246), module, RaDseqModule::SHIFT_L_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(216, 246), module, RaDseqModule::SHIFT_R_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(254, 246), module, RaDseqModule::RANDOMIZE_PARAM));
+        // trig inputs, settings row underneath, centred on the module (x=150).
+        // Columns: 36 74 112 150 188 226 264
+        addParam(createParamCentered<RaButton>(Vec(36, 246), module, RaDseqModule::STEP_PREV_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(74, 246), module, RaDseqModule::STEP_NEXT_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(112, 246), module, RaDseqModule::SEQ_PREV_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(150, 246), module, RaDseqModule::SEQ_NEXT_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(188, 246), module, RaDseqModule::SHIFT_L_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(226, 246), module, RaDseqModule::SHIFT_R_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(264, 246), module, RaDseqModule::RANDOMIZE_PARAM));
 
-        addInput(createInputCentered<RaPort>(Vec(26, 288), module, RaDseqModule::STEP_PREV_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(64, 288), module, RaDseqModule::STEP_NEXT_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(102, 288), module, RaDseqModule::SEQ_PREV_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(140, 288), module, RaDseqModule::SEQ_NEXT_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(178, 288), module, RaDseqModule::SHIFT_L_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(216, 288), module, RaDseqModule::SHIFT_R_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(254, 288), module, RaDseqModule::RANDOMIZE_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(36, 288), module, RaDseqModule::STEP_PREV_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(74, 288), module, RaDseqModule::STEP_NEXT_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(112, 288), module, RaDseqModule::SEQ_PREV_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(150, 288), module, RaDseqModule::SEQ_NEXT_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(188, 288), module, RaDseqModule::SHIFT_L_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(226, 288), module, RaDseqModule::SHIFT_R_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(264, 288), module, RaDseqModule::RANDOMIZE_TRIG_INPUT));
 
-        addParam(createParamCentered<RaKnob>(Vec(26, 330), module, RaDseqModule::LENGTH_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(64, 330), module, RaDseqModule::CHANCE_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(102, 330), module, RaDseqModule::CHANCE_CV_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(140, 330), module, RaDseqModule::CLEAR_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(178, 330), module, RaDseqModule::MODE_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(216, 330), module, RaDseqModule::OUT_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(254, 330), module, RaDseqModule::RAND_CHANCE_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(36, 330), module, RaDseqModule::LENGTH_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(74, 330), module, RaDseqModule::CHANCE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(112, 330), module, RaDseqModule::CHANCE_CV_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(150, 330), module, RaDseqModule::CLEAR_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(188, 330), module, RaDseqModule::MODE_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(226, 330), module, RaDseqModule::OUT_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(264, 330), module, RaDseqModule::RAND_CHANCE_PARAM));
 
-        // Right: 8 trigger outputs
-        addOutput(createOutputCentered<RaPort>(Vec(286, 65), module, RaDseqModule::OUT1_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 105), module, RaDseqModule::OUT2_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 145), module, RaDseqModule::OUT3_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 185), module, RaDseqModule::OUT4_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 225), module, RaDseqModule::OUT5_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 265), module, RaDseqModule::OUT6_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 305), module, RaDseqModule::OUT7_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 345), module, RaDseqModule::OUT8_OUTPUT));
+        // Right, near the top: 8 trigger outputs in two stacks — 1–4 left, 5–8 right
+        addOutput(createOutputCentered<RaPort>(Vec(252, 60), module, RaDseqModule::OUT1_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(252, 100), module, RaDseqModule::OUT2_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(252, 140), module, RaDseqModule::OUT3_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(252, 180), module, RaDseqModule::OUT4_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(286, 60), module, RaDseqModule::OUT5_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(286, 100), module, RaDseqModule::OUT6_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(286, 140), module, RaDseqModule::OUT7_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(286, 180), module, RaDseqModule::OUT8_OUTPUT));
     }
 };
 

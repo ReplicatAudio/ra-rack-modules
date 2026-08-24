@@ -33,3 +33,11 @@ add detune to each voice
 - screen at the top to show editing channel
 - each channel can be note->note or note->trig
 
+# Metal drums
+Hat, cymbol and ride are redundant with ra-meteor
+This is a superset of all 3
+
+
+# dseq
+
+dseq -> vash
