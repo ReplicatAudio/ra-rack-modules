@@ -214,6 +214,12 @@
       "name": "ra-tuner",
       "description": "Tuner — shows the frequency and western note of the input, in 1 V/oct CV or audio mode",
       "tags": ["Visual", "Utility"]
+    },
+    {
+      "slug": "ra-dseq",
+      "name": "ra-dseq",
+      "description": "64-step drum sequencer — 8 sequences of 64 steps on an 8×8 pad grid, song or multi output mode",
+      "tags": ["Sequencer", "Drum", "Utility"]
     }
   ]
 }

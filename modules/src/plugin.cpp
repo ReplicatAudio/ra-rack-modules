@@ -38,6 +38,7 @@ extern Model *modelRaHat;
 extern Model *modelRaCymbal;
 extern Model *modelRaRide;
 extern Model *modelRaTuner;
+extern Model *modelRaDseq;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -76,4 +77,5 @@ void init(Plugin *p) {
 	p->addModel(modelRaCymbal);
 	p->addModel(modelRaRide);
 	p->addModel(modelRaTuner);
+	p->addModel(modelRaDseq);
 }

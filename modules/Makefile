@@ -37,7 +37,8 @@ SOURCES = \
 	src/ra-hat.cpp \
 	src/ra-cymbal.cpp \
 	src/ra-ride.cpp \
-	src/ra-tuner.cpp
+	src/ra-tuner.cpp \
+	src/ra-dseq.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)
