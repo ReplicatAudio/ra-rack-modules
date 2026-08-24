@@ -8,6 +8,8 @@ extern Plugin *pluginInstance;
 // Envelope curve constants matching RaAdsrDisplay curve rendering
 static constexpr float ENV_TARGET = 1.1f;
 static constexpr float ENV_LAMBDA = 2.3978952727983702f;
+// Repo accent purple — matches the other modules' envelope/filter accents
+static const NVGcolor ADSR_PURPLE = nvgRGB(0x99, 0x6d, 0xd2);
 static float envPhaseToEnv(float phase) {
 	return (1 - std::exp(-ENV_LAMBDA * phase)) * ENV_TARGET;
 }
@@ -348,7 +350,7 @@ struct RaAdsrDisplay : LedDisplay {
 
 			nvgStroke(args.vg);
 
-			nvgStrokeColor(args.vg, SCHEME_YELLOW);
+			nvgStrokeColor(args.vg, ADSR_PURPLE);
 			nvgBeginPath(args.vg);
 
 			p = r.getBottomLeft();
@@ -382,7 +384,7 @@ struct RaAdsrDisplay : LedDisplay {
 			nvgStroke(args.vg);
 
 			{
-				nvgStrokeColor(args.vg, SCHEME_YELLOW);
+				nvgStrokeColor(args.vg, ADSR_PURPLE);
 				nvgBeginPath(args.vg);
 				p = r.interpolate(Vec(attTime + decTime, 1 - sustain));
 				nvgCircle(args.vg, VEC_ARGS(p), 2.5);
@@ -460,28 +462,27 @@ struct RaAdsrWidget : ModuleWidget {
 		addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
 		addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-		addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(6.604, 55.454)), module, RaAdsrModule::ATTACK_PARAM, RaAdsrModule::ATTACK_LIGHT));
-		addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(17.441, 55.454)), module, RaAdsrModule::DECAY_PARAM, RaAdsrModule::DECAY_LIGHT));
-		addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(28.279, 55.454)), module, RaAdsrModule::SUSTAIN_PARAM, RaAdsrModule::SUSTAIN_LIGHT));
-		addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(39.116, 55.454)), module, RaAdsrModule::RELEASE_PARAM, RaAdsrModule::RELEASE_LIGHT));
+		addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(6.604, 61.0)), module, RaAdsrModule::ATTACK_PARAM, RaAdsrModule::ATTACK_LIGHT));
+		addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(17.441, 61.0)), module, RaAdsrModule::DECAY_PARAM, RaAdsrModule::DECAY_LIGHT));
+		addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(28.279, 61.0)), module, RaAdsrModule::SUSTAIN_PARAM, RaAdsrModule::SUSTAIN_LIGHT));
+		addParam(createLightParamCentered<VCVLightSlider<YellowLight>>(mm2px(Vec(39.116, 61.0)), module, RaAdsrModule::RELEASE_PARAM, RaAdsrModule::RELEASE_LIGHT));
 		addParam(createParamCentered<RaKnobTrim>(mm2px(Vec(6.604, 80.603)), module, RaAdsrModule::ATTACK_CV_PARAM));
 		addParam(createParamCentered<RaKnobTrim>(mm2px(Vec(17.441, 80.63)), module, RaAdsrModule::DECAY_CV_PARAM));
 		addParam(createParamCentered<RaKnobTrim>(mm2px(Vec(28.279, 80.603)), module, RaAdsrModule::SUSTAIN_CV_PARAM));
 		addParam(createParamCentered<RaKnobTrim>(mm2px(Vec(39.119, 80.603)), module, RaAdsrModule::RELEASE_CV_PARAM));
-		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(mm2px(Vec(6.604, 113.115)), module, RaAdsrModule::PUSH_PARAM, RaAdsrModule::PUSH_LIGHT));
+		addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(mm2px(Vec(22.86, 45.0)), module, RaAdsrModule::PUSH_PARAM, RaAdsrModule::PUSH_LIGHT));
 
 		addInput(createInputCentered<RaPort>(mm2px(Vec(6.604, 96.882)), module, RaAdsrModule::ATTACK_INPUT));
 		addInput(createInputCentered<RaPort>(mm2px(Vec(17.441, 96.859)), module, RaAdsrModule::DECAY_INPUT));
 		addInput(createInputCentered<RaPort>(mm2px(Vec(28.279, 96.886)), module, RaAdsrModule::SUSTAIN_INPUT));
 		addInput(createInputCentered<RaPort>(mm2px(Vec(39.119, 96.89)), module, RaAdsrModule::RELEASE_INPUT));
-		addInput(createInputCentered<RaPort>(mm2px(Vec(17.441, 113.115)), module, RaAdsrModule::GATE_INPUT));
-		addInput(createInputCentered<RaPort>(mm2px(Vec(28.279, 113.115)), module, RaAdsrModule::RETRIG_INPUT));
+		addInput(createInputCentered<RaPort>(mm2px(Vec(6.604, 113.115)), module, RaAdsrModule::GATE_INPUT));
+		addInput(createInputCentered<RaPort>(mm2px(Vec(17.441, 113.115)), module, RaAdsrModule::RETRIG_INPUT));
+		addInput(createInputCentered<RaPort>(mm2px(Vec(28.279, 113.115)), module, RaAdsrModule::TRIGGER_INPUT));
+		addInput(createInputCentered<RaPort>(mm2px(Vec(39.116, 113.115)), module, RaAdsrModule::POSITION_INPUT));
 
-		addOutput(createOutputCentered<RaPort>(mm2px(Vec(39.119, 113.115)), module, RaAdsrModule::ENVELOPE_OUTPUT));
-
-		addOutput(createOutputCentered<RaPort>(mm2px(Vec(6.604, 124.5)), module, RaAdsrModule::EOC_OUTPUT));
-		addInput(createInputCentered<RaPort>(mm2px(Vec(17.441, 124.5)), module, RaAdsrModule::TRIGGER_INPUT));
-		addInput(createInputCentered<RaPort>(mm2px(Vec(28.279, 124.5)), module, RaAdsrModule::POSITION_INPUT));
+		addOutput(createOutputCentered<RaPort>(mm2px(Vec(17.441, 124.5)), module, RaAdsrModule::ENVELOPE_OUTPUT));
+		addOutput(createOutputCentered<RaPort>(mm2px(Vec(28.279, 124.5)), module, RaAdsrModule::EOC_OUTPUT));
 
 		RaAdsrDisplay* display = createWidget<RaAdsrDisplay>(mm2px(Vec(0.0, 13.039)));
 		display->box.size = mm2px(Vec(45.72, 21.219));
