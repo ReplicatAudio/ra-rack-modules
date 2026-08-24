@@ -166,6 +166,12 @@
       "name": "ra-mothership",
       "description": "8-oscillator LFO/VCO with wave morphing, phase, filter, and FM per oscillator",
       "tags": ["LFO", "VCO", "Oscillator"]
+    },
+    {
+      "slug": "ra-kick",
+      "name": "ra-kick",
+      "description": "808 style kick drum — pitch-swept sine with tone, decay, click, and level controls",
+      "tags": ["Drum", "Sound source"]
     }
   ]
 }
