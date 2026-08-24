@@ -30,7 +30,14 @@ SOURCES = \
 	src/ra-chord.cpp \
 	src/ra-tracker.cpp \
 	src/ra-just.cpp \
-	src/ra-kick.cpp
+	src/ra-kick.cpp \
+	src/ra-snare.cpp \
+	src/ra-tom.cpp \
+	src/ra-clap.cpp \
+	src/ra-hat.cpp \
+	src/ra-cymbal.cpp \
+	src/ra-ride.cpp \
+	src/ra-tuner.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)

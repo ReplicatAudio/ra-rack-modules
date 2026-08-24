@@ -31,6 +31,13 @@ extern Model *modelRaJust;
 extern Model *modelRaQuant;
 extern Model *modelRaMothership;
 extern Model *modelRaKick;
+extern Model *modelRaSnare;
+extern Model *modelRaTom;
+extern Model *modelRaClap;
+extern Model *modelRaHat;
+extern Model *modelRaCymbal;
+extern Model *modelRaRide;
+extern Model *modelRaTuner;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -62,4 +69,11 @@ void init(Plugin *p) {
 	p->addModel(modelRaQuant);
 	p->addModel(modelRaMothership);
 	p->addModel(modelRaKick);
+	p->addModel(modelRaSnare);
+	p->addModel(modelRaTom);
+	p->addModel(modelRaClap);
+	p->addModel(modelRaHat);
+	p->addModel(modelRaCymbal);
+	p->addModel(modelRaRide);
+	p->addModel(modelRaTuner);
 }

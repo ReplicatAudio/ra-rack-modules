@@ -27,6 +27,9 @@ reflecting pool?
 
 add detune to each voice
 
-# ra-vipberus
+# Note router
+- 8 in 8 out
+- auto quant
+- screen at the top to show editing channel
+- each channel can be note->note or note->trig
 
-additup

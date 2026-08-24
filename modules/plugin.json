@@ -172,6 +172,48 @@
       "name": "ra-kick",
       "description": "808 style kick drum — pitch-swept sine with tone, decay, click, and level controls",
       "tags": ["Drum", "Sound source"]
+    },
+    {
+      "slug": "ra-snare",
+      "name": "ra-snare",
+      "description": "808 style snare drum — pitch-swept tone with a noise rattle, snap, and level controls",
+      "tags": ["Drum", "Sound source"]
+    },
+    {
+      "slug": "ra-tom",
+      "name": "ra-tom",
+      "description": "808 style tom — pitch-swept tonal body with harmonic brightness, snap, and level controls",
+      "tags": ["Drum", "Sound source"]
+    },
+    {
+      "slug": "ra-clap",
+      "name": "ra-clap",
+      "description": "808 style clap — multi-tap bandpassed noise bursts with a thump, driven, with level controls",
+      "tags": ["Drum", "Sound source"]
+    },
+    {
+      "slug": "ra-hat",
+      "name": "ra-hat",
+      "description": "808 style hi-hat — inharmonic metallic partials with snap, brightness, and level controls",
+      "tags": ["Drum", "Sound source"]
+    },
+    {
+      "slug": "ra-cymbal",
+      "name": "ra-cymbal",
+      "description": "808 style crash cymbal — inharmonic metallic partials with long decay and brightness controls",
+      "tags": ["Drum", "Sound source"]
+    },
+    {
+      "slug": "ra-ride",
+      "name": "ra-ride",
+      "description": "808 style ride cymbal — metallic partials with a long-ringing bell ping and brightness controls",
+      "tags": ["Drum", "Sound source"]
+    },
+    {
+      "slug": "ra-tuner",
+      "name": "ra-tuner",
+      "description": "Tuner — shows the frequency and western note of the input, in 1 V/oct CV or audio mode",
+      "tags": ["Visual", "Utility"]
     }
   ]
 }
