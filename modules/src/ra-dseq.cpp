@@ -29,6 +29,9 @@ struct RaDseqModule : Module {
         CHANCE_PARAM,
         RANDOMIZE_PARAM,
         RAND_CHANCE_PARAM,
+        RESET_PARAM,
+        SEQ_RESET_PARAM,
+        RUN_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -40,6 +43,9 @@ struct RaDseqModule : Module {
         SHIFT_R_TRIG_INPUT,
         CHANCE_CV_INPUT,
         RANDOMIZE_TRIG_INPUT,
+        RESET_TRIG_INPUT,
+        SEQ_RESET_TRIG_INPUT,
+        RUN_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -54,10 +60,13 @@ struct RaDseqModule : Module {
         NUM_OUTPUTS
     };
     enum LightIds {
+        RUN_LIGHT,
         NUM_LIGHTS
     };
 
     bool steps[8][64] = {};
+    int seqLengths[8] = {16, 0, 0, 0, 0, 0, 0, 0}; // per-sequence loop length; 0 = sequence off
+    int lengthKnobValue = -1;                      // last applied Length knob position (pickup; -1 = unset)
     int displayedSeq = 0;
     int stepIndex = 0;
     float pulse[8] = {};
@@ -77,11 +86,17 @@ struct RaDseqModule : Module {
     dsp::SchmittTrigger shiftRButtonTrigger;
     dsp::SchmittTrigger randomizeTrigger;
     dsp::SchmittTrigger randomizeButtonTrigger;
+    dsp::SchmittTrigger resetTrigger;
+    dsp::SchmittTrigger resetButtonTrigger;
+    dsp::SchmittTrigger seqResetTrigger;
+    dsp::SchmittTrigger seqResetButtonTrigger;
+    dsp::SchmittTrigger runBtnTrigger;
+    bool running = false;
     bool hit[8] = {};
 
     RaDseqModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(LENGTH_PARAM, 1.f, 64.f, 16.f, "Length", " steps", 0.f, 1.f, 0.f);
+        configParam(LENGTH_PARAM, 0.f, 64.f, 16.f, "Length", " steps", 0.f, 1.f, 0.f);
         getParamQuantity(LENGTH_PARAM)->snapEnabled = true;
         configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Mode", {"Multi", "Song"});
         configSwitch(OUT_PARAM, 0.f, 1.f, 0.f, "Output", {"Gate", "Trig"});
@@ -93,6 +108,9 @@ struct RaDseqModule : Module {
         configButton(STEP_NEXT_PARAM, "Step next");
         configButton(CLEAR_PARAM, "Clear");
         configButton(RANDOMIZE_PARAM, "Randomize");
+        configButton(RESET_PARAM, "Reset");
+        configButton(SEQ_RESET_PARAM, "Reset sequence");
+        configButton(RUN_PARAM, "Run");
         configParam(CHANCE_PARAM, 0.f, 1.f, 1.f, "Chance", "%", 0, 100);
         configParam(RAND_CHANCE_PARAM, 0.f, 1.f, 0.5f, "Randomize chance", "%", 0, 100);
 
@@ -104,6 +122,10 @@ struct RaDseqModule : Module {
         configInput(SHIFT_R_TRIG_INPUT, "Shift right");
         configInput(CHANCE_CV_INPUT, "Chance CV");
         configInput(RANDOMIZE_TRIG_INPUT, "Randomize");
+        configInput(RESET_TRIG_INPUT, "Reset");
+        configInput(SEQ_RESET_TRIG_INPUT, "Reset sequence");
+        configInput(RUN_INPUT, "Run");
+        configLight(RUN_LIGHT, "Run");
 
         configOutput(OUT1_OUTPUT, "Out 1");
         configOutput(OUT2_OUTPUT, "Out 2");
@@ -116,10 +138,29 @@ struct RaDseqModule : Module {
     }
 
     int getLength() {
-        return clamp((int)std::lround(params[LENGTH_PARAM].getValue()), 1, 64);
+        // Loop length of the displayed sequence; 0 = sequence off
+        return clamp(seqLengths[displayedSeq], 0, 64);
     }
 
-    void selectSeq(int delta) {
+    bool hasZeroLength(int seq) {
+        return seqLengths[seq] <= 0;
+    }
+
+    void selectSeq(int delta, bool skipEmpty) {
+        if (!skipEmpty) {
+            displayedSeq = eucMod(displayedSeq + delta, 8);
+            return;
+        }
+        // Trigger-driven navigation skips sequences with no set steps
+        for (int i = 1; i <= 8; i++) {
+            int d = (delta > 0) ? i : -i;
+            int seq = eucMod(displayedSeq + d, 8);
+            if (!hasZeroLength(seq)) {
+                displayedSeq = seq;
+                return;
+            }
+        }
+        // Every sequence is empty — fall back to a plain step
         displayedSeq = eucMod(displayedSeq + delta, 8);
     }
 
@@ -153,26 +194,47 @@ struct RaDseqModule : Module {
 
     void onReset() override {
         memset(steps, 0, sizeof(steps));
+        memset(seqLengths, 0, sizeof(seqLengths));
+        seqLengths[0] = 16;
+        lengthKnobValue = -1;
         stepIndex = 0;
         memset(pulse, 0, sizeof(pulse));
         memset(hit, 0, sizeof(hit));
     }
 
     void process(const ProcessArgs& args) override {
+        // Pickup: the Length knob only edits the currently displayed sequence
+        // while it is being turned; switching sequences never rewrites values
+        int lv = (int)std::lround(params[LENGTH_PARAM].getValue());
+        if (lengthKnobValue < 0)
+            lengthKnobValue = lv;
+        if (lv != lengthKnobValue) {
+            seqLengths[displayedSeq] = clamp(lv, 0, 64);
+            lengthKnobValue = lv;
+        }
+
         int length = getLength();
         bool songMode = params[MODE_PARAM].getValue() > 0.5f;
         bool trigMode = params[OUT_PARAM].getValue() > 0.5f;
         float chance = clamp(params[CHANCE_PARAM].getValue() + inputs[CHANCE_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
 
-        // Sequence selection: prev/next trigger inputs and buttons
+        // Run: the latching button toggles the transport; the Run input gates it.
+        // While not running, external step triggers are ignored — the step buttons still work
+        if (runBtnTrigger.process(params[RUN_PARAM].getValue()))
+            running = !running;
+        bool runActive = running || inputs[RUN_INPUT].getVoltage() > 1.f;
+        lights[RUN_LIGHT].setBrightness(runActive ? 1.f : 0.f);
+
+        // Sequence selection: trigger inputs skip empty sequences; the
+        // buttons step through all eight regardless
         if (seqPrevTrigger.process(inputs[SEQ_PREV_TRIG_INPUT].getVoltage()))
-            selectSeq(-1);
+            selectSeq(-1, true);
         if (seqNextTrigger.process(inputs[SEQ_NEXT_TRIG_INPUT].getVoltage()))
-            selectSeq(1);
+            selectSeq(1, true);
         if (seqPrevButtonTrigger.process(params[SEQ_PREV_PARAM].getValue()))
-            selectSeq(-1);
+            selectSeq(-1, false);
         if (seqNextButtonTrigger.process(params[SEQ_NEXT_PARAM].getValue()))
-            selectSeq(1);
+            selectSeq(1, false);
 
         // Shifts rotate the current sequence's steps, wrapping around
         if (shiftLTrigger.process(inputs[SHIFT_L_TRIG_INPUT].getVoltage()))
@@ -211,23 +273,40 @@ struct RaDseqModule : Module {
             for (int k = 0; k < 8; k++) {
                 bool active = !songMode || k == 0;
                 int seq = songMode ? displayedSeq : k;
-                bool set = active && steps[seq][stepIndex];
+                bool set = active && stepIndex < seqLengths[seq] && steps[seq][stepIndex];
                 hit[k] = set && (random::uniform() < chance);
                 if (hit[k] && trigMode)
                     pulse[k] = 0.01f;
             }
         };
 
-        if (stepNextTrigger.process(inputs[STEP_NEXT_TRIG_INPUT].getVoltage())
-            || stepNextButtonTrigger.process(params[STEP_NEXT_PARAM].getValue())) {
+        // Reset: jump back to step 1 of the current sequence and play it immediately
+        if (resetButtonTrigger.process(params[RESET_PARAM].getValue())
+            || resetTrigger.process(inputs[RESET_TRIG_INPUT].getVoltage())) {
+            stepIndex = 0;
+            memset(hit, 0, sizeof(hit));
+            fireStep();
+        }
+
+        // Reset sequence: jump back to sequence 1 step 1 and play it immediately
+        if (seqResetButtonTrigger.process(params[SEQ_RESET_PARAM].getValue())
+            || seqResetTrigger.process(inputs[SEQ_RESET_TRIG_INPUT].getVoltage())) {
+            displayedSeq = 0;
+            stepIndex = 0;
+            memset(hit, 0, sizeof(hit));
+            fireStep();
+        }
+
+        if (stepNextButtonTrigger.process(params[STEP_NEXT_PARAM].getValue())
+            || (runActive && stepNextTrigger.process(inputs[STEP_NEXT_TRIG_INPUT].getVoltage()))) {
             stepIndex++;
             if (stepIndex >= length)
                 stepIndex = 0;
             fireStep();
         }
 
-        if (stepPrevTrigger.process(inputs[STEP_PREV_TRIG_INPUT].getVoltage())
-            || stepPrevButtonTrigger.process(params[STEP_PREV_PARAM].getValue())) {
+        if (stepPrevButtonTrigger.process(params[STEP_PREV_PARAM].getValue())
+            || (runActive && stepPrevTrigger.process(inputs[STEP_PREV_TRIG_INPUT].getVoltage()))) {
             stepIndex--;
             if (stepIndex < 0)
                 stepIndex = length - 1;
@@ -261,7 +340,12 @@ struct RaDseqModule : Module {
             json_array_append_new(stepsJ, seqJ);
         }
         json_object_set_new(rootJ, "steps", stepsJ);
+        json_t* lensJ = json_array();
+        for (int i = 0; i < 8; i++)
+            json_array_append_new(lensJ, json_integer(seqLengths[i]));
+        json_object_set_new(rootJ, "lengths", lensJ);
         json_object_set_new(rootJ, "seq", json_integer(displayedSeq));
+        json_object_set_new(rootJ, "running", json_boolean(running));
         return rootJ;
     }
 
@@ -283,6 +367,23 @@ struct RaDseqModule : Module {
                 }
             }
         }
+
+        json_t* lensJ = json_object_get(rootJ, "lengths");
+        if (lensJ && json_array_size(lensJ) == 8) {
+            for (int i = 0; i < 8; i++)
+                seqLengths[i] = clamp(json_integer_value(json_array_get(lensJ, i)), 0, 64);
+        }
+        else {
+            // Legacy patches: the global length applied to every sequence
+            int gl = clamp((int)std::lround(params[LENGTH_PARAM].getValue()), 1, 64);
+            for (int i = 0; i < 8; i++)
+                seqLengths[i] = gl;
+        }
+        json_t* runJ = json_object_get(rootJ, "running");
+        if (runJ)
+            running = json_boolean_value(runJ);
+
+        lengthKnobValue = (int)std::lround(params[LENGTH_PARAM].getValue());
     }
 };
 
@@ -405,6 +506,12 @@ struct StepGridDisplay : LedDisplay {
     }
 };
 
+struct PurpleLight : GrayModuleLightWidget {
+    PurpleLight() {
+        addBaseColor(nvgRGB(0x99, 0x6d, 0xd2));
+    }
+};
+
 struct RaDseqWidget : ModuleWidget {
     RaDseqWidget(RaDseqModule* module) {
         setModule(module);
@@ -416,48 +523,54 @@ struct RaDseqWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         // 8x8 step grid + sequence LED column on the left, cleared of the
-        // output stacks on the right (grid centre x=127)
-        StepGridDisplay* grid = createWidget<StepGridDisplay>(Vec(36, 40));
+        // output stacks on the right (grid centre x=135; 21hp panel)
+        StepGridDisplay* grid = createWidget<StepGridDisplay>(Vec(44, 40));
         grid->box.size = Vec(182, 168);
         grid->setModule(module);
         addChild(grid);
 
-        // Controls below the grid on a strict 7-column grid: buttons over their
-        // trig inputs, settings row underneath, centred on the module (x=150).
-        // Columns: 36 74 112 150 188 226 264
-        addParam(createParamCentered<RaButton>(Vec(36, 246), module, RaDseqModule::STEP_PREV_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(74, 246), module, RaDseqModule::STEP_NEXT_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(112, 246), module, RaDseqModule::SEQ_PREV_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(150, 246), module, RaDseqModule::SEQ_NEXT_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(188, 246), module, RaDseqModule::SHIFT_L_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(226, 246), module, RaDseqModule::SHIFT_R_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(264, 246), module, RaDseqModule::RANDOMIZE_PARAM));
+        // Controls below the grid on a strict 9-column grid: buttons over their
+        // trig inputs, settings row underneath, centred on the module (x=158).
+        // Columns: 26 59 92 125 158 191 224 257 290
+        addParam(createParamCentered<RaButton>(Vec(26, 246), module, RaDseqModule::STEP_PREV_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(59, 246), module, RaDseqModule::STEP_NEXT_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(92, 246), module, RaDseqModule::SEQ_PREV_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(125, 246), module, RaDseqModule::SEQ_NEXT_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(158, 246), module, RaDseqModule::SHIFT_L_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(191, 246), module, RaDseqModule::SHIFT_R_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(224, 246), module, RaDseqModule::RANDOMIZE_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(257, 246), module, RaDseqModule::RESET_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(290, 246), module, RaDseqModule::SEQ_RESET_PARAM));
 
-        addInput(createInputCentered<RaPort>(Vec(36, 288), module, RaDseqModule::STEP_PREV_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(74, 288), module, RaDseqModule::STEP_NEXT_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(112, 288), module, RaDseqModule::SEQ_PREV_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(150, 288), module, RaDseqModule::SEQ_NEXT_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(188, 288), module, RaDseqModule::SHIFT_L_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(226, 288), module, RaDseqModule::SHIFT_R_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(264, 288), module, RaDseqModule::RANDOMIZE_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(26, 288), module, RaDseqModule::STEP_PREV_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(59, 288), module, RaDseqModule::STEP_NEXT_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(92, 288), module, RaDseqModule::SEQ_PREV_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(125, 288), module, RaDseqModule::SEQ_NEXT_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(158, 288), module, RaDseqModule::SHIFT_L_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(191, 288), module, RaDseqModule::SHIFT_R_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(224, 288), module, RaDseqModule::RANDOMIZE_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(257, 288), module, RaDseqModule::RESET_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(290, 288), module, RaDseqModule::SEQ_RESET_TRIG_INPUT));
 
-        addParam(createParamCentered<RaKnob>(Vec(36, 330), module, RaDseqModule::LENGTH_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(74, 330), module, RaDseqModule::CHANCE_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(112, 330), module, RaDseqModule::CHANCE_CV_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(150, 330), module, RaDseqModule::CLEAR_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(188, 330), module, RaDseqModule::MODE_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(226, 330), module, RaDseqModule::OUT_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(264, 330), module, RaDseqModule::RAND_CHANCE_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(26, 330), module, RaDseqModule::LENGTH_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(59, 330), module, RaDseqModule::CHANCE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(92, 330), module, RaDseqModule::CHANCE_CV_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(125, 330), module, RaDseqModule::CLEAR_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(158, 330), module, RaDseqModule::MODE_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(191, 330), module, RaDseqModule::OUT_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(224, 330), module, RaDseqModule::RAND_CHANCE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(257, 330), module, RaDseqModule::RUN_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(290, 330), module, RaDseqModule::RUN_PARAM, RaDseqModule::RUN_LIGHT));
 
         // Right, near the top: 8 trigger outputs in two stacks — 1–4 left, 5–8 right
-        addOutput(createOutputCentered<RaPort>(Vec(252, 60), module, RaDseqModule::OUT1_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(252, 100), module, RaDseqModule::OUT2_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(252, 140), module, RaDseqModule::OUT3_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(252, 180), module, RaDseqModule::OUT4_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 60), module, RaDseqModule::OUT5_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 100), module, RaDseqModule::OUT6_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 140), module, RaDseqModule::OUT7_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(286, 180), module, RaDseqModule::OUT8_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(260, 60), module, RaDseqModule::OUT1_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(260, 100), module, RaDseqModule::OUT2_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(260, 140), module, RaDseqModule::OUT3_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(260, 180), module, RaDseqModule::OUT4_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(294, 60), module, RaDseqModule::OUT5_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(294, 100), module, RaDseqModule::OUT6_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(294, 140), module, RaDseqModule::OUT7_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(294, 180), module, RaDseqModule::OUT8_OUTPUT));
     }
 };
 
