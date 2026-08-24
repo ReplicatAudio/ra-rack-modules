@@ -1,6 +1,6 @@
 # ra-hat — 808 Style Hi-Hat
 
-Classic 808-style hi-hat made from six inharmonic square-wave partials with per-partial decays and a brightness highpass. The decay range spans closed to open hits.
+Noise-forward 808-style hi-hat — white noise through a 2-pole tone highpass forms the body, with six anti-aliased inharmonic square-wave partials adding metallic shimmer on top. The decay range spans closed to open hits.
 
 ## Controls
 - **1V/Oct**: pitch knob — a semitone knob (±24 st from A4) that tunes the metallic partials.
@@ -9,8 +9,8 @@ Classic 808-style hi-hat made from six inharmonic square-wave partials with per-
 - **Metallic**: how many of the 6 inharmonic partials are active (2–6).
 - **Decay**: length of the ring (20 ms–600 ms, closed to open).
 - **Snap**: how much faster the higher partials decay (attack shimmer).
-- **Body**: level of the metallic signal.
-- **Bright**: highpass cutoff (dark to bright).
+- **Body**: noise mix — crossfades between pure metallic shimmer (0) and the 808-style noise body (1).
+- **Bright**: 2-pole highpass cutoff (dark to bright).
 - **Drive**: tanh saturation amount.
 - **Accent**: extra level boost applied to hits that arrive while the Accent input is high (up to +6 dB).
 - **Level**: output level (0–100%).

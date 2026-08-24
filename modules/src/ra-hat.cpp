@@ -4,6 +4,19 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 
+// PolyBLEP residual — band-limited square partials without aliasing
+static float squareBlep(float t, float dt) {
+    if (t < dt) {
+        t /= dt;
+        return t + t - t * t - 1.f;
+    }
+    else if (t > 1.f - dt) {
+        t = (t - 1.f) / dt;
+        return t * t + t + t + 1.f;
+    }
+    return 0.f;
+}
+
 struct RaHatModule : Module {
     enum ParamIds {
         PITCH_PARAM,        // 1V/Oct pitch knob
@@ -12,7 +25,7 @@ struct RaHatModule : Module {
         METALLIC_PARAM,     // number/strength of active partials
         DECAY_PARAM,
         SNAP_PARAM,         // higher-partial decay skew
-        BODY_PARAM,         // metallic level
+        BODY_PARAM,         // noise mix (0 = metal, 1 = noise)
         BRIGHT_PARAM,       // highpass cutoff
         ACCENT_PARAM,
         DRIVE_PARAM,
@@ -51,9 +64,8 @@ struct RaHatModule : Module {
     dsp::SchmittTrigger trigger;
     float phase[6] = {};
     float env[6] = {};
-    // one-pole highpass state
-    float hpPrevIn = 0.f;
-    float hpPrevOut = 0.f;
+    float noiseEnv = 0.f;
+    dsp::TBiquadFilter<float> toneFilter;
     bool accentActive = false;
 
     RaHatModule() {
@@ -64,7 +76,7 @@ struct RaHatModule : Module {
         configParam(METALLIC_PARAM, 0.f, 1.f, 0.6f, "Metallic", "%", 0, 100);
         configParam(DECAY_PARAM, 0.f, 1.f, 0.4f, "Decay", "%", 0, 100);
         configParam(SNAP_PARAM, 0.f, 1.f, 0.4f, "Snap", "%", 0, 100);
-        configParam(BODY_PARAM, 0.f, 1.f, 1.f, "Body", "%", 0, 100);
+        configParam(BODY_PARAM, 0.f, 1.f, 0.75f, "Body", "%", 0, 100);
         configParam(BRIGHT_PARAM, 0.f, 1.f, 0.6f, "Bright", "%", 0, 100);
         configParam(ACCENT_PARAM, 0.f, 1.f, 0.5f, "Accent", "%", 0, 100);
         configParam(DRIVE_PARAM, 0.f, 1.f, 0.3f, "Drive", "%", 0, 100);
@@ -105,43 +117,61 @@ struct RaHatModule : Module {
         bool accent = inputs[ACCENT_INPUT].getVoltage() >= 1.f;
 
         float ratioMult = 0.7f + 0.6f * tone;
-        // 2 to 6 partials, boundary partial fades in/out smoothly with the knob
+        // 2 to 6 shimmer partials, the outermost fades in/out smoothly with the knob
         float nActive = 2.f + 4.f * metallic;
         float decayTime = MIN_DECAY * powf(MAX_DECAY / MIN_DECAY, decay);
-        float driveGain = 1.f + 6.f * drive;
+        float driveGain = 1.f + 4.f * drive;
+        // Noise-forward: Body crossfades the noise body (808-style) against the metallic shimmer
+        float noiseMix = body;
+        float shimmerMix = 1.f - body;
+        // Keep the stack level roughly constant as partials join in
+        float shimmerGain = shimmerMix / (1.f + 0.35f * (nActive - 1.f));
 
         if (trigger.process(inputs[TRIG_INPUT].getVoltage())) {
             for (int i = 0; i < 6; i++) {
-                phase[i] = 0.f;
+                // De-synchronize the partials on every hit so repeats aren't identical
+                phase[i] = random::uniform();
                 env[i] = 1.f;
             }
+            noiseEnv = 1.f;
             accentActive = accent;
         }
 
         float out = 0.f;
+
+        // Noise body — the 808 hat is noise through a tone filter
+        if (noiseEnv > 1e-4f) {
+            out += (random::uniform() * 2.f - 1.f) * noiseEnv * noiseMix;
+            noiseEnv *= std::exp(-args.sampleTime / decayTime);
+        }
+
+        // Metallic shimmer — band-limited squares so the partials don't alias
         for (int i = 0; i < 6; i++) {
             if (env[i] > 1e-4f) {
-                phase[i] += baseFreq * ratioMult * RATIOS[i] * args.sampleTime;
-                if (phase[i] >= 1.f)
-                    phase[i] -= 1.f;
-                float s = (std::sin(2.f * M_PI * phase[i]) >= 0.f) ? 1.f : -1.f;
                 float amp = clamp(nActive - i, 0.f, 1.f);
-                out += s * env[i] * amp;
+                if (amp > 0.f) {
+                    float partFreq = std::min(baseFreq * ratioMult * RATIOS[i], 0.45f * args.sampleRate);
+                    float dt = std::min(2.f * partFreq / args.sampleRate, 0.5f);
+                    float p = phase[i];
+                    float s = (p < 0.5f) ? 1.f : -1.f;
+                    s += squareBlep(p, dt);
+                    s -= squareBlep((p + 0.5f) - std::floor(p + 0.5f), dt);
+                    out += s * env[i] * amp * shimmerGain;
+                    phase[i] += partFreq * args.sampleTime;
+                    if (phase[i] >= 1.f)
+                        phase[i] -= 1.f;
+                }
                 // higher partials decay faster as Snap rises
                 float partDecay = decayTime / (1.f + snap * 0.4f * i);
                 env[i] *= std::exp(-args.sampleTime / partDecay);
             }
         }
 
-        // Highpass (Bright) shapes the metallic tone
+        // Tone filter: 2-pole highpass (Bright) shapes the mix like an 808 tone control
         float cutoff = 100.f * powf(100.f, bright);
-        float hp = std::exp(-2.f * M_PI * cutoff * args.sampleTime);
-        float hpIn = out;
-        out = hp * (hpPrevOut + hpIn - hpPrevIn);
-        hpPrevOut = out;
-        hpPrevIn = hpIn;
-
-        out *= body;
+        cutoff = std::min(cutoff, 0.45f * args.sampleRate);
+        toneFilter.setParameters(dsp::TBiquadFilter<float>::HIGHPASS, cutoff / args.sampleRate, 0.707f, 1.f);
+        out = toneFilter.process(out);
 
         // Drive-controlled saturation
         out = 5.f * std::tanh(out * driveGain);

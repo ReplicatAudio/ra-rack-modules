@@ -1,6 +1,6 @@
 # ra-ride — 808 Style Ride Cymbal
 
-Classic 808-style ride cymbal made from six inharmonic square-wave partials plus a long-ringing pure-sine bell "ping", with a brightness highpass. The longest decay of the metallic family.
+Noise-forward 808-style ride cymbal — a noise wash and six anti-aliased inharmonic square-wave partials through a 2-pole tone highpass, plus a long-ringing pure-sine bell "ping". The longest decay of the metallic family.
 
 ## Controls
 - **1V/Oct**: pitch knob — a semitone knob (±24 st from A4) that tunes the metallic partials and bell.
@@ -9,8 +9,8 @@ Classic 808-style ride cymbal made from six inharmonic square-wave partials plus
 - **Metallic**: how many of the 6 inharmonic partials are active (2–6).
 - **Decay**: length of the ring (100 ms–4 s).
 - **Snap**: how much faster the higher partials decay (attack shimmer).
-- **Body**: level of the metallic signal and bell.
-- **Bright**: highpass cutoff (dark to bright).
+- **Body**: noise mix — crossfades between pure metallic shimmer (0) and the 808-style noise wash (1).
+- **Bright**: 2-pole highpass cutoff (dark to bright).
 - **Drive**: tanh saturation amount.
 - **Accent**: extra level boost applied to hits that arrive while the Accent input is high (up to +6 dB).
 - **Level**: output level (0–100%).
