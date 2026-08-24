@@ -5,6 +5,7 @@ Eight sequences of 64 steps, edited on an 8×8 pad grid and played through 8 tri
 ## Controls
 - **Length**: loop length in steps (1–64, default 16). Steps beyond the set length are dimmed on the grid.
 - **Chance**: per-step probability (0–100%, default 100%) that a set step actually plays. The Chance CV input adds to it (±10 V = full range).
+- **Randomize**: button that randomizes the current sequence — each step independently has a **Randomize chance** probability (0–100%, default 50%) of being flipped to a random on/off state.
 - **Seq prev / Seq next**: buttons that step through the 8 sequences (displayed/edited, and played in song mode).
 - **Step prev / Step next**: buttons that step the sequencer backward/forward manually, sounding the new step.
 - **Shift left / Shift right**: buttons that rotate the current sequence's steps, wrapping around the full 64.
@@ -15,7 +16,7 @@ Eight sequences of 64 steps, edited on an 8×8 pad grid and played through 8 tri
 ## Pads
 - 8×8 grid of 64 LED buttons: **white = step set**, **purple = step unset**.
 - The **current step** is shown as an extra-bright LED with a glow halo.
-- A row of LED buttons below the grid selects the current sequence directly (the lit one is active).
+- A column of LED buttons to the **left** of the grid (sequence 1 at top → 8 at bottom) selects the current sequence directly; the lit one is active.
 - Click a pad to toggle its step; drag across pads to paint.
 
 ## Inputs
@@ -23,6 +24,7 @@ Eight sequences of 64 steps, edited on an 8×8 pad grid and played through 8 tri
 - **Step prev**: trigger input that steps the sequencer backward on each rising edge.
 - **Seq prev / Seq next**: trigger inputs that step to the previous/next sequence (wrapping) on each rising edge.
 - **Shift left / Shift right**: trigger inputs that rotate the current sequence's steps left/right, wrapping around the full 64.
+- **Randomize**: trigger input that randomizes the current sequence, using the Randomize chance knob.
 - **Chance CV**: bipolar CV added to the Chance knob (±10 V = full range).
 
 ## Outputs
