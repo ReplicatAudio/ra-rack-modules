@@ -2,6 +2,7 @@
 #include <atomic>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
 using namespace rack;
 
@@ -24,6 +25,9 @@ struct RaSeerModule : Module {
         NUM_OUTPUTS
     };
     enum LightIds {
+        MODE_LIGHT_R,
+        MODE_LIGHT_G,
+        MODE_LIGHT_B,
         NUM_LIGHTS
     };
 
@@ -31,9 +35,14 @@ struct RaSeerModule : Module {
     static constexpr int FFT_SIZE = 256;
     static constexpr int NUM_BINS = 64;
 
-    // Scope
+    // Scope — history is shared between the channels of each port so total
+    // memory stays constant: each channel gets MAX_HISTORY / channels samples.
     float history[MAX_HISTORY] = {};
     float history2[MAX_HISTORY] = {};
+    int channels1 = 1;
+    int channels2 = 1;
+    int cap1 = MAX_HISTORY;
+    int cap2 = MAX_HISTORY;
     std::atomic<int> head{0};
     std::atomic<int> displayLen{24000};
 
@@ -57,6 +66,7 @@ struct RaSeerModule : Module {
     float smooth2[NUM_BINS] = {};
 
     std::atomic<int> mode{0};
+    dsp::SchmittTrigger modeCycleTrigger;
 
     int bitRev[FFT_SIZE];
     float cosTbl[FFT_SIZE];
@@ -67,11 +77,14 @@ struct RaSeerModule : Module {
     RaSeerModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(PARAM, 0.f, 1.f, 0.5f, "Time/Smoothing", " ms", 10000.f, 5.f, 0.f);
-        configSwitch(MODE_PARAM, 0.f, 2.f, 0.f, "Mode", {"Scope", "Spectrum", "Utility"});
+        configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Cycle mode", {"Cycle"});
         configInput(CH1_INPUT, "Channel 1");
         configInput(CH2_INPUT, "Channel 2");
         configOutput(CH1_OUTPUT, "Channel 1");
         configOutput(CH2_OUTPUT, "Channel 2");
+        configLight(MODE_LIGHT_R, "Mode indicator");
+        configLight(MODE_LIGHT_G, "");
+        configLight(MODE_LIGHT_B, "");
         initFFT();
     }
 
@@ -130,26 +143,53 @@ struct RaSeerModule : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        float v1 = inputs[CH1_INPUT].getVoltage();
-        float v2 = inputs[CH2_INPUT].getVoltage();
-        outputs[CH1_OUTPUT].setVoltage(v1);
-        outputs[CH2_OUTPUT].setVoltage(v2);
+        int ch1 = inputs[CH1_INPUT].getChannels();
+        int ch2 = inputs[CH2_INPUT].getChannels();
+        if (ch1 != channels1) {
+            channels1 = ch1;
+            cap1 = std::max(1, MAX_HISTORY / std::max(ch1, 1));
+            memset(history, 0, sizeof(history));
+        }
+        if (ch2 != channels2) {
+            channels2 = ch2;
+            cap2 = std::max(1, MAX_HISTORY / std::max(ch2, 1));
+            memset(history2, 0, sizeof(history2));
+        }
 
-        int m = int(params[MODE_PARAM].getValue() + 0.5f);
-        mode.store(m, std::memory_order_relaxed);
+        outputs[CH1_OUTPUT].setChannels(ch1);
+        outputs[CH1_OUTPUT].writeVoltages(inputs[CH1_INPUT].getVoltages());
+        outputs[CH2_OUTPUT].setChannels(ch2);
+        outputs[CH2_OUTPUT].writeVoltages(inputs[CH2_INPUT].getVoltages());
+
+        if (modeCycleTrigger.process(params[MODE_PARAM].getValue())) {
+            mode = (mode.load() + 1) % 3;
+        }
+        int m = mode.load(std::memory_order_relaxed);
+
+        float lr = 0.f, lg = 0.f, lb = 0.f;
+        switch (m) {
+            case 0: lr = lg = lb = 1.0f; break;
+            case 1: lr = lg = 1.0f; break;
+            case 2: lg = 1.0f; break;
+        }
+        lights[MODE_LIGHT_R].setBrightness(lr);
+        lights[MODE_LIGHT_G].setBrightness(lg);
+        lights[MODE_LIGHT_B].setBrightness(lb);
         float t = params[PARAM].getValue();
 
         if (m == 0) {
             int h = head.load(std::memory_order_relaxed);
-            history[h] = v1;
-            history2[h] = v2;
+            for (int c = 0; c < channels1; c++)
+                history[c * cap1 + h % cap1] = inputs[CH1_INPUT].getVoltage(c);
+            for (int c = 0; c < channels2; c++)
+                history2[c * cap2 + h % cap2] = inputs[CH2_INPUT].getVoltage(c);
             head.store((h + 1) % MAX_HISTORY, std::memory_order_release);
             float timeMs = 5.f * powf(10000.f, t);
             int len = int(timeMs * args.sampleRate / 1000.f + 0.5f);
             displayLen.store(clamp(len, 2, MAX_HISTORY - 1), std::memory_order_relaxed);
         } else if (m == 1) {
-            fftBuf1[fftIdx] = v1;
-            fftBuf2[fftIdx] = v2;
+            fftBuf1[fftIdx] = inputs[CH1_INPUT].getVoltageSum();
+            fftBuf2[fftIdx] = inputs[CH2_INPUT].getVoltageSum();
             fftIdx++;
             if (fftIdx >= FFT_SIZE) {
                 fftIdx = 0;
@@ -165,12 +205,18 @@ struct RaSeerModule : Module {
                 }
             }
         } else {
-            sum1 += v1;
-            sum2 += v2;
-            sumSq1 += v1 * v1;
-            sumSq2 += v2 * v2;
-            blockPeak1 = fmaxf(fabsf(v1), blockPeak1);
-            blockPeak2 = fmaxf(fabsf(v2), blockPeak2);
+            for (int c = 0; c < channels1; c++) {
+                float v = inputs[CH1_INPUT].getVoltage(c);
+                sum1 += v;
+                sumSq1 += v * v;
+                blockPeak1 = fmaxf(fabsf(v), blockPeak1);
+            }
+            for (int c = 0; c < channels2; c++) {
+                float v = inputs[CH2_INPUT].getVoltage(c);
+                sum2 += v;
+                sumSq2 += v * v;
+                blockPeak2 = fmaxf(fabsf(v), blockPeak2);
+            }
             blockCount++;
             float timeMs = 5.f * powf(10000.f, t);
             int blockSize = int(timeMs * args.sampleRate / 1000.f + 0.5f);
@@ -188,8 +234,8 @@ struct RaSeerModule : Module {
                 blockPeak1 = blockPeak2 = 0.f;
                 blockCount = 0;
             }
-            real1.store(v1, std::memory_order_relaxed);
-            real2.store(v2, std::memory_order_relaxed);
+            real1.store(inputs[CH1_INPUT].getVoltageSum(), std::memory_order_relaxed);
+            real2.store(inputs[CH2_INPUT].getVoltageSum(), std::memory_order_relaxed);
         }
     }
 };
@@ -201,7 +247,6 @@ struct SeerDisplay : Widget {
     std::shared_ptr<Font> font;
 
     float local[RaSeerModule::MAX_HISTORY];
-    float local2[RaSeerModule::MAX_HISTORY];
 
     SeerDisplay() {
         font = APP->window->loadFont(asset::system("res/fonts/DejaVuSans.ttf"));
@@ -211,13 +256,6 @@ struct SeerDisplay : Widget {
         int head = module->head.load(std::memory_order_acquire);
         int len = module->displayLen.load(std::memory_order_relaxed);
         if (len < 2) return;
-        len = std::min(len, RaSeerModule::MAX_HISTORY - 1);
-
-        for (int i = 0; i < len; i++) {
-            int idx = (head - 1 - i + RaSeerModule::MAX_HISTORY) % RaSeerModule::MAX_HISTORY;
-            local[i] = module->history[idx];
-            local2[i] = module->history2[idx];
-        }
 
         float w = box.size.x, h = box.size.y;
         float cx = w / 2.f;
@@ -243,31 +281,33 @@ struct SeerDisplay : Widget {
         int rows = int(h);
         double spr = double(len - 1) / std::max(rows - 1, 1);
 
-        nvgBeginPath(args.vg);
-        nvgStrokeWidth(args.vg, 1.f);
-        nvgStrokeColor(args.vg, col2);
-        for (int r = 0; r < rows; r++) {
-            int si = int(r * spr);
-            if (si >= len) si = len - 1;
-            float x = cx + local2[si] * (cx / 5.f);
-            float y = h - float(r) / float(rows - 1) * h;
-            if (r == 0) nvgMoveTo(args.vg, x, y);
-            else nvgLineTo(args.vg, x, y);
-        }
-        nvgStroke(args.vg);
+        // One overlaid trace per poly channel, in the port's cable color
+        auto strokeTrace = [&](const float *buf, int cap, NVGcolor col) {
+            int l = std::min(len, cap);
+            if (l < 2) return;
+            for (int i = 0; i < l; i++) {
+                int m = (head - 1 - i) % RaSeerModule::MAX_HISTORY;
+                if (m < 0) m += RaSeerModule::MAX_HISTORY;
+                local[i] = buf[m % cap];
+            }
+            nvgBeginPath(args.vg);
+            nvgStrokeWidth(args.vg, 1.f);
+            nvgStrokeColor(args.vg, col);
+            for (int r = 0; r < rows; r++) {
+                int si = int(r * spr);
+                if (si >= l) si = l - 1;
+                float x = cx + local[si] * (cx / 5.f);
+                float y = h - float(r) / float(rows - 1) * h;
+                if (r == 0) nvgMoveTo(args.vg, x, y);
+                else nvgLineTo(args.vg, x, y);
+            }
+            nvgStroke(args.vg);
+        };
 
-        nvgBeginPath(args.vg);
-        nvgStrokeWidth(args.vg, 1.f);
-        nvgStrokeColor(args.vg, col1);
-        for (int r = 0; r < rows; r++) {
-            int si = int(r * spr);
-            if (si >= len) si = len - 1;
-            float x = cx + local[si] * (cx / 5.f);
-            float y = h - float(r) / float(rows - 1) * h;
-            if (r == 0) nvgMoveTo(args.vg, x, y);
-            else nvgLineTo(args.vg, x, y);
-        }
-        nvgStroke(args.vg);
+        for (int c = 0; c < module->channels2; c++)
+            strokeTrace(&module->history2[c * module->cap2], module->cap2, col2);
+        for (int c = 0; c < module->channels1; c++)
+            strokeTrace(&module->history[c * module->cap1], module->cap1, col1);
     }
 
     void drawSpectrum(const DrawArgs &args) {
@@ -385,7 +425,7 @@ struct RaSeerWidget : ModuleWidget {
 
         auto *display = new SeerDisplay();
         display->box.pos = Vec(6, 70);
-        display->box.size = Vec(48, 260);
+        display->box.size = Vec(48, 235);
         display->module = module;
         addChild(display);
 
@@ -395,7 +435,8 @@ struct RaSeerWidget : ModuleWidget {
         addChild(display->ch2Input);
 
         addParam(createParamCentered<RaKnobTrim>(Vec(30, 46), module, RaSeerModule::PARAM));
-        addParam(createParamCentered<RaSwitch3>(Vec(10, 48), module, RaSeerModule::MODE_PARAM));
+
+        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(30, 322), module, RaSeerModule::MODE_PARAM, RaSeerModule::MODE_LIGHT_R));
 
         addOutput(createOutputCentered<RaPort>(Vec(14, 358), module, RaSeerModule::CH1_OUTPUT));
         addOutput(createOutputCentered<RaPort>(Vec(46, 358), module, RaSeerModule::CH2_OUTPUT));

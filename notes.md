@@ -38,10 +38,11 @@ Hat, cymbol and ride are redundant with ra-meteor
 This is a superset of all 3
 
 
-# dseq
+# renames
 
 dseq -> vash
 
-# ra-endless
-
 ra-endless -> ra-reflectingpool
+
+ra-seer -> ra-seer-mini
+ra-dscope -> ra-seer
