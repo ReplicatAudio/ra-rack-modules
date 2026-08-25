@@ -69,6 +69,7 @@ struct RaKlockModule : Module {
     };
     enum OutputIds {
         CLK_OUTPUT,
+        RST_OUTPUT,
         OUT1_OUTPUT,
         OUT2_OUTPUT,
         OUT3_OUTPUT,
@@ -125,6 +126,7 @@ struct RaKlockModule : Module {
         configInput(RUN_INPUT, "Run");
         configInput(RESET_INPUT, "Reset");
         configOutput(CLK_OUTPUT, "CLK");
+        configOutput(RST_OUTPUT, "RST");
         for (int i = 0; i < 6; i++)
             configOutput(OUT1_OUTPUT + i, string::f("Out %d", i + 1));
         configLight(BEAT_LIGHT, "Beat");
@@ -193,6 +195,12 @@ struct RaKlockModule : Module {
             doReset();
         prevResetButton = resetButtonPressed;
 
+        // Reset pulse fires regardless of transport state so the RST output
+        // also works while stopped
+        float delta = args.sampleTime;
+        bool resetActive = resetPulse.process(delta);
+        outputs[RST_OUTPUT].setVoltage(resetActive ? 10.f : 0.f);
+
         if (!wasRunning && running) {
             phase = 0.f;
             beatCount = 0;
@@ -207,8 +215,11 @@ struct RaKlockModule : Module {
         }
 
         if (!running) {
-            for (int i = 0; i < NUM_OUTPUTS; i++)
+            for (int i = 0; i < NUM_OUTPUTS; i++) {
+                if (i == RST_OUTPUT)
+                    continue;
                 outputs[i].setVoltage(0.f);
+            }
             lights[BEAT_LIGHT].setBrightnessSmooth(0.f, args.sampleTime);
             lights[RUN_LIGHT].setBrightnessSmooth(0.f, args.sampleTime);
             lights[RESET_LIGHT].setBrightnessSmooth(0.f, args.sampleTime);
@@ -266,10 +277,8 @@ struct RaKlockModule : Module {
             }
         }
 
-        float delta = args.sampleTime;
         bool clkActive = clkPulse.process(delta);
         bool beatActive = beatPulse.process(delta);
-        bool resetActive = resetPulse.process(delta);
 
         outputs[CLK_OUTPUT].setVoltage(clkActive ? 10.f : 0.f);
         for (int i = 0; i < 6; i++)
@@ -511,12 +520,13 @@ struct RaKlockWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(180, 172), module, RaKlockModule::SWING_INPUT));
         addParam(createParamCentered<RaKnob>(Vec(214, 172), module, RaKlockModule::SWING_PARAM));
 
-        // Controls — row 2: run/reset + main CLK output
+        // Controls — row 2: run/reset + main CLK/RST outputs
         addInput(createInputCentered<RaPort>(Vec(30, 230), module, RaKlockModule::RUN_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(85, 230), module, RaKlockModule::RUN_PARAM, RaKlockModule::RUN_LIGHT));
-        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(135, 230), module, RaKlockModule::RESET_PARAM, RaKlockModule::RESET_LIGHT));
-        addInput(createInputCentered<RaPort>(Vec(175, 230), module, RaKlockModule::RESET_INPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(210, 230), module, RaKlockModule::CLK_OUTPUT));
+        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(75, 230), module, RaKlockModule::RUN_PARAM, RaKlockModule::RUN_LIGHT));
+        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(120, 230), module, RaKlockModule::RESET_PARAM, RaKlockModule::RESET_LIGHT));
+        addInput(createInputCentered<RaPort>(Vec(152, 230), module, RaKlockModule::RESET_INPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(184, 230), module, RaKlockModule::RST_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(216, 230), module, RaKlockModule::CLK_OUTPUT));
 
         // Ratio outputs — 6 knobs with jacks below
         // Out 1
