@@ -917,7 +917,7 @@ function generateSVG(info) {
 //   [file]  : generate a single SVG to res/
 // ============================================================
 
-let moduleName = 'ra-endless';          // default if no module given
+let moduleName = 'ra-reflectingpool';          // default if no module given
 let overrideHP = 0;                    // --hp=N override
 let heightFlag = false;                // --height=NNN given
 let allFlag = false;                   // --all mode

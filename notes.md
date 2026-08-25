@@ -40,11 +40,11 @@ This is a superset of all 3
 
 # renames
 
-dseq -> vash
+ra-dseq -> ra-vash
 
 ra-endless -> ra-reflectingpool
 
 ra-seer -> ra-seer-mini
 ra-dscope -> ra-seer
 
-freeverb -> freeberd
+ra-freeverb -> ra-freeberd

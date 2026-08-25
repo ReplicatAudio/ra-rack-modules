@@ -8,17 +8,17 @@ SOURCES = \
 	src/ra-blank.cpp \
 	src/ra-buttons.cpp \
 	src/ra-tyche.cpp \
-	src/ra-endless.cpp \
+	src/ra-reflectingpool.cpp \
 	src/ra-macrow.cpp \
 	src/ra-gnawbz.cpp \
 	src/ra-klock.cpp \
 	src/ra-m2.cpp \
-	src/ra-freeverb.cpp \
+	src/ra-freeberd.cpp \
 	src/ra-delay-cv.cpp \
 	src/ra-ranger.cpp \
 	src/ra-magus.cpp \
 	src/ra-mothership.cpp \
-	src/ra-seer.cpp \
+	src/ra-seer-mini.cpp \
 	src/ra-shapes.cpp \
 	src/ra-ulfo.cpp \
 	src/ra-vca.cpp \
@@ -27,7 +27,7 @@ SOURCES = \
 	src/ra-quant.cpp \
 	src/ra-accumulator.cpp \
 	src/ra-glitch.cpp \
-	src/ra-dscope.cpp \
+	src/ra-seer.cpp \
 	src/ra-zeno.cpp \
 	src/ra-chord.cpp \
 	src/ra-tracker.cpp \
@@ -41,7 +41,7 @@ SOURCES = \
 	src/ra-ride.cpp \
 	src/ra-meteor.cpp \
 	src/ra-tuner.cpp \
-	src/ra-dseq.cpp \
+	src/ra-vash.cpp \
 	src/ra-vnote.cpp \
 	src/ra-karplus-strong.cpp \
 	src/ra-krush.cpp

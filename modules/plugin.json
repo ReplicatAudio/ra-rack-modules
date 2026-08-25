@@ -52,8 +52,8 @@
       ]
     },
     {
-      "slug": "ra-endless",
-      "name": "ra-endless",
+      "slug": "ra-reflectingpool",
+      "name": "ra-reflectingpool",
       "description": "OP-1 style endless sequencer \u2014 record and play back sequences of CV notes/rests",
       "tags": [
         "Sequencer",
@@ -90,8 +90,8 @@
       ]
     },
     {
-      "slug": "ra-seer",
-      "name": "ra-seer",
+      "slug": "ra-seer-mini",
+      "name": "ra-seer-mini",
       "description": "Signal meter / oscilloscope / spectrum analyzer \u2014 peak/RMS/DC readouts, waveform display, and FFT spectrum",
       "tags": [
         "Visual",
@@ -202,8 +202,8 @@
       ]
     },
     {
-      "slug": "ra-dscope",
-      "name": "ra-dscope",
+      "slug": "ra-seer",
+      "name": "ra-seer",
       "description": "Dual oscilloscope \u2014 scope, Lissajous, and 1024-bin spectrum analyzer with colored mode indicator",
       "tags": [
         "Visual",
@@ -338,8 +338,8 @@
       ]
     },
     {
-      "slug": "ra-dseq",
-      "name": "ra-dseq",
+      "slug": "ra-vash",
+      "name": "ra-vash",
       "description": "64-step drum sequencer \u2014 8 sequences of 64 steps on an 8\u00d78 pad grid with Game of Life evolution, per-sequence lengths, run/reset transport, song or multi output mode",
       "tags": [
         "Sequencer",
@@ -366,8 +366,8 @@
       ]
     },
     {
-      "slug": "ra-freeverb",
-      "name": "ra-freeverb",
+      "slug": "ra-freeberd",
+      "name": "ra-freeberd",
       "description": "Classic Freeverb \u2014 stereo reverb with room size, damping, and dry/wet controls",
       "tags": [
         "Effect",

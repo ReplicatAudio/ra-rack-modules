@@ -5,15 +5,15 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 
-static const NVGcolor DSEQ_WHITE = nvgRGB(0xee, 0xee, 0xee);
-static const NVGcolor DSEQ_WHITE_CURRENT = nvgRGB(0xff, 0xff, 0xff);
-static const NVGcolor DSEQ_PURPLE = nvgRGB(0x99, 0x6d, 0xd2);
-static const NVGcolor DSEQ_PURPLE_CURRENT = nvgRGB(0xc0, 0x9a, 0xe8);
-static const NVGcolor DSEQ_DIM_WHITE = nvgRGB(0x40, 0x40, 0x40);
-static const NVGcolor DSEQ_DIM_PURPLE = nvgRGB(0x3a, 0x2c, 0x4f);
-static const NVGcolor DSEQ_BG = nvgRGB(0x0a, 0x0a, 0x0a);
+static const NVGcolor VASH_WHITE = nvgRGB(0xee, 0xee, 0xee);
+static const NVGcolor VASH_WHITE_CURRENT = nvgRGB(0xff, 0xff, 0xff);
+static const NVGcolor VASH_PURPLE = nvgRGB(0x99, 0x6d, 0xd2);
+static const NVGcolor VASH_PURPLE_CURRENT = nvgRGB(0xc0, 0x9a, 0xe8);
+static const NVGcolor VASH_DIM_WHITE = nvgRGB(0x40, 0x40, 0x40);
+static const NVGcolor VASH_DIM_PURPLE = nvgRGB(0x3a, 0x2c, 0x4f);
+static const NVGcolor VASH_BG = nvgRGB(0x0a, 0x0a, 0x0a);
 
-struct RaDseqModule : Module {
+struct RaVashModule : Module {
     enum ParamIds {
         LENGTH_PARAM,
         SEQ_PARAM,
@@ -98,7 +98,7 @@ struct RaDseqModule : Module {
     bool running = false;
     bool hit[8] = {};
 
-    RaDseqModule() {
+    RaVashModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(LENGTH_PARAM, 0.f, 64.f, 16.f, "Length", " steps", 0.f, 1.f, 0.f);
         getParamQuantity(LENGTH_PARAM)->snapEnabled = true;
@@ -428,7 +428,7 @@ struct RaDseqModule : Module {
 
 struct StepButton : OpaqueWidget {
     int index;
-    RaDseqModule* module;
+    RaVashModule* module;
 
     void draw(const DrawArgs& args) override {
         bool set = module && module->isStepSet(index);
@@ -440,7 +440,7 @@ struct StepButton : OpaqueWidget {
         if (!inRange) {
             nvgBeginPath(args.vg);
             nvgRoundedRect(args.vg, RECT_ARGS(r), 1.5f);
-            nvgFillColor(args.vg, set ? DSEQ_DIM_WHITE : DSEQ_DIM_PURPLE);
+            nvgFillColor(args.vg, set ? VASH_DIM_WHITE : VASH_DIM_PURPLE);
             nvgFill(args.vg);
             return;
         }
@@ -454,9 +454,9 @@ struct StepButton : OpaqueWidget {
         }
 
         if (set)
-            nvgFillColor(args.vg, current ? DSEQ_WHITE_CURRENT : DSEQ_WHITE);
+            nvgFillColor(args.vg, current ? VASH_WHITE_CURRENT : VASH_WHITE);
         else
-            nvgFillColor(args.vg, current ? DSEQ_PURPLE_CURRENT : DSEQ_PURPLE);
+            nvgFillColor(args.vg, current ? VASH_PURPLE_CURRENT : VASH_PURPLE);
 
         nvgBeginPath(args.vg);
         nvgRoundedRect(args.vg, RECT_ARGS(r), 1.5f);
@@ -481,13 +481,13 @@ struct StepButton : OpaqueWidget {
 };
 
 struct SeqButton : OpaqueWidget {
-    RaDseqModule* module;
+    RaVashModule* module;
     int index;
 
     void draw(const DrawArgs& args) override {
         nvgBeginPath(args.vg);
         nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 2.f);
-        nvgFillColor(args.vg, (module && module->displayedSeq == index) ? DSEQ_WHITE_CURRENT : nvgRGB(0x2a, 0x2a, 0x2a));
+        nvgFillColor(args.vg, (module && module->displayedSeq == index) ? VASH_WHITE_CURRENT : nvgRGB(0x2a, 0x2a, 0x2a));
         nvgFill(args.vg);
     }
 
@@ -499,9 +499,9 @@ struct SeqButton : OpaqueWidget {
 };
 
 struct StepGridDisplay : LedDisplay {
-    RaDseqModule* module;
+    RaVashModule* module;
 
-    void setModule(RaDseqModule* module) {
+    void setModule(RaVashModule* module) {
         this->module = module;
 
         const float margin = 4.f;
@@ -537,7 +537,7 @@ struct StepGridDisplay : LedDisplay {
         // recolored with a muted purple border to match the accent.
         nvgBeginPath(args.vg);
         nvgRoundedRect(args.vg, -3, -3, box.size.x + 6, box.size.y + 6, 4);
-        nvgFillColor(args.vg, DSEQ_BG);
+        nvgFillColor(args.vg, VASH_BG);
         nvgFill(args.vg);
         nvgStrokeWidth(args.vg, 1.5f);
         nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
@@ -553,10 +553,10 @@ struct PurpleLight : GrayModuleLightWidget {
     }
 };
 
-struct RaDseqWidget : ModuleWidget {
-    RaDseqWidget(RaDseqModule* module) {
+struct RaVashWidget : ModuleWidget {
+    RaVashWidget(RaVashModule* module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-dseq.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-vash.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
@@ -571,52 +571,52 @@ struct RaDseqWidget : ModuleWidget {
         addChild(grid);
 
         // Left of the grid: Game of Life step button + trigger input
-        addParam(createParamCentered<RaButton>(Vec(22, 100), module, RaDseqModule::GOL_STEP_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(22, 144), module, RaDseqModule::GOL_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(22, 100), module, RaVashModule::GOL_STEP_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(22, 144), module, RaVashModule::GOL_TRIG_INPUT));
 
         // Controls below the grid on a strict 9-column grid: buttons over their
         // trig inputs, settings row underneath, centred on the module (x=158).
         // Columns: 26 59 92 125 158 191 224 257 290
-        addParam(createParamCentered<RaButton>(Vec(26, 246), module, RaDseqModule::STEP_PREV_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(59, 246), module, RaDseqModule::STEP_NEXT_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(92, 246), module, RaDseqModule::SEQ_PREV_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(125, 246), module, RaDseqModule::SEQ_NEXT_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(158, 246), module, RaDseqModule::SHIFT_L_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(191, 246), module, RaDseqModule::SHIFT_R_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(224, 246), module, RaDseqModule::RANDOMIZE_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(257, 246), module, RaDseqModule::RESET_PARAM));
-        addParam(createParamCentered<RaButton>(Vec(290, 246), module, RaDseqModule::SEQ_RESET_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(26, 246), module, RaVashModule::STEP_PREV_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(59, 246), module, RaVashModule::STEP_NEXT_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(92, 246), module, RaVashModule::SEQ_PREV_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(125, 246), module, RaVashModule::SEQ_NEXT_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(158, 246), module, RaVashModule::SHIFT_L_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(191, 246), module, RaVashModule::SHIFT_R_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(224, 246), module, RaVashModule::RANDOMIZE_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(257, 246), module, RaVashModule::RESET_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(290, 246), module, RaVashModule::SEQ_RESET_PARAM));
 
-        addInput(createInputCentered<RaPort>(Vec(26, 288), module, RaDseqModule::STEP_PREV_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(59, 288), module, RaDseqModule::STEP_NEXT_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(92, 288), module, RaDseqModule::SEQ_PREV_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(125, 288), module, RaDseqModule::SEQ_NEXT_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(158, 288), module, RaDseqModule::SHIFT_L_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(191, 288), module, RaDseqModule::SHIFT_R_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(224, 288), module, RaDseqModule::RANDOMIZE_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(257, 288), module, RaDseqModule::RESET_TRIG_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(290, 288), module, RaDseqModule::SEQ_RESET_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(26, 288), module, RaVashModule::STEP_PREV_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(59, 288), module, RaVashModule::STEP_NEXT_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(92, 288), module, RaVashModule::SEQ_PREV_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(125, 288), module, RaVashModule::SEQ_NEXT_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(158, 288), module, RaVashModule::SHIFT_L_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(191, 288), module, RaVashModule::SHIFT_R_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(224, 288), module, RaVashModule::RANDOMIZE_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(257, 288), module, RaVashModule::RESET_TRIG_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(290, 288), module, RaVashModule::SEQ_RESET_TRIG_INPUT));
 
-        addParam(createParamCentered<RaKnob>(Vec(26, 330), module, RaDseqModule::LENGTH_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(59, 330), module, RaDseqModule::CHANCE_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(92, 330), module, RaDseqModule::CHANCE_CV_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(125, 330), module, RaDseqModule::CLEAR_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(158, 330), module, RaDseqModule::MODE_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(191, 330), module, RaDseqModule::OUT_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(224, 330), module, RaDseqModule::RAND_CHANCE_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(257, 330), module, RaDseqModule::RUN_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(290, 330), module, RaDseqModule::RUN_PARAM, RaDseqModule::RUN_LIGHT));
+        addParam(createParamCentered<RaKnob>(Vec(26, 330), module, RaVashModule::LENGTH_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(59, 330), module, RaVashModule::CHANCE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(92, 330), module, RaVashModule::CHANCE_CV_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(125, 330), module, RaVashModule::CLEAR_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(158, 330), module, RaVashModule::MODE_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(191, 330), module, RaVashModule::OUT_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(224, 330), module, RaVashModule::RAND_CHANCE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(257, 330), module, RaVashModule::RUN_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(290, 330), module, RaVashModule::RUN_PARAM, RaVashModule::RUN_LIGHT));
 
         // Right, near the top: 8 trigger outputs in two stacks — 1–4 left, 5–8 right
-        addOutput(createOutputCentered<RaPort>(Vec(260, 60), module, RaDseqModule::OUT1_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(260, 100), module, RaDseqModule::OUT2_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(260, 140), module, RaDseqModule::OUT3_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(260, 180), module, RaDseqModule::OUT4_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(294, 60), module, RaDseqModule::OUT5_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(294, 100), module, RaDseqModule::OUT6_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(294, 140), module, RaDseqModule::OUT7_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(294, 180), module, RaDseqModule::OUT8_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(260, 60), module, RaVashModule::OUT1_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(260, 100), module, RaVashModule::OUT2_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(260, 140), module, RaVashModule::OUT3_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(260, 180), module, RaVashModule::OUT4_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(294, 60), module, RaVashModule::OUT5_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(294, 100), module, RaVashModule::OUT6_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(294, 140), module, RaVashModule::OUT7_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(294, 180), module, RaVashModule::OUT8_OUTPUT));
     }
 };
 
-Model* modelRaDseq = createModel<RaDseqModule, RaDseqWidget>("ra-dseq");
+Model* modelRaVash = createModel<RaVashModule, RaVashWidget>("ra-vash");

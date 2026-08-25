@@ -1,13 +1,18 @@
-# ra-seer — Signal Meter / Scope / Spectrum
+# ra-seer — Dual Oscilloscope
 
-Two-channel visual utility: oscilloscope, spectrum analyzer, and utility readouts (peak/RMS/DC).
+Two-channel oscilloscope with scope, Lissajous, and spectrum analyzer modes, plus trigger and gain/position controls.
 
 ## Controls
-- **Time/Smoothing**: display timebase or readout smoothing.
-- **Mode**: Scope, Spectrum, or Utility.
+- **Gain 1 / Gain 2**: vertical scaling per channel.
+- **Offset 1 / Offset 2**: vertical position per channel.
+- **Time**: horizontal timebase.
+- **Trigger threshold**: threshold for trigger.
+- **Trigger**: enable/disable triggering.
+- **Cycle mode**: color-coded mode indicator.
 
 ## Inputs
-- **Channel 1 / Channel 2**: signals to display.
+- **Ch 1 / Ch 2**: signals to display.
+- **External trigger**: external trigger input.
 
 ## Outputs
-- **Channel 1 / Channel 2**: pass through of the inputs.
+- **Ch 1 / Ch 2**: pass through of the inputs.

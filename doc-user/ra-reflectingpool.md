@@ -1,4 +1,4 @@
-# ra-endless — Endless Sequencer
+# ra-reflectingpool — Endless Sequencer
 
 Records and plays back sequences of 1 V/oct pitch CV, in the style of a tape-style (endless) sequencer. Two independent tracks.
 

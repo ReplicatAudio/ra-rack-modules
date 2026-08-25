@@ -1,451 +1,937 @@
 #include "ra-components.hpp"
-#include <atomic>
-#include <algorithm>
+#include <string.h>
 #include <cmath>
-#include <cstring>
+#include <dsp/fft.hpp>
 
 using namespace rack;
 
 extern Plugin *pluginInstance;
 
+static const int BUFFER_SIZE = 256;
+static const int FFT_SIZE = 2048;
+
 struct RaSeerModule : Module {
-    enum ParamIds {
-        PARAM,
-        MODE_PARAM,
-        NUM_PARAMS
-    };
-    enum InputIds {
-        CH1_INPUT,
-        CH2_INPUT,
-        NUM_INPUTS
-    };
-    enum OutputIds {
-        CH1_OUTPUT,
-        CH2_OUTPUT,
-        NUM_OUTPUTS
-    };
-    enum LightIds {
-        MODE_LIGHT_R,
-        MODE_LIGHT_G,
-        MODE_LIGHT_B,
-        NUM_LIGHTS
-    };
+	enum ParamIds {
+		X_SCALE_PARAM,
+		X_POS_PARAM,
+		Y_SCALE_PARAM,
+		Y_POS_PARAM,
+		TIME_PARAM,
+		MODE_PARAM,
+		THRESH_PARAM,
+		TRIG_PARAM,
+		NUM_PARAMS
+	};
+	enum InputIds {
+		X_INPUT,
+		Y_INPUT,
+		TRIG_INPUT,
+		NUM_INPUTS
+	};
+	enum OutputIds {
+		X_OUTPUT,
+		Y_OUTPUT,
+		NUM_OUTPUTS
+	};
+	enum LightIds {
+		MODE_LIGHT_R,
+		MODE_LIGHT_G,
+		MODE_LIGHT_B,
+		TRIG_LIGHT,
+		NUM_LIGHTS
+	};
 
-    static constexpr int MAX_HISTORY = 2400000;
-    static constexpr int FFT_SIZE = 256;
-    static constexpr int NUM_BINS = 64;
+	struct Point {
+		float min = INFINITY;
+		float max = -INFINITY;
+	};
+	Point pointBuffer[BUFFER_SIZE][2][PORT_MAX_CHANNELS];
+	Point currentPoint[2][PORT_MAX_CHANNELS];
+	int channelsX = 0;
+	int channelsY = 0;
+	int bufferIndex = 0;
+	int frameIndex = 0;
 
-    // Scope — history is shared between the channels of each port so total
-    // memory stays constant: each channel gets MAX_HISTORY / channels samples.
-    float history[MAX_HISTORY] = {};
-    float history2[MAX_HISTORY] = {};
-    int channels1 = 1;
-    int channels2 = 1;
-    int cap1 = MAX_HISTORY;
-    int cap2 = MAX_HISTORY;
-    std::atomic<int> head{0};
-    std::atomic<int> displayLen{24000};
+	dsp::SchmittTrigger triggers[16];
 
-    // Utility
-    float sum1 = 0.f, sum2 = 0.f;
-    float sumSq1 = 0.f, sumSq2 = 0.f;
-    float blockPeak1 = 0.f, blockPeak2 = 0.f;
-    int blockCount = 0;
-    std::atomic<float> peak1{0.f}, peak2{0.f};
-    std::atomic<float> rms1{0.f}, rms2{0.f};
-    std::atomic<float> dc1{0.f}, dc2{0.f};
-    std::atomic<float> real1{0.f}, real2{0.f};
+	int mode = 0;
+	dsp::SchmittTrigger modeCycleTrigger;
+	bool disableCableColors = false;
 
-    // Spectrum
-    float fftBuf1[FFT_SIZE] = {};
-    float fftBuf2[FFT_SIZE] = {};
-    int fftIdx = 0;
-    std::atomic<float> spec1[NUM_BINS]{};
-    std::atomic<float> spec2[NUM_BINS]{};
-    float smooth1[NUM_BINS] = {};
-    float smooth2[NUM_BINS] = {};
+	dsp::RealFFT* fft = nullptr;
+	float* fftInputL = nullptr;
+	float* fftOutputL = nullptr;
+	float* spectrumMagL = nullptr;
+	float* fftInputR = nullptr;
+	float* fftOutputR = nullptr;
+	float* spectrumMagR = nullptr;
+	int fftIndex = 0;
+	float* hannWindow = nullptr;
+	bool spectrumReady = false;
+	float sampleRate = 44100.f;
 
-    std::atomic<int> mode{0};
-    dsp::SchmittTrigger modeCycleTrigger;
+	static const int SONO_NUM_COLS = 400;
+	float sonoBuffer[SONO_NUM_COLS * (FFT_SIZE / 2)];
+	int sonoCount = 0;
+	float sonoRingBuffer[FFT_SIZE];
+	int sonoRingPos = 0;
+	int sonoHopCounter = 0;
 
-    int bitRev[FFT_SIZE];
-    float cosTbl[FFT_SIZE];
-    float sinTbl[FFT_SIZE];
-    float window[FFT_SIZE];
-    bool tablesReady = false;
+	RaSeerModule() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(X_SCALE_PARAM, 0.f, 8.f, 0.f, "Gain 1", " V/screen", 1 / 2.f, 20);
+		getParamQuantity(X_SCALE_PARAM)->snapEnabled = true;
+		configParam(X_POS_PARAM, -10.f, 10.f, 0.f, "Offset 1", " V");
+		configParam(Y_SCALE_PARAM, 0.f, 8.f, 0.f, "Gain 2", " V/screen", 1 / 2.f, 20);
+		getParamQuantity(Y_SCALE_PARAM)->snapEnabled = true;
+		configParam(Y_POS_PARAM, -10.f, 10.f, 0.f, "Offset 2", " V");
+		const float maxTime = -std::log2(5e1f);
+		const float minTime = -std::log2(5e-3f);
+		const float defaultTime = -std::log2(5e-1f);
+		configParam(TIME_PARAM, maxTime, minTime, defaultTime, "Time", " ms/screen", 1 / 2.f, 1000);
+		configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Cycle mode", {"Cycle"});
+		configParam(THRESH_PARAM, -10.f, 10.f, 0.f, "Trigger threshold", " V");
+		configSwitch(TRIG_PARAM, 0.f, 1.f, 1.f, "Trigger", {"Enabled", "Disabled"});
 
-    RaSeerModule() {
-        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(PARAM, 0.f, 1.f, 0.5f, "Time/Smoothing", " ms", 10000.f, 5.f, 0.f);
-        configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Cycle mode", {"Cycle"});
-        configInput(CH1_INPUT, "Channel 1");
-        configInput(CH2_INPUT, "Channel 2");
-        configOutput(CH1_OUTPUT, "Channel 1");
-        configOutput(CH2_OUTPUT, "Channel 2");
-        configLight(MODE_LIGHT_R, "Mode indicator");
-        configLight(MODE_LIGHT_G, "");
-        configLight(MODE_LIGHT_B, "");
-        initFFT();
-    }
+		configInput(X_INPUT, "Ch 1");
+		configInput(Y_INPUT, "Ch 2");
+		configInput(TRIG_INPUT, "External trigger");
 
-    void initFFT() {
-        if (tablesReady) return;
-        tablesReady = true;
-        for (int i = 0; i < FFT_SIZE; i++) {
-            int rev = 0, n = FFT_SIZE, j = i;
-            while (n >>= 1) { rev = (rev << 1) | (j & 1); j >>= 1; }
-            bitRev[i] = rev;
-            cosTbl[i] = cosf(2.f * M_PI * i / FFT_SIZE);
-            sinTbl[i] = sinf(2.f * M_PI * i / FFT_SIZE);
-            window[i] = 0.5f * (1.f - cosf(2.f * M_PI * i / (FFT_SIZE - 1)));
-        }
-    }
+		configOutput(X_OUTPUT, "Ch 1");
+		configOutput(Y_OUTPUT, "Ch 2");
 
-    void runFFT(const float *in, float *out) {
-        float real[FFT_SIZE], imag[FFT_SIZE];
-        for (int i = 0; i < FFT_SIZE; i++) {
-            float w = in[i] * window[i];
-            real[bitRev[i]] = w;
-            imag[bitRev[i]] = 0.f;
-        }
-        int stages = 0, tmp = FFT_SIZE;
-        while (tmp >>= 1) stages++;
-        for (int s = 0; s < stages; s++) {
-            int m = 1 << (s + 1), m2 = m >> 1;
-            for (int k = 0; k < FFT_SIZE; k += m) {
-                for (int j = 0; j < m2; j++) {
-                    int step = FFT_SIZE / m;
-                    float c = cosTbl[j * step];
-                    float si = sinTbl[j * step];
-                    float tr = c * real[k + j + m2] - si * imag[k + j + m2];
-                    float ti = si * real[k + j + m2] + c * imag[k + j + m2];
-                    real[k + j + m2] = real[k + j] - tr;
-                    imag[k + j + m2] = imag[k + j] - ti;
-                    real[k + j] += tr;
-                    imag[k + j] += ti;
-                }
-            }
-        }
-        int binsPerBand = (FFT_SIZE / 2) / NUM_BINS;
-        for (int b = 0; b < NUM_BINS; b++) {
-            float sum = 0.f;
-            int cnt = 0;
-            for (int i = 0; i < binsPerBand; i++) {
-                int idx = b * binsPerBand + i;
-                if (idx >= FFT_SIZE / 2) break;
-                sum += sqrtf(real[idx] * real[idx] + imag[idx] * imag[idx]);
-                cnt++;
-            }
-            float avg = cnt > 0 ? sum / cnt : 0.f;
-            float db = 20.f * log10f(avg + 1e-6f);
-            out[b] = clamp((db + 60.f) / 60.f, 0.f, 1.f);
-        }
-    }
+		configLight(MODE_LIGHT_R, "Mode indicator");
+		configLight(MODE_LIGHT_G, "");
+		configLight(MODE_LIGHT_B, "");
 
-    void process(const ProcessArgs &args) override {
-        int ch1 = inputs[CH1_INPUT].getChannels();
-        int ch2 = inputs[CH2_INPUT].getChannels();
-        if (ch1 != channels1) {
-            channels1 = ch1;
-            cap1 = std::max(1, MAX_HISTORY / std::max(ch1, 1));
-            memset(history, 0, sizeof(history));
-        }
-        if (ch2 != channels2) {
-            channels2 = ch2;
-            cap2 = std::max(1, MAX_HISTORY / std::max(ch2, 1));
-            memset(history2, 0, sizeof(history2));
-        }
+		fft = new dsp::RealFFT(FFT_SIZE);
+		fftInputL = (float*) pffft_aligned_malloc(FFT_SIZE * sizeof(float));
+		fftOutputL = (float*) pffft_aligned_malloc(2 * FFT_SIZE * sizeof(float));
+		spectrumMagL = new float[FFT_SIZE / 2];
+		fftInputR = (float*) pffft_aligned_malloc(FFT_SIZE * sizeof(float));
+		fftOutputR = (float*) pffft_aligned_malloc(2 * FFT_SIZE * sizeof(float));
+		spectrumMagR = new float[FFT_SIZE / 2];
+		hannWindow = new float[FFT_SIZE];
+		for (int i = 0; i < FFT_SIZE; i++) {
+			hannWindow[i] = 0.5f * (1.f - cosf(2.f * M_PI * i / (FFT_SIZE - 1)));
+		}
+		memset(sonoBuffer, 0, sizeof(sonoBuffer));
+	}
 
-        outputs[CH1_OUTPUT].setChannels(ch1);
-        outputs[CH1_OUTPUT].writeVoltages(inputs[CH1_INPUT].getVoltages());
-        outputs[CH2_OUTPUT].setChannels(ch2);
-        outputs[CH2_OUTPUT].writeVoltages(inputs[CH2_INPUT].getVoltages());
+	~RaSeerModule() {
+		delete fft;
+		pffft_aligned_free(fftInputL);
+		pffft_aligned_free(fftOutputL);
+		delete[] spectrumMagL;
+		pffft_aligned_free(fftInputR);
+		pffft_aligned_free(fftOutputR);
+		delete[] spectrumMagR;
+		delete[] hannWindow;
+	}
 
-        if (modeCycleTrigger.process(params[MODE_PARAM].getValue())) {
-            mode = (mode.load() + 1) % 3;
-        }
-        int m = mode.load(std::memory_order_relaxed);
+	void onReset() override {
+		for (int i = 0; i < BUFFER_SIZE; i++) {
+			for (int w = 0; w < 2; w++) {
+				for (int c = 0; c < 16; c++) {
+					pointBuffer[i][w][c] = Point();
+				}
+			}
+		}
+	}
 
-        float lr = 0.f, lg = 0.f, lb = 0.f;
-        switch (m) {
-            case 0: lr = lg = lb = 1.0f; break;
-            case 1: lr = lg = 1.0f; break;
-            case 2: lg = 1.0f; break;
-        }
-        lights[MODE_LIGHT_R].setBrightness(lr);
-        lights[MODE_LIGHT_G].setBrightness(lg);
-        lights[MODE_LIGHT_B].setBrightness(lb);
-        float t = params[PARAM].getValue();
+	int getMode() {
+		return mode;
+	}
 
-        if (m == 0) {
-            int h = head.load(std::memory_order_relaxed);
-            for (int c = 0; c < channels1; c++)
-                history[c * cap1 + h % cap1] = inputs[CH1_INPUT].getVoltage(c);
-            for (int c = 0; c < channels2; c++)
-                history2[c * cap2 + h % cap2] = inputs[CH2_INPUT].getVoltage(c);
-            head.store((h + 1) % MAX_HISTORY, std::memory_order_release);
-            float timeMs = 5.f * powf(10000.f, t);
-            int len = int(timeMs * args.sampleRate / 1000.f + 0.5f);
-            displayLen.store(clamp(len, 2, MAX_HISTORY - 1), std::memory_order_relaxed);
-        } else if (m == 1) {
-            fftBuf1[fftIdx] = inputs[CH1_INPUT].getVoltageSum();
-            fftBuf2[fftIdx] = inputs[CH2_INPUT].getVoltageSum();
-            fftIdx++;
-            if (fftIdx >= FFT_SIZE) {
-                fftIdx = 0;
-                float mag1[NUM_BINS], mag2[NUM_BINS];
-                runFFT(fftBuf1, mag1);
-                runFFT(fftBuf2, mag2);
-                float decay = 0.5f + t * 0.49f;
-                for (int i = 0; i < NUM_BINS; i++) {
-                    smooth1[i] = smooth1[i] * decay + mag1[i] * (1.f - decay);
-                    smooth2[i] = smooth2[i] * decay + mag2[i] * (1.f - decay);
-                    spec1[i].store(smooth1[i], std::memory_order_relaxed);
-                    spec2[i].store(smooth2[i], std::memory_order_relaxed);
-                }
-            }
-        } else {
-            for (int c = 0; c < channels1; c++) {
-                float v = inputs[CH1_INPUT].getVoltage(c);
-                sum1 += v;
-                sumSq1 += v * v;
-                blockPeak1 = fmaxf(fabsf(v), blockPeak1);
-            }
-            for (int c = 0; c < channels2; c++) {
-                float v = inputs[CH2_INPUT].getVoltage(c);
-                sum2 += v;
-                sumSq2 += v * v;
-                blockPeak2 = fmaxf(fabsf(v), blockPeak2);
-            }
-            blockCount++;
-            float timeMs = 5.f * powf(10000.f, t);
-            int blockSize = int(timeMs * args.sampleRate / 1000.f + 0.5f);
-            blockSize = clamp(blockSize, 2, 2400000);
-            if (blockCount >= blockSize) {
-                float inv = 1.f / blockCount;
-                dc1.store(sum1 * inv, std::memory_order_relaxed);
-                dc2.store(sum2 * inv, std::memory_order_relaxed);
-                rms1.store(sqrtf(sumSq1 * inv), std::memory_order_relaxed);
-                rms2.store(sqrtf(sumSq2 * inv), std::memory_order_relaxed);
-                peak1.store(blockPeak1, std::memory_order_relaxed);
-                peak2.store(blockPeak2, std::memory_order_relaxed);
-                sum1 = sum2 = 0.f;
-                sumSq1 = sumSq2 = 0.f;
-                blockPeak1 = blockPeak2 = 0.f;
-                blockCount = 0;
-            }
-            real1.store(inputs[CH1_INPUT].getVoltageSum(), std::memory_order_relaxed);
-            real2.store(inputs[CH2_INPUT].getVoltageSum(), std::memory_order_relaxed);
-        }
-    }
+	void process(const ProcessArgs& args) override {
+		sampleRate = args.sampleRate;
+		if (modeCycleTrigger.process(params[MODE_PARAM].getValue())) {
+			mode = (mode + 1) % 4;
+		}
+
+		float lr = 0.f, lg = 0.f, lb = 0.f;
+		switch (mode) {
+			case 0: lr = lg = lb = 1.0f; break;
+			case 1: lr = 1.0f; lg = 1.0f; break;
+			case 2: lg = 1.0f; break;
+			case 3: lb = 1.0f; break;
+		}
+		lights[MODE_LIGHT_R].setBrightness(lr);
+		lights[MODE_LIGHT_G].setBrightness(lg);
+		lights[MODE_LIGHT_B].setBrightness(lb);
+
+		bool trigEnabled = !params[TRIG_PARAM].getValue();
+		lights[TRIG_LIGHT].setBrightness(trigEnabled);
+
+		int channelsX = inputs[X_INPUT].getChannels();
+		if (channelsX != this->channelsX) {
+			this->channelsX = channelsX;
+		}
+		int channelsY = inputs[Y_INPUT].getChannels();
+		if (channelsY != this->channelsY) {
+			this->channelsY = channelsY;
+		}
+
+		outputs[X_OUTPUT].setChannels(channelsX);
+		outputs[X_OUTPUT].writeVoltages(inputs[X_INPUT].getVoltages());
+		outputs[Y_OUTPUT].setChannels(channelsY);
+		outputs[Y_OUTPUT].writeVoltages(inputs[Y_INPUT].getVoltages());
+
+		if (mode == 2) {
+			fftInputL[fftIndex] = inputs[X_INPUT].getVoltageSum();
+			fftInputR[fftIndex] = inputs[Y_INPUT].getVoltageSum();
+			fftIndex++;
+
+			if (fftIndex >= FFT_SIZE) {
+				for (int i = 0; i < FFT_SIZE; i++)
+					fftInputL[i] *= hannWindow[i];
+				fft->rfft(fftInputL, fftOutputL);
+				spectrumMagL[0] = fabsf(fftOutputL[0]);
+				for (int i = 1; i < FFT_SIZE / 2; i++) {
+					float re = fftOutputL[2 * i];
+					float im = fftOutputL[2 * i + 1];
+					spectrumMagL[i] = sqrtf(re * re + im * im);
+				}
+
+				for (int i = 0; i < FFT_SIZE; i++)
+					fftInputR[i] *= hannWindow[i];
+				fft->rfft(fftInputR, fftOutputR);
+				spectrumMagR[0] = fabsf(fftOutputR[0]);
+				for (int i = 1; i < FFT_SIZE / 2; i++) {
+					float re = fftOutputR[2 * i];
+					float im = fftOutputR[2 * i + 1];
+					spectrumMagR[i] = sqrtf(re * re + im * im);
+				}
+
+				spectrumReady = true;
+				fftIndex = 0;
+			}
+			return;
+		}
+
+		if (mode == 3) {
+			float in = inputs[X_INPUT].getVoltageSum();
+			sonoRingBuffer[sonoRingPos] = in;
+			sonoRingPos = (sonoRingPos + 1) % FFT_SIZE;
+
+			float hopFloat = (float)FFT_SIZE * dsp::exp2_taylor5(1.f - params[TIME_PARAM].getValue());
+			int hop = clamp((int)hopFloat, FFT_SIZE / 8, FFT_SIZE * 8);
+
+			sonoHopCounter++;
+			if (sonoHopCounter >= (int)hop) {
+				sonoHopCounter = 0;
+
+				for (int i = 0; i < FFT_SIZE; i++)
+					fftInputL[i] = sonoRingBuffer[(sonoRingPos + i) % FFT_SIZE] * hannWindow[i];
+				fft->rfft(fftInputL, fftOutputL);
+
+				int numBins = FFT_SIZE / 2;
+				memmove(&sonoBuffer[numBins], &sonoBuffer[0], (SONO_NUM_COLS - 1) * numBins * sizeof(float));
+				sonoBuffer[0] = fabsf(fftOutputL[0]) / (float)(FFT_SIZE / 2);
+				for (int i = 1; i < numBins; i++) {
+					float re = fftOutputL[2 * i];
+					float im = fftOutputL[2 * i + 1];
+					sonoBuffer[i] = sqrtf(re * re + im * im) / (float)(FFT_SIZE / 2);
+				}
+				if (sonoCount < SONO_NUM_COLS)
+					sonoCount++;
+			}
+			return;
+		}
+
+		if (bufferIndex >= BUFFER_SIZE) {
+			bool triggered = false;
+
+			if (mode == 1 || !trigEnabled) {
+				triggered = true;
+			}
+			else {
+				float trigThreshold = params[THRESH_PARAM].getValue();
+				Input& trigInput = inputs[TRIG_INPUT].isConnected() ? inputs[TRIG_INPUT] : inputs[X_INPUT];
+
+				int trigChannels = trigInput.getChannels();
+				for (int c = 0; c < trigChannels; c++) {
+					float trigVoltage = trigInput.getVoltage(c);
+					if (triggers[c].process(rescale(trigVoltage, trigThreshold, trigThreshold + 0.001f, 0.f, 1.f))) {
+						triggered = true;
+					}
+				}
+			}
+
+			if (triggered) {
+				for (int c = 0; c < 16; c++) {
+					triggers[c].reset();
+				}
+				bufferIndex = 0;
+				frameIndex = 0;
+			}
+		}
+
+		if (bufferIndex < BUFFER_SIZE) {
+			float deltaTime = dsp::exp2_taylor5(-params[TIME_PARAM].getValue()) / BUFFER_SIZE;
+			int frameCount = (int) std::ceil(deltaTime * args.sampleRate);
+
+			for (int c = 0; c < channelsX; c++) {
+				float x = inputs[X_INPUT].getVoltage(c);
+				currentPoint[0][c].min = std::min(currentPoint[0][c].min, x);
+				currentPoint[0][c].max = std::max(currentPoint[0][c].max, x);
+			}
+			for (int c = 0; c < channelsY; c++) {
+				float y = inputs[Y_INPUT].getVoltage(c);
+				currentPoint[1][c].min = std::min(currentPoint[1][c].min, y);
+				currentPoint[1][c].max = std::max(currentPoint[1][c].max, y);
+			}
+
+			if (++frameIndex >= frameCount) {
+				frameIndex = 0;
+				for (int w = 0; w < 2; w++) {
+					for (int c = 0; c < 16; c++) {
+						pointBuffer[bufferIndex][w][c] = currentPoint[w][c];
+					}
+				}
+				for (int w = 0; w < 2; w++) {
+					for (int c = 0; c < 16; c++) {
+						currentPoint[w][c] = Point();
+					}
+				}
+				bufferIndex++;
+			}
+		}
+	}
+
+	void dataFromJson(json_t* rootJ) override {
+		json_t* modeJ = json_object_get(rootJ, "mode");
+		if (modeJ) {
+			mode = json_integer_value(modeJ);
+		} else {
+			json_t* lissajousJ = json_object_get(rootJ, "lissajous");
+			if (lissajousJ && json_integer_value(lissajousJ))
+				mode = 1;
+		}
+
+		json_t* externalJ = json_object_get(rootJ, "external");
+		if (externalJ) {
+			if (json_integer_value(externalJ))
+				params[TRIG_PARAM].setValue(1.f);
+		}
+
+		json_t* disableColorsJ = json_object_get(rootJ, "disableCableColors");
+		if (disableColorsJ)
+			disableCableColors = json_is_true(disableColorsJ);
+	}
+
+	json_t* dataToJson() override {
+		json_t* rootJ = json_object();
+		json_object_set_new(rootJ, "mode", json_integer(mode));
+		json_object_set_new(rootJ, "disableCableColors", json_boolean(disableCableColors));
+		return rootJ;
+	}
 };
 
-struct SeerDisplay : Widget {
-    RaSeerModule *module;
-    PortWidget *ch1Input = nullptr;
-    PortWidget *ch2Input = nullptr;
-    std::shared_ptr<Font> font;
 
-    float local[RaSeerModule::MAX_HISTORY];
+RaSeerModule::Point DEMO_POINT_BUFFER[BUFFER_SIZE];
 
-    SeerDisplay() {
-        font = APP->window->loadFont(asset::system("res/fonts/DejaVuSans.ttf"));
-    }
+void demoPointBufferInit() {
+	static bool init = false;
+	if (init)
+		return;
+	init = true;
 
-    void drawScope(const DrawArgs &args) {
-        int head = module->head.load(std::memory_order_acquire);
-        int len = module->displayLen.load(std::memory_order_relaxed);
-        if (len < 2) return;
+	for (size_t i = 0; i < BUFFER_SIZE; i++) {
+		float phase = float(i) / BUFFER_SIZE;
+		RaSeerModule::Point point;
+		point.min = point.max = 4.f * std::sin(2 * M_PI * phase * 2.f);
+		DEMO_POINT_BUFFER[i] = point;
+	}
+}
 
-        float w = box.size.x, h = box.size.y;
-        float cx = w / 2.f;
 
-        NVGcolor col1 = nvgRGB(0xff, 0xcc, 0x00);
-        NVGcolor col2 = nvgRGB(0x00, 0xcc, 0xff);
-        if (ch1Input) {
-            auto cables = APP->scene->rack->getCompleteCablesOnPort(ch1Input);
-            if (!cables.empty()) col1 = cables[0]->color;
-        }
-        if (ch2Input) {
-            auto cables = APP->scene->rack->getCompleteCablesOnPort(ch2Input);
-            if (!cables.empty()) col2 = cables[0]->color;
-        }
+struct RaSeerDisplay : LedDisplay {
+	RaSeerModule* module;
+	ModuleWidget* moduleWidget;
+	int statsFrame = 0;
+	std::string fontPath;
+	int sonoImageId = -1;
 
-        nvgBeginPath(args.vg);
-        nvgStrokeWidth(args.vg, 0.5f);
-        nvgStrokeColor(args.vg, nvgRGB(0x33, 0x33, 0x33));
-        nvgMoveTo(args.vg, cx, 0);
-        nvgLineTo(args.vg, cx, h);
-        nvgStroke(args.vg);
+	struct Stats {
+		float min = INFINITY;
+		float max = -INFINITY;
+	};
+	Stats statsX;
+	Stats statsY;
 
-        int rows = int(h);
-        double spr = double(len - 1) / std::max(rows - 1, 1);
+	RaSeerDisplay() {
+		fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
+		demoPointBufferInit();
+	}
 
-        // One overlaid trace per poly channel, in the port's cable color
-        auto strokeTrace = [&](const float *buf, int cap, NVGcolor col) {
-            int l = std::min(len, cap);
-            if (l < 2) return;
-            for (int i = 0; i < l; i++) {
-                int m = (head - 1 - i) % RaSeerModule::MAX_HISTORY;
-                if (m < 0) m += RaSeerModule::MAX_HISTORY;
-                local[i] = buf[m % cap];
-            }
-            nvgBeginPath(args.vg);
-            nvgStrokeWidth(args.vg, 1.f);
-            nvgStrokeColor(args.vg, col);
-            for (int r = 0; r < rows; r++) {
-                int si = int(r * spr);
-                if (si >= l) si = l - 1;
-                float x = cx + local[si] * (cx / 5.f);
-                float y = h - float(r) / float(rows - 1) * h;
-                if (r == 0) nvgMoveTo(args.vg, x, y);
-                else nvgLineTo(args.vg, x, y);
-            }
-            nvgStroke(args.vg);
-        };
+	void calculateStats(Stats& stats, int wave, int channels) {
+		if (!module) {
+			stats.min = -5.f;
+			stats.max = 5.f;
+			return;
+		}
 
-        for (int c = 0; c < module->channels2; c++)
-            strokeTrace(&module->history2[c * module->cap2], module->cap2, col2);
-        for (int c = 0; c < module->channels1; c++)
-            strokeTrace(&module->history[c * module->cap1], module->cap1, col1);
-    }
+		stats = Stats();
+		for (int i = 0; i < BUFFER_SIZE; i++) {
+			for (int c = 0; c < channels; c++) {
+				RaSeerModule::Point point = module->pointBuffer[i][wave][c];
+				stats.max = std::fmax(stats.max, point.max);
+				stats.min = std::fmin(stats.min, point.min);
+			}
+		}
+	}
 
-    void drawSpectrum(const DrawArgs &args) {
-        float w = box.size.x, h = box.size.y;
+	void drawWave(const DrawArgs& args, int wave, int channel, float offset, float gain) {
+		RaSeerModule::Point pointBuffer[BUFFER_SIZE];
+		for (int i = 0; i < BUFFER_SIZE; i++) {
+			pointBuffer[i] = module ? module->pointBuffer[i][wave][channel] : DEMO_POINT_BUFFER[i];
+		}
 
-        NVGcolor col1 = nvgRGB(0xff, 0xcc, 0x00);
-        NVGcolor col2 = nvgRGB(0x00, 0xcc, 0xff);
-        if (ch1Input) {
-            auto cables = APP->scene->rack->getCompleteCablesOnPort(ch1Input);
-            if (!cables.empty()) col1 = cables[0]->color;
-        }
-        if (ch2Input) {
-            auto cables = APP->scene->rack->getCompleteCablesOnPort(ch2Input);
-            if (!cables.empty()) col2 = cables[0]->color;
-        }
+		nvgSave(args.vg);
+		Rect b = box.zeroPos().shrink(Vec(0, 15));
+		nvgScissor(args.vg, RECT_ARGS(b));
+		nvgBeginPath(args.vg);
+		for (int i = 0; i < BUFFER_SIZE; i++) {
+			const RaSeerModule::Point& point = pointBuffer[i];
+			float max = point.max;
+			if (!std::isfinite(max))
+				max = 0.f;
 
-        int nb = RaSeerModule::NUM_BINS;
-        float binH = h / nb;
+			Vec p;
+			p.x = (float) i / (BUFFER_SIZE - 1);
+			p.y = (max + offset) * gain * -0.5f + 0.5f;
+			p = b.interpolate(p);
+			p.y -= 1.0;
+			if (i == 0)
+				nvgMoveTo(args.vg, p.x, p.y);
+			else
+				nvgLineTo(args.vg, p.x, p.y);
+		}
+		for (int i = BUFFER_SIZE - 1; i >= 0; i--) {
+			const RaSeerModule::Point& point = pointBuffer[i];
+			float min = point.min;
+			if (!std::isfinite(min))
+				min = 0.f;
 
-        for (int i = 0; i < nb; i++) {
-            float m1 = module->spec1[i].load(std::memory_order_relaxed);
-            float m2 = module->spec2[i].load(std::memory_order_relaxed);
-            float y = h - (i + 1) * binH;
+			Vec p;
+			p.x = (float) i / (BUFFER_SIZE - 1);
+			p.y = (min + offset) * gain * -0.5f + 0.5f;
+			p = b.interpolate(p);
+			p.y += 1.0;
+			nvgLineTo(args.vg, p.x, p.y);
+		}
+		nvgClosePath(args.vg);
+		nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
+		nvgFill(args.vg);
+		nvgResetScissor(args.vg);
+		nvgRestore(args.vg);
+	}
 
-            if (m2 > 0.01f) {
-                nvgBeginPath(args.vg);
-                nvgRect(args.vg, 0, y, m2 * w, binH);
-                nvgFillColor(args.vg, col2);
-                nvgFill(args.vg);
-            }
-            if (m1 > 0.01f) {
-                nvgBeginPath(args.vg);
-                nvgRect(args.vg, 0, y, m1 * w, binH);
-                nvgFillColor(args.vg, col1);
-                nvgFill(args.vg);
-            }
-        }
-    }
+	void drawLissajous(const DrawArgs& args, int channel, float offsetX, float gainX, float offsetY, float gainY, NVGcolor colorOld, NVGcolor colorNew) {
+		if (!module)
+			return;
 
-    void drawUtility(const DrawArgs &args) {
-        if (!font) return;
-        nvgFontFaceId(args.vg, font->handle);
+		RaSeerModule::Point pointBufferX[BUFFER_SIZE];
+		RaSeerModule::Point pointBufferY[BUFFER_SIZE];
+		for (int i = 0; i < BUFFER_SIZE; i++) {
+			pointBufferX[i] = module->pointBuffer[i][0][channel];
+			pointBufferY[i] = module->pointBuffer[i][1][channel];
+		}
 
-        NVGcolor col1 = nvgRGB(0xff, 0xcc, 0x00);
-        NVGcolor col2 = nvgRGB(0x00, 0xcc, 0xff);
-        if (ch1Input) {
-            auto cables = APP->scene->rack->getCompleteCablesOnPort(ch1Input);
-            if (!cables.empty()) col1 = cables[0]->color;
-        }
-        if (ch2Input) {
-            auto cables = APP->scene->rack->getCompleteCablesOnPort(ch2Input);
-            if (!cables.empty()) col2 = cables[0]->color;
-        }
+		nvgSave(args.vg);
+		Rect b = box.zeroPos().shrink(Vec(0, 15));
+		nvgScissor(args.vg, RECT_ARGS(b));
 
-        struct Row { const char *label; float labelY; float val1Y; float val2Y; };
-        Row rows[] = {
-            {"PEAK", 14.f, 28.f, 40.f},
-            {"RMS",  64.f, 78.f, 90.f},
-            {"DC",  114.f, 128.f, 140.f},
-            {"REAL", 164.f, 178.f, 190.f},
-        };
+		Vec points[BUFFER_SIZE];
+		int numValid = 0;
+		int bufferIndex = module->bufferIndex;
+		for (int i = 0; i < BUFFER_SIZE; i++) {
+			const RaSeerModule::Point& pointX = pointBufferX[(i + bufferIndex) % BUFFER_SIZE];
+			const RaSeerModule::Point& pointY = pointBufferY[(i + bufferIndex) % BUFFER_SIZE];
+			float avgX = (pointX.min + pointX.max) / 2;
+			float avgY = (pointY.min + pointY.max) / 2;
+			if (!std::isfinite(avgX) || !std::isfinite(avgY))
+				continue;
 
-        float peak1 = module->peak1.load(std::memory_order_relaxed);
-        float peak2 = module->peak2.load(std::memory_order_relaxed);
-        float rms1 = module->rms1.load(std::memory_order_relaxed);
-        float rms2 = module->rms2.load(std::memory_order_relaxed);
-        float dc1 = module->dc1.load(std::memory_order_relaxed);
-        float dc2 = module->dc2.load(std::memory_order_relaxed);
-        float real1 = module->real1.load(std::memory_order_relaxed);
-        float real2 = module->real2.load(std::memory_order_relaxed);
-        float vals[][2] = {{peak1, peak2}, {rms1, rms2}, {dc1, dc2}, {real1, real2}};
-        NVGcolor chColors[] = {col1, col2};
+			Vec p;
+			p.x = (avgX + offsetX) * gainX * 0.5f + 0.5f;
+			p.y = (avgY + offsetY) * gainY * -0.5f + 0.5f;
+			p = b.interpolate(p);
+			points[numValid++] = p;
+		}
 
-        nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
-        for (int r = 0; r < 4; r++) {
-            nvgFontSize(args.vg, 9);
-            nvgFillColor(args.vg, nvgRGBA(0x88, 0x88, 0x88, 0xff));
-            nvgText(args.vg, 5, rows[r].labelY, rows[r].label, NULL);
-            for (int c = 0; c < 2; c++) {
-                char buf[32];
-                snprintf(buf, sizeof(buf), "%+.1fV", vals[r][c]);
-                nvgFontSize(args.vg, 10);
-                nvgFillColor(args.vg, chColors[c]);
-                float y = (c == 0) ? rows[r].val1Y : rows[r].val2Y;
-                nvgText(args.vg, 18, y, buf, NULL);
-            }
-        }
-    }
+		nvgLineCap(args.vg, NVG_ROUND);
+		nvgMiterLimit(args.vg, 2.f);
+		nvgStrokeWidth(args.vg, 1.5f);
+		nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
 
-    void draw(const DrawArgs &args) override {
-        // Screen backdrop — painted slightly larger than the box to cover the
-        // SVG bezel outline, recolored with a muted purple border to match the accent
-        nvgBeginPath(args.vg);
-        nvgRoundedRect(args.vg, -3, -3, box.size.x + 6, box.size.y + 6, 4);
-        nvgFillColor(args.vg, nvgRGB(0x10, 0x10, 0x10));
-        nvgFill(args.vg);
-        nvgStrokeWidth(args.vg, 1.5f);
-        nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
-        nvgStroke(args.vg);
+		if (module && module->disableCableColors) {
+			nvgStrokeColor(args.vg, colorNew);
+			nvgBeginPath(args.vg);
+			for (int i = 0; i < numValid; i++) {
+				if (i == 0)
+					nvgMoveTo(args.vg, points[i].x, points[i].y);
+				else
+					nvgLineTo(args.vg, points[i].x, points[i].y);
+			}
+			nvgStroke(args.vg);
+		} else {
+			for (int i = 0; i < numValid - 1; i++) {
+				float t = (float)(i + 1) / numValid;
+				NVGcolor c;
+				c.r = colorOld.r + (colorNew.r - colorOld.r) * t;
+				c.g = colorOld.g + (colorNew.g - colorOld.g) * t;
+				c.b = colorOld.b + (colorNew.b - colorOld.b) * t;
+				c.a = colorOld.a + (colorNew.a - colorOld.a) * t;
+				nvgStrokeColor(args.vg, c);
 
-        if (!module) return;
-        int m = module->mode.load(std::memory_order_relaxed);
-        switch (m) {
-            case 0: drawScope(args); break;
-            case 1: drawSpectrum(args); break;
-            default: drawUtility(args); break;
-        }
-    }
+				nvgBeginPath(args.vg);
+				nvgMoveTo(args.vg, points[i].x, points[i].y);
+				nvgLineTo(args.vg, points[i + 1].x, points[i + 1].y);
+				nvgStroke(args.vg);
+			}
+		}
+
+		nvgResetScissor(args.vg);
+		nvgRestore(args.vg);
+	}
+
+	void drawTrig(const DrawArgs& args, float value) {
+		Rect b = Rect(Vec(0, 15), box.size.minus(Vec(0, 15 * 2)));
+		nvgScissor(args.vg, b.pos.x, b.pos.y, b.size.x, b.size.y);
+
+		value = value / 2.f + 0.5f;
+		Vec p = Vec(box.size.x, b.pos.y + b.size.y * (1.f - value));
+
+		nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x10));
+		{
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, p.x - 13, p.y);
+			nvgLineTo(args.vg, 0, p.y);
+		}
+		nvgStroke(args.vg);
+
+		nvgFillColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x60));
+		{
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, p.x - 2, p.y - 4);
+			nvgLineTo(args.vg, p.x - 9, p.y - 4);
+			nvgLineTo(args.vg, p.x - 13, p.y);
+			nvgLineTo(args.vg, p.x - 9, p.y + 4);
+			nvgLineTo(args.vg, p.x - 2, p.y + 4);
+			nvgClosePath(args.vg);
+		}
+		nvgFill(args.vg);
+
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+		if (font) {
+			nvgFontSize(args.vg, 9);
+			nvgFontFaceId(args.vg, font->handle);
+			nvgFillColor(args.vg, nvgRGBA(0x1e, 0x28, 0x2b, 0xff));
+			nvgText(args.vg, p.x - 8, p.y + 3, "T", NULL);
+		}
+		nvgResetScissor(args.vg);
+	}
+
+	void drawStats(const DrawArgs& args, Vec pos, const char* title, const Stats& stats) {
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+		if (!font)
+			return;
+		nvgFontSize(args.vg, 13);
+		nvgFontFaceId(args.vg, font->handle);
+		nvgTextLetterSpacing(args.vg, -1);
+
+		nvgFillColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x40));
+		nvgText(args.vg, pos.x + 6, pos.y + 11, title, NULL);
+
+		nvgFillColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x80));
+		pos = pos.plus(Vec(20, 11));
+
+		std::string text;
+		text = "pp ";
+		float pp = stats.max - stats.min;
+		text += isNear(pp, 0.f, 100.f) ? string::f("% 6.2f", pp) : "  ---";
+		nvgText(args.vg, pos.x, pos.y, text.c_str(), NULL);
+		text = "max";
+		text += isNear(stats.max, 0.f, 100.f) ? string::f("% 6.2f", stats.max) : "  ---";
+		nvgText(args.vg, pos.x + 60 * 1, pos.y, text.c_str(), NULL);
+		text = "min";
+		text += isNear(stats.min, 0.f, 100.f) ? string::f("% 6.2f", stats.min) : "  ---";
+		nvgText(args.vg, pos.x + 60 * 2, pos.y, text.c_str(), NULL);
+	}
+
+	void drawBackground(const DrawArgs& args) {
+		// Screen backdrop — painted slightly larger than the box to cover the
+		// SVG bezel outline, recolored with a muted purple border to match the accent
+		nvgBeginPath(args.vg);
+		nvgRoundedRect(args.vg, -3, -3, box.size.x + 6, box.size.y + 6, 4);
+		nvgFillColor(args.vg, nvgRGB(0x0a, 0x0a, 0x0a));
+		nvgFill(args.vg);
+		nvgStrokeWidth(args.vg, 1.5f);
+		nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
+		nvgStroke(args.vg);
+
+		Rect b = box.zeroPos().shrink(Vec(0, 15));
+
+		nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x10));
+		for (int i = 0; i < 5; i++) {
+			nvgBeginPath(args.vg);
+
+			Vec p;
+			p.x = 0.0;
+			p.y = float(i) / (5 - 1);
+			nvgMoveTo(args.vg, VEC_ARGS(b.interpolate(p)));
+
+			p.x = 1.0;
+			nvgLineTo(args.vg, VEC_ARGS(b.interpolate(p)));
+			nvgStroke(args.vg);
+		}
+	}
+
+	void drawSpectrum(const DrawArgs& args) {
+		if (!module || !module->spectrumReady)
+			return;
+
+		float marginL = 12.f;
+		float marginR = 0.f;
+		float marginT = 6.f;
+		float marginB = 20.f;
+		Rect plot = box.zeroPos().grow(Vec(-marginL, -marginT)).grow(Vec(-marginR, -marginB));
+
+		int numBins = FFT_SIZE / 2;
+		float binSpacingHz = module->sampleRate / FFT_SIZE;
+		float minLogFreq = 20.f;
+		float maxLogFreq = module->sampleRate / 2.f;
+		float logMin = logf(minLogFreq);
+		float logRange = logf(maxLogFreq) - logMin;
+
+		auto logX = [&](float freq) -> float {
+			float norm = (logf(fmaxf(freq, minLogFreq)) - logMin) / logRange;
+			return plot.pos.x + norm * plot.size.x;
+		};
+
+		nvgSave(args.vg);
+		nvgScissor(args.vg, RECT_ARGS(plot));
+
+		PortWidget* inputX = moduleWidget->getInput(RaSeerModule::X_INPUT);
+		PortWidget* inputY = moduleWidget->getInput(RaSeerModule::Y_INPUT);
+		CableWidget* inputXCable = APP->scene->rack->getTopCable(inputX);
+		CableWidget* inputYCable = APP->scene->rack->getTopCable(inputY);
+		NVGcolor colorL, colorR;
+		if (module->disableCableColors) {
+			colorL = SCHEME_PURPLE;
+			colorR = nvgRGB(0xff, 0x66, 0xaa);
+		} else {
+			colorL = inputXCable ? inputXCable->color : SCHEME_YELLOW;
+			colorR = inputYCable ? inputYCable->color : SCHEME_YELLOW;
+		}
+
+		struct ChannelSpec { float* mag; NVGcolor color; };
+		ChannelSpec chs[] = {
+			{module->spectrumMagL, colorL},
+			{module->spectrumMagR, colorR},
+		};
+
+		for (auto& ch : chs) {
+			float gainY = module ? powf(2.f, roundf(module->params[RaSeerModule::Y_SCALE_PARAM].getValue())) / 10.f : 0.1f;
+			float offsetY = module ? module->params[RaSeerModule::Y_POS_PARAM].getValue() : 0.f;
+
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, logX(0.f), plot.pos.y + plot.size.y);
+
+			for (int i = 0; i < numBins; i++) {
+				float freq = (float)i * binSpacingHz;
+				float mag = ch.mag[i] / (float)(FFT_SIZE / 2) * gainY;
+				float db = 20.f * log10f(mag + 1e-6f) + offsetY;
+				float yNorm = clamp(rescale(db, -60.f, 0.f, 0.f, 1.f), 0.f, 1.f);
+				float y = plot.pos.y + plot.size.y * (1.f - yNorm);
+				nvgLineTo(args.vg, logX(freq), y);
+			}
+
+			nvgLineTo(args.vg, logX(maxLogFreq), plot.pos.y + plot.size.y);
+			nvgClosePath(args.vg);
+
+			nvgFillColor(args.vg, ch.color);
+			nvgGlobalCompositeOperation(args.vg, NVG_LIGHTER);
+			nvgFill(args.vg);
+		}
+
+		nvgResetScissor(args.vg);
+
+		std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+		nvgFontFaceId(args.vg, font ? font->handle : -1);
+		nvgTextLetterSpacing(args.vg, 0);
+		nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_TOP);
+
+		struct FreqMark { int freq; const char* label; };
+		FreqMark freqMarks[] = {{100, "100"}, {500, "500"}, {1000, "1k"}, {5000, "5k"}, {10000, "10k"}, {20000, "20k"}};
+		for (auto& fm : freqMarks) {
+			if (fm.freq > maxLogFreq) break;
+			float x = logX((float)fm.freq);
+
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x10));
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, x, plot.pos.y);
+			nvgLineTo(args.vg, x, plot.pos.y + plot.size.y);
+			nvgStroke(args.vg);
+
+			if (x - plot.pos.x < 20.f) continue;
+
+			nvgFontSize(args.vg, 10);
+			nvgFillColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x50));
+			nvgText(args.vg, x, plot.pos.y + plot.size.y + 4, fm.label, NULL);
+		}
+
+		nvgTextAlign(args.vg, NVG_ALIGN_RIGHT | NVG_ALIGN_MIDDLE);
+		nvgFontSize(args.vg, 10);
+
+		int dbMarks[] = {0, -20, -40, -60};
+		for (int db : dbMarks) {
+			float norm = rescale((float)db, -60.f, 0.f, 0.f, 1.f);
+			float y = plot.pos.y + plot.size.y * (1.f - norm);
+
+			nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x10));
+			nvgBeginPath(args.vg);
+			nvgMoveTo(args.vg, plot.pos.x, y);
+			nvgLineTo(args.vg, plot.pos.x + plot.size.x, y);
+			nvgStroke(args.vg);
+
+			if (db > -60) {
+				nvgFillColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x50));
+				nvgText(args.vg, plot.pos.x + 4, y, string::f("%d", db).c_str(), NULL);
+			}
+		}
+
+		nvgRestore(args.vg);
+	}
+
+	void drawSonograph(const DrawArgs& args) {
+		if (!module)
+			return;
+
+		float marginL = 12.f;
+		float marginR = 0.f;
+		float marginT = 6.f;
+		float marginB = 20.f;
+		Rect plot = box.zeroPos().grow(Vec(-marginL, -marginT)).grow(Vec(-marginR, -marginB));
+
+		int plotW = (int)plot.size.x;
+		int plotH = (int)plot.size.y;
+		if (plotW <= 0 || plotH <= 0)
+			return;
+
+		float sampleRate = module->sampleRate;
+		float binSpacingHz = sampleRate / FFT_SIZE;
+		int numBins = FFT_SIZE / 2;
+		float minLogFreq = 20.f;
+		float maxLogFreq = sampleRate / 2.f;
+		float logMin = logf(minLogFreq);
+		float logRange = logf(maxLogFreq) - logMin;
+
+		float gainY = powf(2.f, roundf(module->params[RaSeerModule::Y_SCALE_PARAM].getValue())) / 10.f;
+		float offsetY = module->params[RaSeerModule::Y_POS_PARAM].getValue();
+
+		uint8_t* pixels = new uint8_t[plotW * plotH * 4];
+
+		auto normToRGB = [](float norm, uint8_t& r, uint8_t& g, uint8_t& b) {
+			float hue = (1.f - clamp(norm, 0.f, 1.f)) * 270.f;
+			float s = 1.f;
+			float v = powf(clamp(norm, 0.f, 1.f), 0.4f);
+			int hi = ((int)(hue / 60.f)) % 6;
+			float f = hue / 60.f - floorf(hue / 60.f);
+			float p = v * (1.f - s);
+			float q = v * (1.f - s * f);
+			float t = v * (1.f - s * (1.f - f));
+			switch (hi) {
+				case 0: r = v*255; g = t*255; b = p*255; break;
+				case 1: r = q*255; g = v*255; b = p*255; break;
+				case 2: r = p*255; g = v*255; b = t*255; break;
+				case 3: r = p*255; g = q*255; b = v*255; break;
+				case 4: r = t*255; g = p*255; b = v*255; break;
+				default: r = v*255; g = p*255; b = q*255; break;
+			}
+		};
+
+		for (int px = 0; px < plotW; px++) {
+			int frameAge = plotW - 1 - px;
+			if (frameAge >= module->sonoCount) {
+				for (int py = 0; py < plotH; py++) {
+					int idx = (py * plotW + px) * 4;
+					pixels[idx+0] = 0;
+					pixels[idx+1] = 0;
+					pixels[idx+2] = 0;
+					pixels[idx+3] = 0;
+				}
+				continue;
+			}
+			float* frame = &module->sonoBuffer[frameAge * numBins];
+
+			for (int py = 0; py < plotH; py++) {
+				float yNorm = 1.f - (float)py / plotH;
+				float freq = expf(logMin + yNorm * logRange);
+				int bin = clamp((int)(freq / binSpacingHz), 0, numBins - 1);
+
+				float mag = frame[bin] * gainY;
+				float db = 20.f * log10f(mag + 1e-6f) + offsetY;
+				float norm = clamp(rescale(db, -60.f, 0.f, 0.f, 1.f), 0.f, 1.f);
+
+				uint8_t r, g, b;
+				normToRGB(norm, r, g, b);
+
+				int idx = (py * plotW + px) * 4;
+				pixels[idx+0] = r;
+				pixels[idx+1] = g;
+				pixels[idx+2] = b;
+				pixels[idx+3] = 255;
+			}
+		}
+
+		if (sonoImageId >= 0)
+			nvgDeleteImage(args.vg, sonoImageId);
+		sonoImageId = nvgCreateImageRGBA(args.vg, plotW, plotH, NVG_IMAGE_NEAREST, pixels);
+		delete[] pixels;
+
+		nvgSave(args.vg);
+		nvgBeginPath(args.vg);
+		nvgRect(args.vg, plot.pos.x, plot.pos.y, plotW, plotH);
+		nvgFillPaint(args.vg, nvgImagePattern(args.vg, plot.pos.x, plot.pos.y, plotW, plotH, 0.f, sonoImageId, 1.f));
+		nvgFill(args.vg);
+		nvgRestore(args.vg);
+	}
+
+	void drawLayer(const DrawArgs& args, int layer) override {
+		if (layer != 1)
+			return;
+
+		drawBackground(args);
+
+		int displayMode = module ? module->getMode() : 0;
+
+		if (displayMode == 2) {
+			drawSpectrum(args);
+			return;
+		}
+
+		if (displayMode == 3) {
+			drawSonograph(args);
+			return;
+		}
+
+		float gainX = module ? module->params[RaSeerModule::X_SCALE_PARAM].getValue() : 0.f;
+		gainX = std::pow(2.f, std::round(gainX)) / 10.f;
+		float gainY = module ? module->params[RaSeerModule::Y_SCALE_PARAM].getValue() : 0.f;
+		gainY = std::pow(2.f, std::round(gainY)) / 10.f;
+		float offsetX = module ? module->params[RaSeerModule::X_POS_PARAM].getValue() : 5.f;
+		float offsetY = module ? module->params[RaSeerModule::Y_POS_PARAM].getValue() : -5.f;
+
+		PortWidget* inputX = moduleWidget->getInput(RaSeerModule::X_INPUT);
+		PortWidget* inputY = moduleWidget->getInput(RaSeerModule::Y_INPUT);
+		CableWidget* inputXCable = APP->scene->rack->getTopCable(inputX);
+		CableWidget* inputYCable = APP->scene->rack->getTopCable(inputY);
+		NVGcolor inputXColor, inputYColor;
+		if (module && module->disableCableColors) {
+			inputXColor = SCHEME_PURPLE;
+			inputYColor = nvgRGB(0xff, 0x66, 0xaa);
+		} else {
+			inputXColor = inputXCable ? inputXCable->color : SCHEME_YELLOW;
+			inputYColor = inputYCable ? inputYCable->color : SCHEME_YELLOW;
+		}
+
+		int channelsY = module ? module->channelsY : 1;
+		int channelsX = module ? module->channelsX : 1;
+		if (displayMode == 1) {
+			int lissajousChannels = std::min(channelsX, channelsY);
+			for (int c = 0; c < lissajousChannels; c++) {
+				drawLissajous(args, c, offsetX, gainX, offsetY, gainY, inputYColor, inputXColor);
+			}
+		}
+		else {
+			for (int c = 0; c < channelsY; c++) {
+				nvgFillColor(args.vg, inputYColor);
+				drawWave(args, 1, c, offsetY, gainY);
+			}
+
+			for (int c = 0; c < channelsX; c++) {
+				nvgFillColor(args.vg, inputXColor);
+				drawWave(args, 0, c, offsetX, gainX);
+			}
+
+			float trigThreshold = module ? module->params[RaSeerModule::THRESH_PARAM].getValue() : 0.f;
+			trigThreshold = (trigThreshold + offsetX) * gainX;
+			drawTrig(args, trigThreshold);
+		}
+
+		if (statsFrame == 0) {
+			calculateStats(statsX, 0, channelsX);
+			calculateStats(statsY, 1, channelsY);
+		}
+		statsFrame = (statsFrame + 1) % 4;
+
+		drawStats(args, Vec(0, 0 + 1), "1", statsX);
+		drawStats(args, Vec(0, box.size.y - 15 - 1), "2", statsY);
+	}
 };
+
 
 struct RaSeerWidget : ModuleWidget {
-    RaSeerWidget(RaSeerModule *module) {
-        setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-seer.svg")));
+	RaSeerWidget(RaSeerModule* module) {
+		setModule(module);
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-seer.svg")));
 
-        addChild(createWidget<RaScrew>(Vec(0, 0)));
-        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
-        addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
-        addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
+		addChild(createWidget<RaScrew>(Vec(0, 0)));
+		addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
+		addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        auto *display = new SeerDisplay();
-        display->box.pos = Vec(6, 70);
-        display->box.size = Vec(48, 235);
-        display->module = module;
-        addChild(display);
+		addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(30, 24), module, RaSeerModule::MODE_PARAM, RaSeerModule::MODE_LIGHT_R));
+		addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(30, 72), module, RaSeerModule::TRIG_PARAM, RaSeerModule::TRIG_LIGHT));
+		addParam(createParamCentered<RaKnob>(Vec(30, 120), module, RaSeerModule::THRESH_PARAM));
+		addInput(createInputCentered<RaPort>(Vec(30, 168), module, RaSeerModule::TRIG_INPUT));
 
-        display->ch1Input = createInputCentered<RaPort>(Vec(14, 26), module, RaSeerModule::CH1_INPUT);
-        addChild(display->ch1Input);
-        display->ch2Input = createInputCentered<RaPort>(Vec(46, 26), module, RaSeerModule::CH2_INPUT);
-        addChild(display->ch2Input);
+		addParam(createParamCentered<RaKnob>(Vec(30, 216), module, RaSeerModule::TIME_PARAM));
 
-        addParam(createParamCentered<RaKnobTrim>(Vec(30, 46), module, RaSeerModule::PARAM));
+		addInput(createInputCentered<RaPort>(Vec(30, 264), module, RaSeerModule::X_INPUT));
+		addInput(createInputCentered<RaPort>(Vec(30, 312), module, RaSeerModule::Y_INPUT));
 
-        addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(30, 322), module, RaSeerModule::MODE_PARAM, RaSeerModule::MODE_LIGHT_R));
+		addParam(createParamCentered<RaKnob>(Vec(480, 24), module, RaSeerModule::X_SCALE_PARAM));
+		addParam(createParamCentered<RaKnob>(Vec(480, 72), module, RaSeerModule::Y_SCALE_PARAM));
 
-        addOutput(createOutputCentered<RaPort>(Vec(14, 358), module, RaSeerModule::CH1_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(46, 358), module, RaSeerModule::CH2_OUTPUT));
-    }
+		addParam(createParamCentered<RaKnob>(Vec(480, 120), module, RaSeerModule::X_POS_PARAM));
+		addParam(createParamCentered<RaKnob>(Vec(480, 168), module, RaSeerModule::Y_POS_PARAM));
+
+		addOutput(createOutputCentered<RaPort>(Vec(480, 264), module, RaSeerModule::X_OUTPUT));
+		addOutput(createOutputCentered<RaPort>(Vec(480, 312), module, RaSeerModule::Y_OUTPUT));
+
+		RaSeerDisplay* display = createWidget<RaSeerDisplay>(Vec(60, 4));
+		display->box.size = Vec(390, 380 - 8);
+		display->module = module;
+		display->moduleWidget = this;
+		addChild(display);
+	}
+
+	void appendContextMenu(ui::Menu* menu) override {
+		RaSeerModule* mod = dynamic_cast<RaSeerModule*>(module);
+
+		menu->addChild(new ui::MenuSeparator);
+
+		struct CableColorsItem : ui::MenuItem {
+			RaSeerModule* mod;
+			void onAction(const event::Action& e) override {
+				mod->disableCableColors = !mod->disableCableColors;
+			}
+			void step() override {
+				rightText = mod->disableCableColors ? "✔" : "";
+				MenuItem::step();
+			}
+		};
+
+		CableColorsItem* item = new CableColorsItem;
+		item->text = "Disable cable colors";
+		item->mod = mod;
+		menu->addChild(item);
+	}
 };
 
-Model *modelRaSeer = createModel<RaSeerModule, RaSeerWidget>("ra-seer");
+
+Model* modelRaSeer = createModel<RaSeerModule, RaSeerWidget>("ra-seer");

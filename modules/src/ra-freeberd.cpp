@@ -6,7 +6,7 @@ using namespace rack;
 extern Plugin *pluginInstance;
 
 // Classic Freeverb (Jezar) — 8 combs + 4 allpasses per channel
-struct RaFreeverbModule : Module {
+struct RaFreeberdModule : Module {
     enum ParamIds {
         ROOM_PARAM,
         DAMP_PARAM,
@@ -83,7 +83,7 @@ struct RaFreeverbModule : Module {
     float smoothDamp = 0.5f;
     float smoothDrywet = 0.5f;
 
-    RaFreeverbModule() {
+    RaFreeberdModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(ROOM_PARAM, 0.f, 1.f, 0.5f, "Room size", "%", 0.f, 100.f);
         configParam(DAMP_PARAM, 0.f, 1.f, 0.5f, "Damping", "%", 0.f, 100.f);
@@ -162,13 +162,13 @@ struct RaFreeverbModule : Module {
 };
 
 // Out-of-class definitions (required for odr-used constexpr members in C++11)
-constexpr float RaFreeverbModule::COMB_TUNINGS[];
-constexpr float RaFreeverbModule::ALLPASS_TUNINGS[];
+constexpr float RaFreeberdModule::COMB_TUNINGS[];
+constexpr float RaFreeberdModule::ALLPASS_TUNINGS[];
 
-struct RaFreeverbWidget : ModuleWidget {
-    RaFreeverbWidget(RaFreeverbModule *module) {
+struct RaFreeberdWidget : ModuleWidget {
+    RaFreeberdWidget(RaFreeberdModule *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-freeverb.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-freeberd.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
@@ -179,19 +179,19 @@ struct RaFreeverbWidget : ModuleWidget {
         float lx = 25;
         float rx = 65;
 
-        addInput(createInputCentered<RaPort>(Vec(lx, 85), module, RaFreeverbModule::L_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(rx, 85), module, RaFreeverbModule::R_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(lx, 85), module, RaFreeberdModule::L_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(rx, 85), module, RaFreeberdModule::R_INPUT));
 
-        addParam(createParamCentered<RaKnob>(Vec(cx, 130), module, RaFreeverbModule::ROOM_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(cx, 175), module, RaFreeverbModule::DAMP_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(cx, 220), module, RaFreeverbModule::DRYWET_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(cx, 130), module, RaFreeberdModule::ROOM_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(cx, 175), module, RaFreeberdModule::DAMP_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(cx, 220), module, RaFreeberdModule::DRYWET_PARAM));
 
-        addInput(createInputCentered<RaPort>(Vec(lx, 260), module, RaFreeverbModule::ROOM_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(rx, 260), module, RaFreeverbModule::DAMP_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(lx, 260), module, RaFreeberdModule::ROOM_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(rx, 260), module, RaFreeberdModule::DAMP_CV_INPUT));
 
-        addOutput(createOutputCentered<RaPort>(Vec(lx, 295), module, RaFreeverbModule::L_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(rx, 295), module, RaFreeverbModule::R_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(lx, 295), module, RaFreeberdModule::L_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(rx, 295), module, RaFreeberdModule::R_OUTPUT));
     }
 };
 
-Model *modelRaFreeverb = createModel<RaFreeverbModule, RaFreeverbWidget>("ra-freeverb");
+Model *modelRaFreeberd = createModel<RaFreeberdModule, RaFreeberdWidget>("ra-freeberd");

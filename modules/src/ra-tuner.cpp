@@ -10,7 +10,7 @@ static const char* TUNER_NOTE_NAMES[12] = {
 	"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
 
-// Project purple palette (see ra-klock, ra-endless displays)
+// Project purple palette (see ra-klock, ra-reflectingpool displays)
 static const NVGcolor TUNER_PURPLE = nvgRGB(0x99, 0x6d, 0xd2);
 static const NVGcolor TUNER_PURPLE_DIM = nvgRGB(0x55, 0x3d, 0x74);
 static const NVGcolor TUNER_PURPLE_INACTIVE = nvgRGB(0x2a, 0x1d, 0x33);

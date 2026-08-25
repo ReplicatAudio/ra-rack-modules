@@ -4,7 +4,7 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 
-struct RaEndlessModule : Module {
+struct RaReflectingPoolModule : Module {
     static constexpr int NUM_TRACKS = 2;
     std::vector<std::vector<float>> sequences[NUM_TRACKS];
     int currentSeq[NUM_TRACKS] = {0, 0};
@@ -227,7 +227,7 @@ struct RaEndlessModule : Module {
         }
     }
 
-    RaEndlessModule() {
+    RaReflectingPoolModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(TRACK_SELECT_PARAM, 0.f, 1.f, 0.f, "Track select");
         configParam(WRITE_PARAM, 0.f, 1.f, 0.f, "Write");
@@ -539,10 +539,10 @@ struct RaEndlessModule : Module {
     }
 };
 
-constexpr float RaEndlessModule::REST_VALUE;
+constexpr float RaReflectingPoolModule::REST_VALUE;
 
 struct EndlessDisplay : LedDisplay {
-    RaEndlessModule *module;
+    RaReflectingPoolModule *module;
     std::shared_ptr<Font> font;
 
     EndlessDisplay() {
@@ -599,7 +599,7 @@ struct EndlessDisplay : LedDisplay {
             return;
         }
 
-        float inV = module->inputs[RaEndlessModule::CV_INPUT].getVoltage();
+        float inV = module->inputs[RaReflectingPoolModule::CV_INPUT].getVoltage();
         int t = module->selectedTrack;
 
         auto trackInfo = [&](int i) -> std::string {
@@ -610,7 +610,7 @@ struct EndlessDisplay : LedDisplay {
             int sq = module->currentSeq[i] + 1;
             int totalSeqs = (int)module->sequences[i].size();
             char label = (i == 0) ? 'A' : 'B';
-            int cvId = (i == 0) ? RaEndlessModule::TRACK_A_CV_OUTPUT : RaEndlessModule::TRACK_B_CV_OUTPUT;
+            int cvId = (i == 0) ? RaReflectingPoolModule::TRACK_A_CV_OUTPUT : RaReflectingPoolModule::TRACK_B_CV_OUTPUT;
             float outV = module->outputs[cvId].getVoltage();
             if (sc == 0) return rack::string::f("%c  0.00  0 [%d/%d]", label, sq, totalSeqs);
             return rack::string::f("%c %+.2f %d/%d [%d/%d]", label, outV, dp, sc, sq, totalSeqs);
@@ -707,7 +707,7 @@ struct EndlessDisplay : LedDisplay {
                 float v = seqA[stepIndex];
                 nvgFillColor(args.vg, (stepIndex == cur) ? nvgRGB(0xff, 0xff, 0xff)
                     : (module->selectedTrack == 0 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74)));
-                std::string s = (v == RaEndlessModule::REST_VALUE) ? "RST" : rack::string::f("%+.2f", v);
+                std::string s = (v == RaReflectingPoolModule::REST_VALUE) ? "RST" : rack::string::f("%+.2f", v);
                 nvgText(args.vg, stepColW + 4, y, s.c_str(), nullptr);
             }
             // Track B
@@ -715,7 +715,7 @@ struct EndlessDisplay : LedDisplay {
                 float v = seqB[stepIndex];
                 nvgFillColor(args.vg, (stepIndex == cur) ? nvgRGB(0xff, 0xff, 0xff)
                     : (module->selectedTrack == 1 ? nvgRGB(0x99, 0x6d, 0xd2) : nvgRGB(0x55, 0x3d, 0x74)));
-                std::string s = (v == RaEndlessModule::REST_VALUE) ? "RST" : rack::string::f("%+.2f", v);
+                std::string s = (v == RaReflectingPoolModule::REST_VALUE) ? "RST" : rack::string::f("%+.2f", v);
                 nvgText(args.vg, bColX + 4, y, s.c_str(), nullptr);
             }
         }
@@ -728,10 +728,10 @@ struct PurpleLight : GrayModuleLightWidget {
     }
 };
 
-struct RaEndlessWidget : ModuleWidget {
-    RaEndlessWidget(RaEndlessModule *module) {
+struct RaReflectingPoolWidget : ModuleWidget {
+    RaReflectingPoolWidget(RaReflectingPoolModule *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-endless.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-reflectingpool.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
@@ -748,54 +748,54 @@ struct RaEndlessWidget : ModuleWidget {
         float xOut[] = {24, 72, 120, 168};
 
         // Row 1 (y=128): CV In, Passthrough, Run Trig, Run Btn, Track Sel, Position CV
-        addInput(createInputCentered<RaPort>(Vec(xCol[0], 128), module, RaEndlessModule::CV_INPUT));
-        addParam(createParamCentered<RaSwitch2>(Vec(xCol[1], 128), module, RaEndlessModule::PASSTHROUGH_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(xCol[2], 128), module, RaEndlessModule::RUN_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[3], 128), module, RaEndlessModule::RUN_PARAM, RaEndlessModule::RUN_LIGHT));
-        addParam(createParamCentered<RaButton>(Vec(xCol[4], 128), module, RaEndlessModule::TRACK_SELECT_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(xCol[5], 128), module, RaEndlessModule::POSITION_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(xCol[0], 128), module, RaReflectingPoolModule::CV_INPUT));
+        addParam(createParamCentered<RaSwitch2>(Vec(xCol[1], 128), module, RaReflectingPoolModule::PASSTHROUGH_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(xCol[2], 128), module, RaReflectingPoolModule::RUN_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[3], 128), module, RaReflectingPoolModule::RUN_PARAM, RaReflectingPoolModule::RUN_LIGHT));
+        addParam(createParamCentered<RaButton>(Vec(xCol[4], 128), module, RaReflectingPoolModule::TRACK_SELECT_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(xCol[5], 128), module, RaReflectingPoolModule::POSITION_INPUT));
 
         // Row 2 (y=170): Write, Write Trig, Rest, Rest Trig, Reset, Reset Trig
-        addParam(createParamCentered<RaButton>(Vec(xCol[0], 170), module, RaEndlessModule::WRITE_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(xCol[1], 170), module, RaEndlessModule::WRITE_TRIG_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(xCol[2], 170), module, RaEndlessModule::REST_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(xCol[3], 170), module, RaEndlessModule::REST_TRIG_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(xCol[4], 170), module, RaEndlessModule::RESET_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(xCol[5], 170), module, RaEndlessModule::RESET_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(xCol[0], 170), module, RaReflectingPoolModule::WRITE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(xCol[1], 170), module, RaReflectingPoolModule::WRITE_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(xCol[2], 170), module, RaReflectingPoolModule::REST_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(xCol[3], 170), module, RaReflectingPoolModule::REST_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(xCol[4], 170), module, RaReflectingPoolModule::RESET_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(xCol[5], 170), module, RaReflectingPoolModule::RESET_TRIG_INPUT));
 
         // Row 3 (y=212): Prev, Prev Trig, Next, Next Trig, Clear, Clear Trig
-        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[0], 212), module, RaEndlessModule::STEP_PREV_PARAM, RaEndlessModule::STEP_PREV_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(xCol[1], 212), module, RaEndlessModule::STEP_PREV_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[2], 212), module, RaEndlessModule::STEP_NEXT_PARAM, RaEndlessModule::STEP_NEXT_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(xCol[3], 212), module, RaEndlessModule::STEP_NEXT_TRIG_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(xCol[4], 212), module, RaEndlessModule::CLEAR_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(xCol[5], 212), module, RaEndlessModule::CLEAR_TRIG_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[0], 212), module, RaReflectingPoolModule::STEP_PREV_PARAM, RaReflectingPoolModule::STEP_PREV_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(xCol[1], 212), module, RaReflectingPoolModule::STEP_PREV_TRIG_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[2], 212), module, RaReflectingPoolModule::STEP_NEXT_PARAM, RaReflectingPoolModule::STEP_NEXT_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(xCol[3], 212), module, RaReflectingPoolModule::STEP_NEXT_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(xCol[4], 212), module, RaReflectingPoolModule::CLEAR_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(xCol[5], 212), module, RaReflectingPoolModule::CLEAR_TRIG_INPUT));
 
         // Row 4 (y=254): Seq Prev, Seq Prev Trig, Seq Next, Seq Next Trig, Seq Reset, Seq Reset Trig
-        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[0], 254), module, RaEndlessModule::SEQ_PREV_PARAM, RaEndlessModule::SEQ_PREV_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(xCol[1], 254), module, RaEndlessModule::SEQ_PREV_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[2], 254), module, RaEndlessModule::SEQ_NEXT_PARAM, RaEndlessModule::SEQ_NEXT_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(xCol[3], 254), module, RaEndlessModule::SEQ_NEXT_TRIG_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[4], 254), module, RaEndlessModule::SEQ_RESET_PARAM, RaEndlessModule::SEQ_RESET_LIGHT_R));
-        addInput(createInputCentered<RaPort>(Vec(xCol[5], 254), module, RaEndlessModule::SEQ_RESET_TRIG_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[0], 254), module, RaReflectingPoolModule::SEQ_PREV_PARAM, RaReflectingPoolModule::SEQ_PREV_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(xCol[1], 254), module, RaReflectingPoolModule::SEQ_PREV_TRIG_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[2], 254), module, RaReflectingPoolModule::SEQ_NEXT_PARAM, RaReflectingPoolModule::SEQ_NEXT_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(xCol[3], 254), module, RaReflectingPoolModule::SEQ_NEXT_TRIG_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(xCol[4], 254), module, RaReflectingPoolModule::SEQ_RESET_PARAM, RaReflectingPoolModule::SEQ_RESET_LIGHT_R));
+        addInput(createInputCentered<RaPort>(Vec(xCol[5], 254), module, RaReflectingPoolModule::SEQ_RESET_TRIG_INPUT));
 
         // Screen Mode, Song Mode, Sequences, Repeats, Bmode
-        addParam(createParamCentered<RaButton>(Vec(32, 295), module, RaEndlessModule::SCREEN_MODE_PARAM));
-        addParam(createParamCentered<RaSwitch3>(Vec(72, 295), module, RaEndlessModule::SONG_MODE_PARAM));
-        addParam(createParamCentered<RaKnobSmall>(Vec(120, 295), module, RaEndlessModule::SEQ_LENGTH_PARAM));
-        addParam(createParamCentered<RaKnobSmall>(Vec(168, 295), module, RaEndlessModule::REPEATS_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(215, 295), module, RaEndlessModule::BMODE_PARAM));
+        addParam(createParamCentered<RaButton>(Vec(32, 295), module, RaReflectingPoolModule::SCREEN_MODE_PARAM));
+        addParam(createParamCentered<RaSwitch3>(Vec(72, 295), module, RaReflectingPoolModule::SONG_MODE_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(120, 295), module, RaReflectingPoolModule::SEQ_LENGTH_PARAM));
+        addParam(createParamCentered<RaKnobSmall>(Vec(168, 295), module, RaReflectingPoolModule::REPEATS_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(215, 295), module, RaReflectingPoolModule::BMODE_PARAM));
 
         // Track A (y=338), Track B (y=365)
-        addParam(createParamCentered<RaKnobTrim>(Vec(32, 338), module, RaEndlessModule::SLEW_A_PARAM));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[1], 338), module, RaEndlessModule::TRACK_A_CV_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[2], 338), module, RaEndlessModule::TRACK_A_TRIG_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[3], 338), module, RaEndlessModule::TRACK_A_END_OUTPUT));
-        addParam(createParamCentered<RaKnobTrim>(Vec(32, 365), module, RaEndlessModule::SLEW_B_PARAM));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[1], 365), module, RaEndlessModule::TRACK_B_CV_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[2], 365), module, RaEndlessModule::TRACK_B_TRIG_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(xOut[3], 365), module, RaEndlessModule::TRACK_B_END_OUTPUT));
+        addParam(createParamCentered<RaKnobTrim>(Vec(32, 338), module, RaReflectingPoolModule::SLEW_A_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[1], 338), module, RaReflectingPoolModule::TRACK_A_CV_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[2], 338), module, RaReflectingPoolModule::TRACK_A_TRIG_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[3], 338), module, RaReflectingPoolModule::TRACK_A_END_OUTPUT));
+        addParam(createParamCentered<RaKnobTrim>(Vec(32, 365), module, RaReflectingPoolModule::SLEW_B_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[1], 365), module, RaReflectingPoolModule::TRACK_B_CV_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[2], 365), module, RaReflectingPoolModule::TRACK_B_TRIG_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(xOut[3], 365), module, RaReflectingPoolModule::TRACK_B_END_OUTPUT));
     }
 };
 
-Model *modelRaEndless = createModel<RaEndlessModule, RaEndlessWidget>("ra-endless");
+Model *modelRaReflectingPool = createModel<RaReflectingPoolModule, RaReflectingPoolWidget>("ra-reflectingpool");

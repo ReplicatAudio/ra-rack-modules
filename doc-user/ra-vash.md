@@ -1,4 +1,4 @@
-# ra-dseq — 64-Step Drum Sequencer
+# ra-vash — 64-Step Drum Sequencer
 
 Eight sequences of 64 steps, edited on an 8×8 pad grid and played through 8 trigger outputs.
 
