@@ -41,6 +41,7 @@ struct RaKarplusStrongModule : Module {
         SYMP_DETUNE_CV_INPUT,
         SYMP_COUNT_CV_INPUT,
         EXCITE_MODE_CV_INPUT,
+        SYMP_LEVEL_CV_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -114,9 +115,12 @@ struct RaKarplusStrongModule : Module {
         configInput(LEVEL_CV_INPUT, "Level CV");
         configInput(SYMP_DETUNE_CV_INPUT, "Sympathetic detune CV");
         configInput(SYMP_COUNT_CV_INPUT, "Sympathetic strings CV");
+        configInput(SYMP_LEVEL_CV_INPUT, "Sympathetic level CV");
         configInput(EXCITE_MODE_CV_INPUT, "Excitation mode CV");
 
         configParam(SYMP_COUNT_PARAM, 0.f, 3.f, 2.f, "Sympathetic strings", " strings", 0.f, 1.f, 0.f);
+        paramQuantities[EXCITE_MODE_PARAM]->snapEnabled = true;
+        paramQuantities[SYMP_COUNT_PARAM]->snapEnabled = true;
         configParam(SYMP_DETUNE_PARAM, 0.f, 1.f, 0.4f, "Sympathetic detune", "%", 0.f, 100.f);
         configParam(SYMP_LEVEL_PARAM, 0.f, 1.f, 0.3f, "Sympathetic level", "%", 0.f, 100.f);
         configOutput(AUDIO_OUTPUT, "Audio");
@@ -239,7 +243,9 @@ struct RaKarplusStrongModule : Module {
         float sympDetune = clamp(
             params[SYMP_DETUNE_PARAM].getValue() + inputs[SYMP_DETUNE_CV_INPUT].getVoltage() / 10.f,
             0.f, 1.f);
-        float sympLevel = params[SYMP_LEVEL_PARAM].getValue();
+        float sympLevel = clamp(
+            params[SYMP_LEVEL_PARAM].getValue() + inputs[SYMP_LEVEL_CV_INPUT].getVoltage() / 10.f,
+            0.f, 1.f);
 
         for (int c = 0; c < channels; c++) {
             float freq = baseFreq
@@ -411,16 +417,17 @@ struct RaKarplusStrongWidget : ModuleWidget {
         addParam(createParamCentered<RaKnob>(Vec(156, 152), module, RaKarplusStrongModule::EXCITE_MODE_PARAM));
         addInput(createInputCentered<RaPort>(Vec(156, 189), module, RaKarplusStrongModule::EXCITE_MODE_CV_INPUT));
 
-        // Row 3: Level | Sympathetic strings (+CV), detune (+CV)
+        // Row 3: Level | Sympathetic level, count (+CV), detune (+CV)
         addParam(createParamCentered<RaKnob>(Vec(24, 236), module, RaKarplusStrongModule::LEVEL_PARAM));
         addInput(createInputCentered<RaPort>(Vec(24, 273), module, RaKarplusStrongModule::LEVEL_CV_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(68, 236), module, RaKarplusStrongModule::SYMP_LEVEL_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(68, 273), module, RaKarplusStrongModule::SYMP_LEVEL_CV_INPUT));
         addParam(createParamCentered<RaKnob>(Vec(112, 236), module, RaKarplusStrongModule::SYMP_COUNT_PARAM));
         addInput(createInputCentered<RaPort>(Vec(112, 273), module, RaKarplusStrongModule::SYMP_COUNT_CV_INPUT));
         addParam(createParamCentered<RaKnob>(Vec(156, 236), module, RaKarplusStrongModule::SYMP_DETUNE_PARAM));
         addInput(createInputCentered<RaPort>(Vec(156, 273), module, RaKarplusStrongModule::SYMP_DETUNE_CV_INPUT));
 
-        // Bottom row: sympathetic level trim + main output
-        addParam(createParamCentered<RaKnob>(Vec(24, 330), module, RaKarplusStrongModule::SYMP_LEVEL_PARAM));
+        // Bottom row: main output
         addOutput(createOutputCentered<RaPort>(Vec(cx, 330), module, RaKarplusStrongModule::AUDIO_OUTPUT));
     }
 };
