@@ -302,13 +302,14 @@ struct KlockDisplay : Widget {
         const float W = box.size.x;
         const float H = box.size.y;
 
-        // Screen backdrop
+        // Screen backdrop — painted slightly larger than the box to cover the
+        // SVG bezel outline, recolored with a muted purple border to match the accent
         nvgBeginPath(args.vg);
-        nvgRoundedRect(args.vg, 0, 0, W, H, 3);
-        nvgFillColor(args.vg, nvgRGB(0x0a, 0x0f, 0x0a));
+        nvgRoundedRect(args.vg, -3, -3, W + 6, H + 6, 4);
+        nvgFillColor(args.vg, nvgRGB(0x0b, 0x0a, 0x10));
         nvgFill(args.vg);
-        nvgStrokeWidth(args.vg, 1.f);
-        nvgStrokeColor(args.vg, nvgRGB(0x22, 0x33, 0x22));
+        nvgStrokeWidth(args.vg, 1.5f);
+        nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
         nvgStroke(args.vg);
 
         if (!module) return;
