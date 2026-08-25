@@ -358,8 +358,8 @@ struct KlockDisplay : Widget {
         nvgRoundedRectVarying(args.vg, 16, 6, W - 32, H - 12, 40, 40, 10, 10);
         nvgFillColor(args.vg, nvgRGB(0x17, 0x13, 0x0d));
         nvgFill(args.vg);
-        nvgStrokeWidth(args.vg, 1.5f);
-        nvgStrokeColor(args.vg, nvgRGB(0x6b, 0x57, 0x33));
+        nvgStrokeWidth(args.vg, 2.f);
+        nvgStrokeColor(args.vg, nvgRGB(0xd9, 0xa4, 0x41));
         nvgStroke(args.vg);
 
         // ---- Dial face ----
@@ -369,13 +369,13 @@ struct KlockDisplay : Widget {
         nvgCircle(args.vg, cx, fy, fr);
         nvgFillColor(args.vg, nvgRGB(0x10, 0x10, 0x10));
         nvgFill(args.vg);
-        nvgStrokeWidth(args.vg, 2.f);
-        nvgStrokeColor(args.vg, beat ? nvgRGBA(0x99, 0x6d, 0xd2, clamp(alpha + 40, 0, 255))
-                                     : nvgRGBA(0x8a, 0x6d, 0x3b, alpha));
+        nvgStrokeWidth(args.vg, 2.5f);
+        nvgStrokeColor(args.vg, beat ? nvgRGBA(0xc3, 0x9b, 0xff, clamp(alpha + 40, 0, 255))
+                                     : nvgRGBA(0xe0, 0xb0, 0x55, alpha));
         nvgStroke(args.vg);
 
         // Tick marks (12 o'clock-style)
-        NVGcolor tickCol = nvgRGBA(0xd8, 0xc8, 0xa0, alpha);
+        NVGcolor tickCol = nvgRGBA(0xff, 0xe9, 0xb8, alpha);
         for (int i = 0; i < 12; i++) {
             float a = (float)i * (float)M_PI / 6.f;
             bool major = (i % 3 == 0);
@@ -384,7 +384,7 @@ struct KlockDisplay : Widget {
             nvgBeginPath(args.vg);
             nvgMoveTo(args.vg, cx + sinf(a) * r1, fy - cosf(a) * r1);
             nvgLineTo(args.vg, cx + sinf(a) * r2, fy - cosf(a) * r2);
-            nvgStrokeWidth(args.vg, major ? 1.5f : 1.f);
+            nvgStrokeWidth(args.vg, major ? 2.f : 1.4f);
             nvgStrokeColor(args.vg, tickCol);
             nvgStroke(args.vg);
         }
@@ -402,14 +402,14 @@ struct KlockDisplay : Widget {
             nvgStroke(args.vg);
         };
 
-        hand((float)(beatCount % 720) / 720.f * 2.f * (float)M_PI, 11.f, 2.2f, nvgRGBA(0xe6, 0xdc, 0xc0, alpha));
-        hand((float)(beatCount % 60) / 60.f * 2.f * (float)M_PI, 16.f, 1.5f, nvgRGBA(0xe6, 0xdc, 0xc0, alpha));
-        hand(phase * 2.f * (float)M_PI, 22.f, 1.f, nvgRGBA(0x99, 0x6d, 0xd2, clamp(alpha + 40, 0, 255)));
+        hand((float)(beatCount % 720) / 720.f * 2.f * (float)M_PI, 11.f, 2.6f, nvgRGBA(0xff, 0xff, 0xff, alpha));
+        hand((float)(beatCount % 60) / 60.f * 2.f * (float)M_PI, 16.f, 1.8f, nvgRGBA(0xff, 0xff, 0xff, alpha));
+        hand(phase * 2.f * (float)M_PI, 22.f, 1.4f, nvgRGBA(0xc3, 0x9b, 0xff, clamp(alpha + 40, 0, 255)));
 
         // Hub
         nvgBeginPath(args.vg);
         nvgCircle(args.vg, cx, fy, 2.2f);
-        nvgFillColor(args.vg, nvgRGBA(0xe6, 0xdc, 0xc0, alpha));
+        nvgFillColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, alpha));
         nvgFill(args.vg);
 
         // ---- Pendulum (metronome-style, one tick per swing) ----
@@ -424,18 +424,18 @@ struct KlockDisplay : Widget {
         nvgBeginPath(args.vg);
         nvgMoveTo(args.vg, cx, 78.f);
         nvgLineTo(args.vg, px, py);
-        nvgStrokeWidth(args.vg, 2.f);
-        nvgStrokeColor(args.vg, nvgRGBA(0x6b, 0x57, 0x33, alpha));
+        nvgStrokeWidth(args.vg, 2.5f);
+        nvgStrokeColor(args.vg, nvgRGBA(0xd9, 0xa4, 0x41, alpha));
         nvgStroke(args.vg);
 
         nvgBeginPath(args.vg);
         nvgCircle(args.vg, cx, 78.f, 3.f);
-        nvgFillColor(args.vg, nvgRGBA(0x8a, 0x6d, 0x3b, alpha));
+        nvgFillColor(args.vg, nvgRGBA(0xe0, 0xb0, 0x55, alpha));
         nvgFill(args.vg);
 
         nvgBeginPath(args.vg);
         nvgCircle(args.vg, px, py, 9.f);
-        nvgFillColor(args.vg, nvgRGBA(0x99, 0x6d, 0xd2, clamp(alpha + 30, 0, 255)));
+        nvgFillColor(args.vg, nvgRGBA(0xc3, 0x9b, 0xff, clamp(alpha + 30, 0, 255)));
         nvgFill(args.vg);
         nvgBeginPath(args.vg);
         nvgCircle(args.vg, px, py, 3.6f);
