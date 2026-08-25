@@ -58,23 +58,25 @@ struct RaKarplusStrongModule : Module {
     static constexpr int EXCITE_SQUARE = 3;
     static constexpr int EXCITE_SINE = 4;
 
-    // Delay line
-    float delayBuf[MAX_DELAY] = {};
-    int writePos = 0;
-    int delayLen = 100;
+    static constexpr int NUM_VOICES = 16;
 
-    // Filter state
-    float prevDelayOut = 0.f;
+    // Per-voice delay line
+    float delayBuf[NUM_VOICES][MAX_DELAY] = {};
+    int writePos[NUM_VOICES] = {};
+    int delayLen[NUM_VOICES] = {};
 
-    // Pick position comb filter state
-    float combBuf[MAX_DELAY] = {};
-    int combWritePos = 0;
+    // Per-voice filter state
+    float prevDelayOut[NUM_VOICES] = {};
 
-    // Stiffness allpass state
-    float stiffXPrev = 0.f;
-    float stiffYPrev = 0.f;
+    // Per-voice pick position comb filter state
+    float combBuf[NUM_VOICES][MAX_DELAY] = {};
+    int combWritePos[NUM_VOICES] = {};
 
-    // Excitation buffer
+    // Per-voice stiffness allpass state
+    float stiffXPrev[NUM_VOICES] = {};
+    float stiffYPrev[NUM_VOICES] = {};
+
+    // Excitation buffer (generated on trigger, consumed immediately)
     float exciteBuf[MAX_DELAY] = {};
     int exciteLen = 0;
 
@@ -83,11 +85,11 @@ struct RaKarplusStrongModule : Module {
     // Per-string detune spread in semitones at full detune setting
     static constexpr float SYMP_SPREAD_SEMIS[NUM_SYMP] = {0.35f, -0.28f, 0.5f};
 
-    float sympBuf[NUM_SYMP][MAX_DELAY] = {};
-    int sympWritePos[NUM_SYMP] = {};
-    float sympPrevOut[NUM_SYMP] = {};
+    float sympBuf[NUM_VOICES][NUM_SYMP][MAX_DELAY] = {};
+    int sympWritePos[NUM_VOICES][NUM_SYMP] = {};
+    float sympPrevOut[NUM_VOICES][NUM_SYMP] = {};
 
-    dsp::SchmittTrigger trigger;
+    dsp::SchmittTrigger trigger[NUM_VOICES];
 
     RaKarplusStrongModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -126,15 +128,18 @@ struct RaKarplusStrongModule : Module {
         std::memset(delayBuf, 0, sizeof(delayBuf));
         std::memset(combBuf, 0, sizeof(combBuf));
         std::memset(sympBuf, 0, sizeof(sympBuf));
-        writePos = 0;
-        combWritePos = 0;
-        for (int i = 0; i < NUM_SYMP; i++) {
-            sympWritePos[i] = 0;
-            sympPrevOut[i] = 0.f;
+        for (int v = 0; v < NUM_VOICES; v++) {
+            writePos[v] = 0;
+            combWritePos[v] = 0;
+            delayLen[v] = 100;
+            prevDelayOut[v] = 0.f;
+            stiffXPrev[v] = 0.f;
+            stiffYPrev[v] = 0.f;
+            for (int i = 0; i < NUM_SYMP; i++) {
+                sympWritePos[v][i] = 0;
+                sympPrevOut[v][i] = 0.f;
+            }
         }
-        prevDelayOut = 0.f;
-        stiffXPrev = 0.f;
-        stiffYPrev = 0.f;
     }
 
     void onReset() override {
@@ -192,12 +197,11 @@ struct RaKarplusStrongModule : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        float freq = MIN_FREQ * powf(MAX_FREQ / MIN_FREQ, params[FREQ_PARAM].getValue());
-        float pitch = inputs[PITCH_INPUT].getVoltage()
-            + inputs[FM_INPUT].getVoltage() * params[FM_ATTN_PARAM].getValue();
-        freq *= powf(2.f, pitch);
-        freq = clamp(freq, MIN_FREQ, MAX_FREQ);
+        int channels = std::max(1, inputs[PITCH_INPUT].getChannels());
 
+        // Shared parameters (read once per sample, applied to all voices)
+        float baseFreq = MIN_FREQ * powf(MAX_FREQ / MIN_FREQ, params[FREQ_PARAM].getValue());
+        float fmAtten = params[FM_ATTN_PARAM].getValue();
         float damping = clamp(
             params[DAMP_PARAM].getValue() + inputs[DAMP_CV_INPUT].getVoltage() / 10.f,
             0.f, 1.f);
@@ -217,134 +221,155 @@ struct RaKarplusStrongModule : Module {
             params[LEVEL_PARAM].getValue() + inputs[LEVEL_CV_INPUT].getVoltage() / 10.f,
             0.f, 1.f);
 
-        // Calculate delay line length from frequency
-        // Account for filter group delay: ~0.5 samples for the averaging filter
-        float idealDelay = args.sampleRate / freq;
-        delayLen = std::max(2, std::min(MAX_DELAY - 1, (int)std::round(idealDelay)));
+        // Damping filter coefficient (shared)
+        // damping = 0 -> bright, damping = 1 -> very damped
+        float dampCoeff = 0.1f + 0.9f * (1.f - damping); // higher damping = lower cutoff
 
-        // Pick position comb filter delay (0 = no comb, full = center of string)
-        // The comb creates notches at harmonics based on pick position
-        int combDelay = std::max(0, std::min(delayLen - 1, (int)(pickPos * delayLen)));
-
-        // Stiffness allpass coefficient
+        // Stiffness allpass coefficient (shared)
         // Higher stiffness = more inharmonicity (like a stiff string)
         float stiffCoeff = stiffness * 0.4f;
 
-        // --- Trigger detection ---
-        if (trigger.process(inputs[TRIG_INPUT].getVoltage())) {
-            // Generate new excitation
-            int burstLen = delayLen;
-            generateExcitation(
-                clamp((int)std::round(params[EXCITE_MODE_PARAM].getValue()
-                    + inputs[EXCITE_MODE_CV_INPUT].getVoltage()), 0, 4),
-                burstLen, brightness);
+        int exciteMode = clamp((int)std::round(params[EXCITE_MODE_PARAM].getValue()
+            + inputs[EXCITE_MODE_CV_INPUT].getVoltage()), 0, 4);
 
-            // Reset delay line with excitation
-            resetDelay();
-            for (int i = 0; i < burstLen; i++) {
-                delayBuf[i % delayLen] = exciteBuf[i];
-            }
-            writePos = burstLen % delayLen;
-        }
-
-        // --- Per-sample processing ---
-        float out = 0.f;
-
-        // Read from delay line (linear interpolation for fractional delay)
-        float readPos = (float)writePos - (float)delayLen;
-        if (readPos < 0.f) readPos += (float)delayLen;
-        int idx0 = (int)readPos;
-        int idx1 = idx0 + 1;
-        if (idx1 >= delayLen) idx1 -= delayLen;
-        float frac = readPos - (float)idx0;
-        float delayOut = delayBuf[idx0] * (1.f - frac) + delayBuf[idx1] * frac;
-
-        // --- Damping filter (simple 1-pole lowpass) ---
-        // damping = 0 -> bright, damping = 1 -> very damped
-        // The averaging filter: out = (prev + current) / 2
-        // More damping: single-pole lowpass with variable cutoff
-        float dampCoeff = 0.1f + 0.9f * (1.f - damping); // higher damping = lower cutoff
-        float filtered = prevDelayOut + dampCoeff * (delayOut - prevDelayOut);
-        prevDelayOut = filtered;
-
-        // --- Pick position comb filter ---
-        // H_beta(z) = 1 - z^{-beta*N} creates notches
-        if (combDelay > 0) {
-            int combIdx = writePos - combDelay;
-            if (combIdx < 0) combIdx += delayLen;
-            float combSample = combBuf[combIdx % delayLen];
-            // Normalized comb: y = (x - a*x_delayed) / (1 + a)
-            // Keeps peak loop gain at unity so Feedback alone controls sustain
-            filtered = (filtered - pickPos * 0.7f * combSample) / (1.f + pickPos * 0.7f);
-        }
-
-        // Store into comb buffer
-        combBuf[combWritePos] = filtered;
-        combWritePos++;
-        if (combWritePos >= delayLen) combWritePos = 0;
-
-        // --- Stiffness allpass ---
-        // First-order allpass y = a*x + x[n-1] - a*y[n-1]
-        // Adds inharmonic stretch of upper partials (stiff string behavior)
-        if (stiffCoeff > 0.001f) {
-            float apOut = stiffCoeff * filtered + stiffXPrev - stiffCoeff * stiffYPrev;
-            stiffXPrev = filtered;
-            stiffYPrev = apOut;
-            filtered = apOut;
-        }
-
-        // --- Feedback with gain ---
-        float feedbackGain = feedback;
-        filtered *= feedbackGain;
-
-        // --- Write back to delay line ---
-        delayBuf[writePos] = filtered;
-        writePos++;
-        if (writePos >= delayLen) writePos = 0;
-
-        // --- Output ---
-        out = filtered;
-
-        // --- Sympathetic strings ---
+        // Sympathetic string settings (shared)
         // Count is quantized: 1V per string, clamped to 0..3
         int sympCount = clamp((int)std::round(params[SYMP_COUNT_PARAM].getValue()
             + inputs[SYMP_COUNT_CV_INPUT].getVoltage()), 0, NUM_SYMP);
-        if (sympCount > 0) {
-            float sympDetune = clamp(
-                params[SYMP_DETUNE_PARAM].getValue() + inputs[SYMP_DETUNE_CV_INPUT].getVoltage() / 10.f,
-                0.f, 1.f);
-            float sympLevel = params[SYMP_LEVEL_PARAM].getValue();
+        float sympDetune = clamp(
+            params[SYMP_DETUNE_PARAM].getValue() + inputs[SYMP_DETUNE_CV_INPUT].getVoltage() / 10.f,
+            0.f, 1.f);
+        float sympLevel = params[SYMP_LEVEL_PARAM].getValue();
 
-            float drive = filtered * 0.5f;
-            float sympSum = 0.f;
-            for (int i = 0; i < sympCount; i++) {
-                float sympFreq = freq * powf(2.f, SYMP_SPREAD_SEMIS[i] * sympDetune / 12.f);
-                float sympIdealDelay = args.sampleRate / sympFreq;
-                int sympDelayLen = std::max(2, std::min(MAX_DELAY - 1, (int)std::round(sympIdealDelay)));
+        for (int c = 0; c < channels; c++) {
+            float freq = baseFreq
+                * powf(2.f, inputs[PITCH_INPUT].getVoltage(c)
+                    + inputs[FM_INPUT].getVoltage(c) * fmAtten);
+            freq = clamp(freq, MIN_FREQ, MAX_FREQ);
 
-                // Read head one delay length behind write position
-                int readIdx = sympWritePos[i] - sympDelayLen;
-                if (readIdx < 0) readIdx += MAX_DELAY;
-                float sympDelayOut = sympBuf[i][readIdx];
+            // Calculate delay line length from frequency
+            // Account for filter group delay: ~0.5 samples for the averaging filter
+            float idealDelay = args.sampleRate / freq;
+            delayLen[c] = std::max(2, std::min(MAX_DELAY - 1, (int)std::round(idealDelay)));
 
-                // Same damping filter as the main loop
-                float sympFiltered = sympPrevOut[i] + dampCoeff * (sympDelayOut - sympPrevOut[i]);
-                sympPrevOut[i] = sympFiltered;
+            // Pick position comb filter delay (0 = no comb, full = center of string)
+            // The comb creates notches at harmonics based on pick position
+            int combDelay = std::max(0, std::min(delayLen[c] - 1, (int)(pickPos * delayLen[c])));
 
-                // Slightly lower feedback so sympathetic strings decay a bit faster
-                sympFiltered = drive + sympFiltered * feedbackGain * 0.985f;
-                sympBuf[i][sympWritePos[i]] = sympFiltered;
-                if (++sympWritePos[i] >= MAX_DELAY) sympWritePos[i] = 0;
+            // --- Trigger detection (per voice) ---
+            if (trigger[c].process(inputs[TRIG_INPUT].getVoltage(c))) {
+                // Generate new excitation
+                int burstLen = delayLen[c];
+                generateExcitation(exciteMode, burstLen, brightness);
 
-                sympSum += sympFiltered - drive;
+                // Reset this voice's delay line with excitation
+                std::memset(delayBuf[c], 0, sizeof(delayBuf[c]));
+                std::memset(combBuf[c], 0, sizeof(combBuf[c]));
+                writePos[c] = 0;
+                combWritePos[c] = 0;
+                prevDelayOut[c] = 0.f;
+                stiffXPrev[c] = 0.f;
+                stiffYPrev[c] = 0.f;
+                for (int i = 0; i < NUM_SYMP; i++) {
+                    sympWritePos[c][i] = 0;
+                    sympPrevOut[c][i] = 0.f;
+                }
+                for (int i = 0; i < burstLen; i++) {
+                    delayBuf[c][i % delayLen[c]] = exciteBuf[i];
+                }
+                writePos[c] = burstLen % delayLen[c];
             }
-            out += sympLevel * (sympSum / (float)sympCount);
+
+            // --- Per-sample processing ---
+            float out = 0.f;
+
+            // Read from delay line (linear interpolation for fractional delay)
+            float readPos = (float)writePos[c] - (float)delayLen[c];
+            if (readPos < 0.f) readPos += (float)delayLen[c];
+            int idx0 = (int)readPos;
+            int idx1 = idx0 + 1;
+            if (idx1 >= delayLen[c]) idx1 -= delayLen[c];
+            float frac = readPos - (float)idx0;
+            float delayOut = delayBuf[c][idx0] * (1.f - frac) + delayBuf[c][idx1] * frac;
+
+            // --- Damping filter (simple 1-pole lowpass) ---
+            // More damping: single-pole lowpass with variable cutoff
+            float filtered = prevDelayOut[c] + dampCoeff * (delayOut - prevDelayOut[c]);
+            prevDelayOut[c] = filtered;
+
+            // --- Pick position comb filter ---
+            // H_beta(z) = 1 - z^{-beta*N} creates notches
+            if (combDelay > 0) {
+                int combIdx = writePos[c] - combDelay;
+                if (combIdx < 0) combIdx += delayLen[c];
+                float combSample = combBuf[c][combIdx % delayLen[c]];
+                // Normalized comb: y = (x - a*x_delayed) / (1 + a)
+                // Keeps peak loop gain at unity so Feedback alone controls sustain
+                filtered = (filtered - pickPos * 0.7f * combSample) / (1.f + pickPos * 0.7f);
+            }
+
+            // Store into comb buffer
+            combBuf[c][combWritePos[c]] = filtered;
+            combWritePos[c]++;
+            if (combWritePos[c] >= delayLen[c]) combWritePos[c] = 0;
+
+            // --- Stiffness allpass ---
+            // First-order allpass y = a*x + x[n-1] - a*y[n-1]
+            // Adds inharmonic stretch of upper partials (stiff string behavior)
+            if (stiffCoeff > 0.001f) {
+                float apOut = stiffCoeff * filtered + stiffXPrev[c] - stiffCoeff * stiffYPrev[c];
+                stiffXPrev[c] = filtered;
+                stiffYPrev[c] = apOut;
+                filtered = apOut;
+            }
+
+            // --- Feedback with gain ---
+            float feedbackGain = feedback;
+            filtered *= feedbackGain;
+
+            // --- Write back to delay line ---
+            delayBuf[c][writePos[c]] = filtered;
+            writePos[c]++;
+            if (writePos[c] >= delayLen[c]) writePos[c] = 0;
+
+            // --- Output ---
+            out = filtered;
+
+            // --- Sympathetic strings ---
+            if (sympCount > 0) {
+                float drive = filtered * 0.5f;
+                float sympSum = 0.f;
+                for (int i = 0; i < sympCount; i++) {
+                    float sympFreq = freq * powf(2.f, SYMP_SPREAD_SEMIS[i] * sympDetune / 12.f);
+                    float sympIdealDelay = args.sampleRate / sympFreq;
+                    int sympDelayLen = std::max(2, std::min(MAX_DELAY - 1, (int)std::round(sympIdealDelay)));
+
+                    // Read head one delay length behind write position
+                    int readIdx = sympWritePos[c][i] - sympDelayLen;
+                    if (readIdx < 0) readIdx += MAX_DELAY;
+                    float sympDelayOut = sympBuf[c][i][readIdx];
+
+                    // Same damping filter as the main loop
+                    float sympFiltered = sympPrevOut[c][i] + dampCoeff * (sympDelayOut - sympPrevOut[c][i]);
+                    sympPrevOut[c][i] = sympFiltered;
+
+                    // Slightly lower feedback so sympathetic strings decay a bit faster
+                    sympFiltered = drive + sympFiltered * feedbackGain * 0.985f;
+                    sympBuf[c][i][sympWritePos[c][i]] = sympFiltered;
+                    if (++sympWritePos[c][i] >= MAX_DELAY) sympWritePos[c][i] = 0;
+
+                    sympSum += sympFiltered - drive;
+                }
+                out += sympLevel * (sympSum / (float)sympCount);
+            }
+
+            // Soft clip to prevent blowup
+            out = std::tanh(out * 2.f);
+
+            outputs[AUDIO_OUTPUT].setVoltage(out * level * 5.f, c);
         }
 
-        // Soft clip to prevent blowup
-        out = std::tanh(out * 2.f);
-
-        outputs[AUDIO_OUTPUT].setVoltage(out * level * 5.f);
+        outputs[AUDIO_OUTPUT].setChannels(channels);
     }
 };
 

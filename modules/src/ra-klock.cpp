@@ -106,6 +106,9 @@ struct RaKlockModule : Module {
     std::atomic<float> displayBpm{0.f};
     std::atomic<float> displaySwing{0.f};
     std::atomic<float> displayPhase{0.f};
+    // Continuous pendulum phase in beats (beatCount + phase), so the swing
+    // spans two beats: tick at the left extreme, tick at the right extreme.
+    std::atomic<float> displayPend{0.f};
     std::atomic<int> displayBeatCount{0};
     std::atomic<bool> displayBeat{false};
     std::atomic<bool> displayRunning{false};
@@ -289,6 +292,7 @@ struct RaKlockModule : Module {
 
         displayBpm.store(bpm, std::memory_order_relaxed);
         displayPhase.store(phase, std::memory_order_relaxed);
+        displayPend.store((float)beatCount + phase, std::memory_order_relaxed);
         displayBeatCount.store(beatCount, std::memory_order_relaxed);
         displayBeat.store(beatActive, std::memory_order_relaxed);
         displayRunning.store(true, std::memory_order_relaxed);
@@ -408,10 +412,12 @@ struct KlockDisplay : Widget {
         nvgFillColor(args.vg, nvgRGBA(0xe6, 0xdc, 0xc0, alpha));
         nvgFill(args.vg);
 
-        // ---- Pendulum (metronome-style, oscillates back and forth per beat) ----
-        // One full left-right oscillation per beat; the beat (phase 0/1) falls at the
-        // extremes, alternating sides each beat like a tick-tock.
-        float ang = running ? 0.5f * sinf(2.f * (float)M_PI * (phase - 0.25f)) : 0.f;
+        // ---- Pendulum (metronome-style, one tick per swing) ----
+        // One full back-and-forth oscillation spans two beats: the pendulum
+        // reaches one extreme on each beat, so both the left and right swing
+        // count as a tick.
+        float pphase = module->displayPend.load(std::memory_order_relaxed);
+        float ang = running ? 0.5f * sinf((float)M_PI * pphase) : 0.f;
         float px = cx + sinf(ang) * 26.f;
         float py = 78.f + cosf(ang) * 26.f;
 
