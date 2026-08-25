@@ -176,10 +176,10 @@ struct RaDelayCvWidget : ModuleWidget {
 		addInput(createInputCentered<RaPort>(mm2px(Vec(cx, 83.f)), module, RaDelayCvModule::FEEDBACK_INPUT));
 
 		// Signal I/O — 2x2 grid
-		addInput(createInputCentered<RaPort>(mm2px(Vec(5.08f, 96.f)), module, RaDelayCvModule::IN_INPUT));
-		addInput(createInputCentered<RaPort>(mm2px(Vec(15.24f, 96.f)), module, RaDelayCvModule::CLOCK_INPUT));
-		addOutput(createOutputCentered<RaPort>(mm2px(Vec(5.08f, 110.f)), module, RaDelayCvModule::WET_OUTPUT));
-		addOutput(createOutputCentered<RaPort>(mm2px(Vec(15.24f, 110.f)), module, RaDelayCvModule::ECHO_OUTPUT));
+		addInput(createInputCentered<RaPort>(mm2px(Vec(5.87f, 96.f)), module, RaDelayCvModule::IN_INPUT));
+		addInput(createInputCentered<RaPort>(mm2px(Vec(14.45f, 96.f)), module, RaDelayCvModule::CLOCK_INPUT));
+		addOutput(createOutputCentered<RaPort>(mm2px(Vec(5.87f, 110.f)), module, RaDelayCvModule::WET_OUTPUT));
+		addOutput(createOutputCentered<RaPort>(mm2px(Vec(14.45f, 110.f)), module, RaDelayCvModule::ECHO_OUTPUT));
 	}
 };
 

@@ -432,7 +432,7 @@ struct RaEndlessModule : Module {
             float target;
             if (passActive && i == selectedTrack) {
                 target = inputs[CV_INPUT].getVoltage();
-                outputs[trigOutId].setVoltage(10.f);
+                outputs[trigOutId].setVoltage(inputs[WRITE_TRIG_INPUT].getVoltage());
                 outputs[endOutId].setVoltage(0.f);
             } else {
                 auto& seq = getSeq(i);
