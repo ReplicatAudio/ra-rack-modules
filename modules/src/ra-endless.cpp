@@ -550,12 +550,14 @@ struct EndlessDisplay : LedDisplay {
     }
 
     void draw(const DrawArgs &args) override {
+        // Screen backdrop — painted slightly larger than the box to cover the
+        // SVG bezel outline, recolored with a muted purple border to match the accent
         nvgBeginPath(args.vg);
-        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 3);
+        nvgRoundedRect(args.vg, -3, -3, box.size.x + 6, box.size.y + 6, 4);
         nvgFillColor(args.vg, nvgRGB(0x11, 0x11, 0x11));
         nvgFill(args.vg);
-        nvgStrokeWidth(args.vg, 1);
-        nvgStrokeColor(args.vg, nvgRGB(0x55, 0x55, 0x55));
+        nvgStrokeWidth(args.vg, 1.5f);
+        nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
         nvgStroke(args.vg);
 
         if (!module) return;

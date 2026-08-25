@@ -240,15 +240,14 @@ struct HarmBarDisplay : Widget {
     RaVipberusModule *module;
 
     void draw(const DrawArgs &args) override {
+        // Screen backdrop — painted slightly larger than the box to cover the
+        // SVG bezel outline, recolored with a muted purple border to match the accent
         nvgBeginPath(args.vg);
-        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 2);
+        nvgRoundedRect(args.vg, -3, -3, box.size.x + 6, box.size.y + 6, 4);
         nvgFillColor(args.vg, nvgRGB(0x0a, 0x0a, 0x0a));
         nvgFill(args.vg);
-
-        nvgBeginPath(args.vg);
-        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 2);
-        nvgStrokeWidth(args.vg, 1.f);
-        nvgStrokeColor(args.vg, nvgRGB(0x33, 0x33, 0x33));
+        nvgStrokeWidth(args.vg, 1.5f);
+        nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
         nvgStroke(args.vg);
 
         if (!module) return;

@@ -562,6 +562,16 @@ struct DScopeDisplay : LedDisplay {
 	}
 
 	void drawBackground(const DrawArgs& args) {
+		// Screen backdrop — painted slightly larger than the box to cover the
+		// SVG bezel outline, recolored with a muted purple border to match the accent
+		nvgBeginPath(args.vg);
+		nvgRoundedRect(args.vg, -3, -3, box.size.x + 6, box.size.y + 6, 4);
+		nvgFillColor(args.vg, nvgRGB(0x0a, 0x0a, 0x0a));
+		nvgFill(args.vg);
+		nvgStrokeWidth(args.vg, 1.5f);
+		nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
+		nvgStroke(args.vg);
+
 		Rect b = box.zeroPos().shrink(Vec(0, 15));
 
 		nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x10));

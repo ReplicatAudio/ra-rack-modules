@@ -145,13 +145,14 @@ struct TunerDisplay : LedDisplay {
 	}
 
 	void draw(const DrawArgs& args) override {
-		// Backdrop
+		// Screen backdrop — painted slightly larger than the box to cover the
+		// SVG bezel outline, recolored with a muted purple border to match the accent
 		nvgBeginPath(args.vg);
-		nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 3);
+		nvgRoundedRect(args.vg, -3, -3, box.size.x + 6, box.size.y + 6, 4);
 		nvgFillColor(args.vg, nvgRGB(0x0a, 0x0a, 0x0a));
 		nvgFill(args.vg);
-		nvgStrokeWidth(args.vg, 1);
-		nvgStrokeColor(args.vg, nvgRGB(0x33, 0x33, 0x33));
+		nvgStrokeWidth(args.vg, 1.5f);
+		nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
 		nvgStroke(args.vg);
 
 		if (!module || !font)
