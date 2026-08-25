@@ -64,7 +64,7 @@ struct RaSnareModule : Module {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(PITCH_PARAM, 0.f, 1.f, 0.5f, "1V/Oct", " st", 0.f, 48.f, -24.f);
         configParam(FM_ATTN_PARAM, -1.f, 1.f, 0.f, "FM attn", "%", 0, 100);
-        configParam(TONE_PARAM, 0.f, 1.f, 0.6f, "Body", "%", 0, 100);
+        configParam(TONE_PARAM, 0.f, 1.f, 0.6f, "Tone", "%", 0, 100);
         configParam(NOISE_PARAM, 0.f, 1.f, 0.8f, "Noise", "%", 0, 100);
         configParam(DECAY_PARAM, 0.f, 1.f, 0.3f, "Decay", "%", 0, 100);
         configParam(SNAP_PARAM, 0.f, 1.f, 0.5f, "Snap", "%", 0, 100);

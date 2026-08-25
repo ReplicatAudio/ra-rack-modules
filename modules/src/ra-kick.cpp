@@ -188,18 +188,18 @@ struct RaKickWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(20, 197), module, RaKickModule::FM_INPUT));
 
         // Row 1
-        addParam(createParamCentered<RaKnob>(Vec(57, 75), module, RaKickModule::DECAY_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(93, 75), module, RaKickModule::CLICK_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(130, 75), module, RaKickModule::SUB_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(57, 112), module, RaKickModule::DECAY_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(93, 112), module, RaKickModule::CLICK_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(130, 112), module, RaKickModule::SUB_CV_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(57, 75), module, RaKickModule::CLICK_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(93, 75), module, RaKickModule::SUB_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(130, 75), module, RaKickModule::PITCH_DROP_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(57, 112), module, RaKickModule::CLICK_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(93, 112), module, RaKickModule::SUB_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(130, 112), module, RaKickModule::PITCH_CV_INPUT));
 
         // Row 2
-        addParam(createParamCentered<RaKnob>(Vec(57, 160), module, RaKickModule::PITCH_DROP_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(57, 160), module, RaKickModule::DECAY_PARAM));
         addParam(createParamCentered<RaKnob>(Vec(93, 160), module, RaKickModule::CLICK_TONE_PARAM));
         addParam(createParamCentered<RaKnob>(Vec(130, 160), module, RaKickModule::ACCENT_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(57, 197), module, RaKickModule::PITCH_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(57, 197), module, RaKickModule::DECAY_CV_INPUT));
         addInput(createInputCentered<RaPort>(Vec(93, 197), module, RaKickModule::CLICK_TONE_CV_INPUT));
         addInput(createInputCentered<RaPort>(Vec(130, 197), module, RaKickModule::ACCENT_INPUT));
 

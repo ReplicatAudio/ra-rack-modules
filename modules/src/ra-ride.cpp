@@ -223,17 +223,17 @@ struct RaRideWidget : ModuleWidget {
         // Row 1
         addParam(createParamCentered<RaKnob>(Vec(57, 75), module, RaRideModule::TONE_PARAM));
         addParam(createParamCentered<RaKnob>(Vec(93, 75), module, RaRideModule::METALLIC_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(130, 75), module, RaRideModule::DECAY_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(130, 75), module, RaRideModule::BODY_PARAM));
         addInput(createInputCentered<RaPort>(Vec(57, 112), module, RaRideModule::TONE_CV_INPUT));
         addInput(createInputCentered<RaPort>(Vec(93, 112), module, RaRideModule::METALLIC_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(130, 112), module, RaRideModule::DECAY_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(130, 112), module, RaRideModule::BODY_CV_INPUT));
 
         // Row 2
-        addParam(createParamCentered<RaKnob>(Vec(57, 160), module, RaRideModule::SNAP_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(93, 160), module, RaRideModule::BODY_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(57, 160), module, RaRideModule::DECAY_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(93, 160), module, RaRideModule::SNAP_PARAM));
         addParam(createParamCentered<RaKnob>(Vec(130, 160), module, RaRideModule::ACCENT_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(57, 197), module, RaRideModule::SNAP_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(93, 197), module, RaRideModule::BODY_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(57, 197), module, RaRideModule::DECAY_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(93, 197), module, RaRideModule::SNAP_CV_INPUT));
         addInput(createInputCentered<RaPort>(Vec(130, 197), module, RaRideModule::ACCENT_INPUT));
 
         // Row 3 — Level is the last knob (bottom right)

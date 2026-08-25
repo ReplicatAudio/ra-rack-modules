@@ -207,17 +207,17 @@ struct RaCymbalWidget : ModuleWidget {
         // Row 1
         addParam(createParamCentered<RaKnob>(Vec(57, 75), module, RaCymbalModule::TONE_PARAM));
         addParam(createParamCentered<RaKnob>(Vec(93, 75), module, RaCymbalModule::METALLIC_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(130, 75), module, RaCymbalModule::DECAY_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(130, 75), module, RaCymbalModule::BODY_PARAM));
         addInput(createInputCentered<RaPort>(Vec(57, 112), module, RaCymbalModule::TONE_CV_INPUT));
         addInput(createInputCentered<RaPort>(Vec(93, 112), module, RaCymbalModule::METALLIC_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(130, 112), module, RaCymbalModule::DECAY_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(130, 112), module, RaCymbalModule::BODY_CV_INPUT));
 
         // Row 2
-        addParam(createParamCentered<RaKnob>(Vec(57, 160), module, RaCymbalModule::SNAP_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(93, 160), module, RaCymbalModule::BODY_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(57, 160), module, RaCymbalModule::DECAY_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(93, 160), module, RaCymbalModule::SNAP_PARAM));
         addParam(createParamCentered<RaKnob>(Vec(130, 160), module, RaCymbalModule::ACCENT_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(57, 197), module, RaCymbalModule::SNAP_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(93, 197), module, RaCymbalModule::BODY_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(57, 197), module, RaCymbalModule::DECAY_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(93, 197), module, RaCymbalModule::SNAP_CV_INPUT));
         addInput(createInputCentered<RaPort>(Vec(130, 197), module, RaCymbalModule::ACCENT_INPUT));
 
         // Row 3 — Level is the last knob (bottom right)
