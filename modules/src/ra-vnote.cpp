@@ -4,6 +4,18 @@ using namespace rack;
 
 extern Plugin *pluginInstance;
 
+// Byte position of the next UTF-8 codepoint (same semantics as
+// rack::string::UTF8NextCodepoint, which is unavailable in older Rack pins).
+static size_t raUtf8NextCodepoint(const std::string& s, size_t pos) {
+    if (pos >= s.size()) return s.size();
+    unsigned char c = s[pos];
+    size_t len = 1;
+    if ((c & 0xE0) == 0xC0) len = 2;
+    else if ((c & 0xF0) == 0xE0) len = 3;
+    else if ((c & 0xF8) == 0xF0) len = 4;
+    return std::min(pos + len, s.size());
+}
+
 struct RaVnoteModule : Module {
     enum ParamIds {
         NUM_PARAMS
@@ -80,7 +92,7 @@ struct VerticalTextField : ui::TextField {
         int i = 0;
         while (i < n) {
             int begin = i;
-            i = string::UTF8NextCodepoint(text, i);
+            i = raUtf8NextCodepoint(text, i);
             std::string ch = text.substr(begin, i - begin);
             if (ch[0] == '\n') {
                 lines.push_back(cur);
