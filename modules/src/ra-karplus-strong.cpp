@@ -39,6 +39,8 @@ struct RaKarplusStrongModule : Module {
         STIFFNESS_CV_INPUT,
         LEVEL_CV_INPUT,
         SYMP_DETUNE_CV_INPUT,
+        SYMP_COUNT_CV_INPUT,
+        EXCITE_MODE_CV_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -109,6 +111,8 @@ struct RaKarplusStrongModule : Module {
         configInput(STIFFNESS_CV_INPUT, "Stiffness CV");
         configInput(LEVEL_CV_INPUT, "Level CV");
         configInput(SYMP_DETUNE_CV_INPUT, "Sympathetic detune CV");
+        configInput(SYMP_COUNT_CV_INPUT, "Sympathetic strings CV");
+        configInput(EXCITE_MODE_CV_INPUT, "Excitation mode CV");
 
         configParam(SYMP_COUNT_PARAM, 0.f, 3.f, 2.f, "Sympathetic strings", " strings", 0.f, 1.f, 0.f);
         configParam(SYMP_DETUNE_PARAM, 0.f, 1.f, 0.4f, "Sympathetic detune", "%", 0.f, 100.f);
@@ -212,7 +216,6 @@ struct RaKarplusStrongModule : Module {
         float level = clamp(
             params[LEVEL_PARAM].getValue() + inputs[LEVEL_CV_INPUT].getVoltage() / 10.f,
             0.f, 1.f);
-        int exciteMode = (int)params[EXCITE_MODE_PARAM].getValue();
 
         // Calculate delay line length from frequency
         // Account for filter group delay: ~0.5 samples for the averaging filter
@@ -231,7 +234,10 @@ struct RaKarplusStrongModule : Module {
         if (trigger.process(inputs[TRIG_INPUT].getVoltage())) {
             // Generate new excitation
             int burstLen = delayLen;
-            generateExcitation(exciteMode, burstLen, brightness);
+            generateExcitation(
+                clamp((int)std::round(params[EXCITE_MODE_PARAM].getValue()
+                    + inputs[EXCITE_MODE_CV_INPUT].getVoltage()), 0, 4),
+                burstLen, brightness);
 
             // Reset delay line with excitation
             resetDelay();
@@ -300,7 +306,9 @@ struct RaKarplusStrongModule : Module {
         out = filtered;
 
         // --- Sympathetic strings ---
-        int sympCount = (int)std::round(params[SYMP_COUNT_PARAM].getValue());
+        // Count is quantized: 1V per string, clamped to 0..3
+        int sympCount = clamp((int)std::round(params[SYMP_COUNT_PARAM].getValue()
+            + inputs[SYMP_COUNT_CV_INPUT].getVoltage()), 0, NUM_SYMP);
         if (sympCount > 0) {
             float sympDetune = clamp(
                 params[SYMP_DETUNE_PARAM].getValue() + inputs[SYMP_DETUNE_CV_INPUT].getVoltage() / 10.f,
@@ -358,38 +366,36 @@ struct RaKarplusStrongWidget : ModuleWidget {
         // Trigger at top center
         addInput(createInputCentered<RaPort>(Vec(cx, 25), module, RaKarplusStrongModule::TRIG_INPUT));
 
-        // Row 1: Frequency knob + V/Oct + FM
-        addParam(createParamCentered<RaKnobLarge>(Vec(20, 68), module, RaKarplusStrongModule::FREQ_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(20, 105), module, RaKarplusStrongModule::PITCH_INPUT));
-        addParam(createParamCentered<RaKnobSmall>(Vec(57, 68), module, RaKarplusStrongModule::FM_ATTN_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(57, 105), module, RaKarplusStrongModule::FM_INPUT));
+        // Row 1: Frequency knob + V/Oct + FM | Damping + Feedback
+        addParam(createParamCentered<RaKnob>(Vec(24, 68), module, RaKarplusStrongModule::FREQ_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(24, 105), module, RaKarplusStrongModule::PITCH_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(68, 68), module, RaKarplusStrongModule::FM_ATTN_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(68, 105), module, RaKarplusStrongModule::FM_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(112, 68), module, RaKarplusStrongModule::DAMP_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(112, 105), module, RaKarplusStrongModule::DAMP_CV_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(156, 68), module, RaKarplusStrongModule::FEEDBACK_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(156, 105), module, RaKarplusStrongModule::FEEDBACK_CV_INPUT));
 
-        // Row 2: Damping, Feedback, Brightness
-        addParam(createParamCentered<RaKnob>(Vec(93, 68), module, RaKarplusStrongModule::DAMP_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(130, 68), module, RaKarplusStrongModule::FEEDBACK_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(93, 105), module, RaKarplusStrongModule::DAMP_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(130, 105), module, RaKarplusStrongModule::FEEDBACK_CV_INPUT));
+        // Row 2: Brightness, Pick position, Stiffness, Excitation mode (+CV)
+        addParam(createParamCentered<RaKnob>(Vec(24, 152), module, RaKarplusStrongModule::BRIGHTNESS_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(68, 152), module, RaKarplusStrongModule::PICK_POS_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(112, 152), module, RaKarplusStrongModule::STIFFNESS_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(24, 189), module, RaKarplusStrongModule::BRIGHTNESS_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(68, 189), module, RaKarplusStrongModule::PICK_POS_CV_INPUT));
+        addInput(createInputCentered<RaPort>(Vec(112, 189), module, RaKarplusStrongModule::STIFFNESS_CV_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(156, 152), module, RaKarplusStrongModule::EXCITE_MODE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(156, 189), module, RaKarplusStrongModule::EXCITE_MODE_CV_INPUT));
 
-        // Row 3: Brightness, Pick position, Stiffness
-        addParam(createParamCentered<RaKnob>(Vec(20, 152), module, RaKarplusStrongModule::BRIGHTNESS_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(57, 152), module, RaKarplusStrongModule::PICK_POS_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(93, 152), module, RaKarplusStrongModule::STIFFNESS_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(20, 189), module, RaKarplusStrongModule::BRIGHTNESS_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(57, 189), module, RaKarplusStrongModule::PICK_POS_CV_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(93, 189), module, RaKarplusStrongModule::STIFFNESS_CV_INPUT));
-
-        // Row 4: Excitation mode selector (knob with 5 detents), Level
-        addParam(createParamCentered<RaKnobSmall>(Vec(130, 152), module, RaKarplusStrongModule::EXCITE_MODE_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(20, 236), module, RaKarplusStrongModule::LEVEL_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(57, 273), module, RaKarplusStrongModule::LEVEL_CV_INPUT));
-
-        // Row 4 right: sympathetic strings
-        addParam(createParamCentered<RaKnobSmall>(Vec(93, 236), module, RaKarplusStrongModule::SYMP_COUNT_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(130, 236), module, RaKarplusStrongModule::SYMP_DETUNE_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(130, 273), module, RaKarplusStrongModule::SYMP_DETUNE_CV_INPUT));
+        // Row 3: Level | Sympathetic strings (+CV), detune (+CV)
+        addParam(createParamCentered<RaKnob>(Vec(24, 236), module, RaKarplusStrongModule::LEVEL_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(24, 273), module, RaKarplusStrongModule::LEVEL_CV_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(112, 236), module, RaKarplusStrongModule::SYMP_COUNT_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(112, 273), module, RaKarplusStrongModule::SYMP_COUNT_CV_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(156, 236), module, RaKarplusStrongModule::SYMP_DETUNE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(156, 273), module, RaKarplusStrongModule::SYMP_DETUNE_CV_INPUT));
 
         // Bottom row: sympathetic level trim + main output
-        addParam(createParamCentered<RaKnobTrim>(Vec(25, 330), module, RaKarplusStrongModule::SYMP_LEVEL_PARAM));
+        addParam(createParamCentered<RaKnob>(Vec(24, 330), module, RaKarplusStrongModule::SYMP_LEVEL_PARAM));
         addOutput(createOutputCentered<RaPort>(Vec(cx, 330), module, RaKarplusStrongModule::AUDIO_OUTPUT));
     }
 };

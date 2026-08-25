@@ -7,6 +7,9 @@
    id="svg142"
    sodipodi:docname="ra-dscope.svg"
    inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   inkscape:export-filename="ra-dscope.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -23,9 +26,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="4.9169261"
-     inkscape:cx="593.96866"
-     inkscape:cy="122.02746"
+     inkscape:zoom="2.4584631"
+     inkscape:cx="214.15819"
+     inkscape:cy="256.66442"
      inkscape:window-width="3440"
      inkscape:window-height="1403"
      inkscape:window-x="0"
@@ -492,7 +495,8 @@
        width="172.72"
        height="1.295"
        fill="#232324"
-       id="rect65" />
+       id="rect65"
+       style="stroke-width:0.19999989;stroke-dasharray:none" />
     <rect
        x="0"
        y="82.240"
@@ -1198,5 +1202,28 @@
        id="text142-6"
        style="font-size:3.66024px;line-height:1;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:0.00214467px;fill:#ffffff;stroke-width:0.0648468;stroke-linecap:square;stroke-miterlimit:3.4"
        aria-label="MODE" />
+    <path
+       style="fill:#f9f9f9;stroke:#333333;stroke-width:0.325894;stroke-linecap:round;stroke-opacity:1"
+       d="m 167.47402,116.89739 -8.6905,8.69051 h 8.6905 z"
+       id="path4-6" />
+    <path
+       style="fill:#333333;stroke-width:0.144843;stroke-linecap:round"
+       d="m 165.41574,121.8271 -3.86245,3.86244 h 3.86245 z"
+       id="path4-2" />
+    <path
+       id="path3"
+       style="fill:#f9f9f9;stroke:#333333;stroke-width:0.25939;stroke-linecap:round;stroke-opacity:1"
+       d="m 158.78353,116.88152 v 2.91271 1.44047 4.3532 h 5.79367 l -2.08073,-2.08069 a 4.3531953,4.3531953 0 0 0 0,-3e-5 4.3531953,4.3531953 0 0 0 0.057,-0.0959 4.3531953,4.3531953 0 0 0 0,-4.35319 4.3531953,4.3531953 0 0 0 -3.76995,-2.1766 z" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.9068px;line-height:1;font-family:'Libre Barcode 39 Text';-inkscape-font-specification:'Libre Barcode 39 Text';letter-spacing:-1.68011px;writing-mode:lr-tb;direction:ltr;fill:#ffffff;stroke:none;stroke-width:0.0625585;stroke-linecap:square;stroke-miterlimit:3.4"
+       x="153.81641"
+       y="76.635689"
+       id="text1"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         style="stroke:none;stroke-width:0.0625585"
+         x="153.81641"
+         y="76.635689">SCOPE</tspan></text>
   </g>
 </svg>

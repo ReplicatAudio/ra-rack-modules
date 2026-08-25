@@ -14,6 +14,7 @@ SOURCES = \
 	src/ra-klock.cpp \
 	src/ra-m2.cpp \
 	src/ra-freeverb.cpp \
+	src/ra-delay-cv.cpp \
 	src/ra-ranger.cpp \
 	src/ra-magus.cpp \
 	src/ra-mothership.cpp \

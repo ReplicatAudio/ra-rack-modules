@@ -148,8 +148,17 @@ struct RaDseqModule : Module {
         return clamp(seqLengths[displayedSeq], 0, 64);
     }
 
-    bool hasZeroLength(int seq) {
-        return seqLengths[seq] <= 0;
+    // Playhead of the displayed sequence within its own length
+    int playhead() {
+        int len = getLength();
+        return len > 0 ? stepIndex % len : -1;
+    }
+
+    bool hasSteps(int seq) {
+        for (int i = 0; i < 64; i++)
+            if (steps[seq][i])
+                return true;
+        return false;
     }
 
     void selectSeq(int delta, bool skipEmpty) {
@@ -161,7 +170,7 @@ struct RaDseqModule : Module {
         for (int i = 1; i <= 8; i++) {
             int d = (delta > 0) ? i : -i;
             int seq = eucMod(displayedSeq + d, 8);
-            if (!hasZeroLength(seq)) {
+            if (hasSteps(seq)) {
                 displayedSeq = seq;
                 return;
             }
@@ -243,7 +252,6 @@ struct RaDseqModule : Module {
             lengthKnobValue = lv;
         }
 
-        int length = getLength();
         bool songMode = params[MODE_PARAM].getValue() > 0.5f;
         bool trigMode = params[OUT_PARAM].getValue() > 0.5f;
         float chance = clamp(params[CHANCE_PARAM].getValue() + inputs[CHANCE_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
@@ -276,12 +284,6 @@ struct RaDseqModule : Module {
         if (shiftRButtonTrigger.process(params[SHIFT_R_PARAM].getValue()))
             shiftSteps(1);
 
-        // Keep the position in range if the length is shortened
-        if (stepIndex >= length) {
-            stepIndex = 0;
-            memset(hit, 0, sizeof(hit));
-        }
-
         if (clearTrigger.process(params[CLEAR_PARAM].getValue())) {
             for (int i = 0; i < 64; i++)
                 steps[displayedSeq][i] = false;
@@ -304,12 +306,17 @@ struct RaDseqModule : Module {
             || golTrigger.process(inputs[GOL_TRIG_INPUT].getVoltage()))
             runGolStep();
 
-        // Roll per-hit chance and fire the set steps at the current position
+        // Roll per-hit chance and fire the set steps. Each sequence runs its
+        // own playhead — the shared clock position modded by that sequence's
+        // own length — so every loop is independent of the others.
         auto fireStep = [&]() {
             for (int k = 0; k < 8; k++) {
                 bool active = !songMode || k == 0;
                 int seq = songMode ? displayedSeq : k;
-                bool set = active && stepIndex < seqLengths[seq] && steps[seq][stepIndex];
+                int len = clamp(seqLengths[seq], 0, 64);
+                bool set = false;
+                if (active && len > 0)
+                    set = steps[seq][stepIndex % len];
                 hit[k] = set && (random::uniform() < chance);
                 if (hit[k] && trigMode)
                     pulse[k] = 0.01f;
@@ -335,17 +342,13 @@ struct RaDseqModule : Module {
 
         if (stepNextButtonTrigger.process(params[STEP_NEXT_PARAM].getValue())
             || (runActive && stepNextTrigger.process(inputs[STEP_NEXT_TRIG_INPUT].getVoltage()))) {
-            stepIndex++;
-            if (stepIndex >= length)
-                stepIndex = 0;
+            stepIndex = (stepIndex + 1) & 63;
             fireStep();
         }
 
         if (stepPrevButtonTrigger.process(params[STEP_PREV_PARAM].getValue())
             || (runActive && stepPrevTrigger.process(inputs[STEP_PREV_TRIG_INPUT].getVoltage()))) {
-            stepIndex--;
-            if (stepIndex < 0)
-                stepIndex = length - 1;
+            stepIndex = (stepIndex + 63) & 63;
             fireStep();
         }
 
@@ -429,7 +432,7 @@ struct StepButton : OpaqueWidget {
 
     void draw(const DrawArgs& args) override {
         bool set = module && module->isStepSet(index);
-        bool current = module && (index == module->stepIndex);
+        bool current = module && (index == module->playhead());
         bool inRange = module && (index < module->getLength());
         Rect r = box.zeroPos();
 

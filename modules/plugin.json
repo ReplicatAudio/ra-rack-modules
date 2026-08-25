@@ -373,6 +373,16 @@
         "Effect",
         "Reverb"
       ]
+    },
+    {
+      "slug": "ra-delay-cv",
+      "name": "ra-delay-cv",
+      "description": "CV/trigger delay \u2014 DC-coupled delay line for gates, triggers, and CV with clock sync, feedback, and echo output",
+      "tags": [
+        "Delay",
+        "Utility",
+        "Effect"
+      ]
     }
   ]
 }
