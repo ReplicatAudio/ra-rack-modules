@@ -383,6 +383,16 @@
         "Utility",
         "Effect"
       ]
+    },
+    {
+      "slug": "ra-krush",
+      "name": "ra-krush",
+      "description": "Bitcrusher/downsampler \u2014 8 krush algorithms, slew, frequency-split mode, full poly per voice or channel summing",
+      "tags": [
+        "Effect",
+        "Distortion",
+        "Polyphonic"
+      ]
     }
   ]
 }

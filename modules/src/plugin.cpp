@@ -44,6 +44,7 @@ extern Model *modelRaVnote;
 extern Model *modelRaKarplusStrong;
 extern Model *modelRaFreeverb;
 extern Model *modelRaDelayCv;
+extern Model *modelRaKrush;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -88,4 +89,5 @@ void init(Plugin *p) {
 	p->addModel(modelRaKarplusStrong);
 	p->addModel(modelRaFreeverb);
 	p->addModel(modelRaDelayCv);
+	p->addModel(modelRaKrush);
 }

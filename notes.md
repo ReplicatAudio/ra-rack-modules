@@ -46,3 +46,5 @@ ra-endless -> ra-reflectingpool
 
 ra-seer -> ra-seer-mini
 ra-dscope -> ra-seer
+
+freeverb -> freeberd

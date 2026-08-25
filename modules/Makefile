@@ -43,7 +43,8 @@ SOURCES = \
 	src/ra-tuner.cpp \
 	src/ra-dseq.cpp \
 	src/ra-vnote.cpp \
-	src/ra-karplus-strong.cpp
+	src/ra-karplus-strong.cpp \
+	src/ra-krush.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)
