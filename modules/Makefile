@@ -13,6 +13,7 @@ SOURCES = \
 	src/ra-gnawbz.cpp \
 	src/ra-klock.cpp \
 	src/ra-m2.cpp \
+	src/ra-freeverb.cpp \
 	src/ra-ranger.cpp \
 	src/ra-magus.cpp \
 	src/ra-mothership.cpp \
@@ -40,7 +41,8 @@ SOURCES = \
 	src/ra-meteor.cpp \
 	src/ra-tuner.cpp \
 	src/ra-dseq.cpp \
-	src/ra-vnote.cpp
+	src/ra-vnote.cpp \
+	src/ra-karplus-strong.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)

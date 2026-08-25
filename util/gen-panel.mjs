@@ -104,8 +104,9 @@ const ru2mm = (ru) => ru * 5.08 / 15;
 // using the bundled panel font (./font).
 // ============================================================
 
-const FONT_SIZE_NAME = 2.0;   // module name, mm (was 2.8)
-const FONT_SIZE_LABEL = 1.4;  // control/port labels, mm (was 2.0)
+const FONT_SIZE_NAME = 2.6;   // module name, mm
+const FONT_SIZE_LABEL = 1.9;  // control/port labels, mm
+const LABEL_MAX_LEN = 12;     // truncate labels longer than this
 
 // Resolve the panel font relative to this script: util/ -> repo root ./font
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -858,6 +859,8 @@ function generateSVG(info) {
       }
     }
 
+    // Truncate label to max length
+    if (label.length > LABEL_MAX_LEN) label = label.slice(0, LABEL_MAX_LEN);
     if (!label) continue;
 
     let ly;

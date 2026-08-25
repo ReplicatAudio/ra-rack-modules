@@ -876,14 +876,13 @@ struct DScopeWidget : ModuleWidget {
 
 		addParam(createLightParamCentered<VCVLightBezel<RedGreenBlueLight>>(Vec(30, 24), module, DScopeModule::MODE_PARAM, DScopeModule::MODE_LIGHT_R));
 		addParam(createLightParamCentered<VCVLightLatch<MediumSimpleLight<WhiteLight>>>(Vec(30, 72), module, DScopeModule::TRIG_PARAM, DScopeModule::TRIG_LIGHT));
+		addParam(createParamCentered<RaKnob>(Vec(30, 120), module, DScopeModule::THRESH_PARAM));
+		addInput(createInputCentered<RaPort>(Vec(30, 168), module, DScopeModule::TRIG_INPUT));
 
-		addParam(createParamCentered<RaKnob>(Vec(30, 120), module, DScopeModule::TIME_PARAM));
-		addParam(createParamCentered<RaKnob>(Vec(30, 168), module, DScopeModule::THRESH_PARAM));
+		addParam(createParamCentered<RaKnob>(Vec(30, 216), module, DScopeModule::TIME_PARAM));
 
-		addInput(createInputCentered<RaPort>(Vec(30, 216), module, DScopeModule::X_INPUT));
-		addInput(createInputCentered<RaPort>(Vec(30, 264), module, DScopeModule::Y_INPUT));
-
-		addInput(createInputCentered<RaPort>(Vec(30, 312), module, DScopeModule::TRIG_INPUT));
+		addInput(createInputCentered<RaPort>(Vec(30, 264), module, DScopeModule::X_INPUT));
+		addInput(createInputCentered<RaPort>(Vec(30, 312), module, DScopeModule::Y_INPUT));
 
 		addParam(createParamCentered<RaKnob>(Vec(480, 24), module, DScopeModule::X_SCALE_PARAM));
 		addParam(createParamCentered<RaKnob>(Vec(480, 72), module, DScopeModule::Y_SCALE_PARAM));
@@ -891,8 +890,8 @@ struct DScopeWidget : ModuleWidget {
 		addParam(createParamCentered<RaKnob>(Vec(480, 120), module, DScopeModule::X_POS_PARAM));
 		addParam(createParamCentered<RaKnob>(Vec(480, 168), module, DScopeModule::Y_POS_PARAM));
 
-		addOutput(createOutputCentered<RaPort>(Vec(480, 216), module, DScopeModule::X_OUTPUT));
-		addOutput(createOutputCentered<RaPort>(Vec(480, 264), module, DScopeModule::Y_OUTPUT));
+		addOutput(createOutputCentered<RaPort>(Vec(480, 264), module, DScopeModule::X_OUTPUT));
+		addOutput(createOutputCentered<RaPort>(Vec(480, 312), module, DScopeModule::Y_OUTPUT));
 
 		DScopeDisplay* display = createWidget<DScopeDisplay>(Vec(60, 4));
 		display->box.size = Vec(390, 380 - 8);

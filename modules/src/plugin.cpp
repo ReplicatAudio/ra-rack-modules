@@ -41,6 +41,8 @@ extern Model *modelRaMeteor;
 extern Model *modelRaTuner;
 extern Model *modelRaDseq;
 extern Model *modelRaVnote;
+extern Model *modelRaKarplusStrong;
+extern Model *modelRaFreeverb;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -82,4 +84,6 @@ void init(Plugin *p) {
 	p->addModel(modelRaTuner);
 	p->addModel(modelRaDseq);
 	p->addModel(modelRaVnote);
+	p->addModel(modelRaKarplusStrong);
+	p->addModel(modelRaFreeverb);
 }
