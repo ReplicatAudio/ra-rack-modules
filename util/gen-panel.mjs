@@ -41,6 +41,7 @@ import * as opentype from 'opentype.js';
 // ============================================================
 
 let CFG = {
+  height: 128.5, // Panel height in mm (standard 3U); override with --height=NNN
   strokeWidth: 1.5, // Width of all drawn lines
   bg: { // Background gradient
     start: '#303031', //#423558, #332832
@@ -246,10 +247,12 @@ function parseModule(filePath) {
   const configOutputRe = /configOutput\(\s*(\w+)\s*,\s*"([^"]+?)"\s*\)/g;
   while ((m = configOutputRe.exec(src)) !== null) configNames[m[1]] = m[2];
 
-  // ---- Determine HP width ----
+  // ---- Determine HP width & existing height ----
   // Preferred source: read the existing panel SVG's viewBox and compute
-  // width = mmWidth / 5.08 (1hp = 5.08mm).
+  // width = mmWidth / 5.08 (1hp = 5.08mm). The existing height is also
+  // preserved so plain regenerations can't silently truncate tall panels.
   let HP = 0;
+  let existingHeight = 0;
   if (panelSvg) {
     const svgDir = path.dirname(path.resolve(filePath));
     const svgFull = path.resolve(svgDir, '..', panelSvg);
@@ -259,6 +262,7 @@ function parseModule(filePath) {
       if (vbParts) {
         const mmWidth = parseFloat(vbParts[3]);
         HP = Math.round(mmWidth / 5.08);
+        existingHeight = parseFloat(vbParts[4]);
       }
     }
   }
@@ -319,6 +323,7 @@ function parseModule(filePath) {
     panelSvg,
     HP,
     HW,
+    existingHeight,
     components,
     configNames,
   };
@@ -565,33 +570,33 @@ function parseComponentLine(line, ctx) {
   const patterns = [
     // createLightParamCentered<Type>(Vec(x, y), module, PARAM, LIGHT)
     {
-      re: /addParam\(createLightParamCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^,]+),\s*([^)]+)\)\)/,
+      re: /createLightParamCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^,]+),\s*([^)]+)\)/,
       role: 'param',
       isBezel: true,
     },
     // createParamCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /addParam\(createParamCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)\)/,
+      re: /createParamCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)/,
       role: 'param',
     },
     // createInputCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /addInput\(createInputCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)\)/,
+      re: /createInputCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)/,
       role: 'input',
     },
     // createOutputCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /addOutput\(createOutputCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)\)/,
+      re: /createOutputCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)/,
       role: 'output',
     },
     // createLightCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /addChild\(createLightCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)\)/,
+      re: /createLightCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)/,
       role: 'light',
     },
     // createWidget<Type>(Vec(x, y)) — screws
     {
-      re: /addChild\(createWidget<([^>]+)>\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?\)\)/,
+      re: /createWidget<([^>]+)>\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?\)/,
       role: 'widget',
     },
   ];
@@ -669,7 +674,7 @@ function parseComponentLine(line, ctx) {
 function generateSVG(info) {
   const { moduleName, HP, components, configNames } = info;
   const W = HP * 5.08; // panel width in mm
-  const H = 128.5;     // standard 3U panel height in mm
+  const H = CFG.height; // panel height in mm
   const cx = W / 2;    // horizontal centre in mm
   const HW = HP * 15;  // panel width in rack-units (for ru2mm conversion)
 
@@ -808,6 +813,21 @@ function generateSVG(info) {
 
   svg += `  </g>\n`;
 
+  // Warn if any component or its label extends past the panel bottom (screws
+  // are auto-placed at the corners, so they're excluded).
+  for (const c of components) {
+    if (c.kind === 'screw') continue;
+    let extent = 0;
+    if (c.kind === 'display') {
+      if (c.pos && c.size) extent = ru2mm(c.pos.y + c.size.h);
+    } else {
+      const r = c.rad !== undefined ? c.rad : Math.max(c.hh || 0, c.hw || 0);
+      extent = ru2mm(c.y + r) + 2.0; // +2mm label offset
+    }
+    if (extent > H)
+      console.error(`${c.enum || c.kind} at y=${ru2mm(c.y || 0).toFixed(1)}mm extends past panel bottom (${H}mm)`);
+  }
+
   // ---- Layer 3: Text ----
   svg += `  <g inkscape:groupmode="layer" id="layer-text" inkscape:label="Text">\n`;
 
@@ -894,6 +914,7 @@ function generateSVG(info) {
 
 let moduleName = 'ra-endless';          // default if no module given
 let overrideHP = 0;                    // --hp=N override
+let heightFlag = false;                // --height=NNN given
 let allFlag = false;                   // --all mode
 
 for (let i = 2; i < process.argv.length; i++) {
@@ -902,6 +923,9 @@ for (let i = 2; i < process.argv.length; i++) {
     allFlag = true;
   } else if (arg.startsWith('--hp=')) {
     overrideHP = parseInt(arg.slice(5), 10);
+  } else if (arg.startsWith('--height=')) {
+    CFG.height = Math.max(60, parseFloat(arg.slice(9)));
+    heightFlag = true;
   } else if (arg.startsWith('--input-color=')) {
     CFG.colors.input = arg.slice(14);
   } else if (arg.startsWith('--output-color=')) {
@@ -930,6 +954,7 @@ if (allFlag) {
     const fp = path.resolve('modules/src', f);
     const info = parseModule(fp);
     if (overrideHP) info.HP = overrideHP;
+    if (!heightFlag) CFG.height = info.existingHeight || 128.5;
     const svg = generateSVG(info);
     const outName = f.replace(/\.cpp$/, '.svg');
     fs.writeFileSync(path.join(dir, outName), svg);
@@ -948,6 +973,7 @@ if (!fs.existsSync(srcPath)) {
 
 const info = parseModule(srcPath);
 if (overrideHP) info.HP = overrideHP;
+if (!heightFlag) CFG.height = info.existingHeight || 128.5;
 const svg = generateSVG(info);
 
 const outName = moduleName + '.svg';

@@ -40,6 +40,7 @@ extern Model *modelRaRide;
 extern Model *modelRaMeteor;
 extern Model *modelRaTuner;
 extern Model *modelRaDseq;
+extern Model *modelRaVnote;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -80,4 +81,5 @@ void init(Plugin *p) {
 	p->addModel(modelRaMeteor);
 	p->addModel(modelRaTuner);
 	p->addModel(modelRaDseq);
+	p->addModel(modelRaVnote);
 }

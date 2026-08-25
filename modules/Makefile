@@ -39,7 +39,8 @@ SOURCES = \
 	src/ra-ride.cpp \
 	src/ra-meteor.cpp \
 	src/ra-tuner.cpp \
-	src/ra-dseq.cpp
+	src/ra-dseq.cpp \
+	src/ra-vnote.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)

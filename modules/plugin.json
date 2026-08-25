@@ -86,7 +86,7 @@
     {
       "slug": "ra-klock",
       "name": "ra-klock",
-      "description": "Master clock with v/oct BPM control, swing, run/reset, and 9 clock outputs",
+      "description": "Master clock with v/oct BPM, swing, run/reset, metronome grandfather clock screen, main CLK and 6 knob-ratio outputs (/32\u2013x32)",
       "tags": ["Clock generator", "Utility"]
     },
     {
@@ -226,6 +226,12 @@
       "name": "ra-dseq",
       "description": "64-step drum sequencer — 8 sequences of 64 steps on an 8×8 pad grid with Game of Life evolution, per-sequence lengths, run/reset transport, song or multi output mode",
       "tags": ["Sequencer", "Drum", "Utility"]
+    },
+    {
+      "slug": "ra-vnote",
+      "name": "ra-vnote",
+      "description": "3hp vertical note — a tiny text editor for adding labels and notes to your patch, saved with the patch",
+      "tags": ["Utility", "Visual"]
     }
   ]
 }
