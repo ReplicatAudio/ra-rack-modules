@@ -127,17 +127,20 @@ function loadPanelFont(p) {
 // on x with the baseline at y. Font sizes are in mm (SVG user units). Falls
 // back to a <text> element if the font is unavailable.
 function textToPath(text, x, y, fontSize, color, opacity = 1) {
+	text = text.toUpperCase();
 	const op = (opacity < 1) ? ` opacity="${opacity}"` : '';
+	// Fake bold: stroke the glyph outline with the fill color
+	const bold = ` stroke="${color}" stroke-width="${fontSize * 0.055}" stroke-linejoin="round"`;
 	if (font) {
 		try {
 			const advance = font.getAdvanceWidth(text, fontSize);
 			const p = font.getPath(text, x - advance / 2, y, fontSize);
 			const d = p.toPathData(2);
 			if (d)
-				return `<path d="${d}" fill="${color}"${op}/>`;
+				return `<path d="${d}" fill="${color}"${bold}${op}/>`;
 		} catch (e) { /* fall through to <text> */ }
 	}
-	return `<text x="${x.toFixed(2)}" y="${y.toFixed(2)}" fill="${color}" font-family="sans-serif" font-size="${fontSize}" text-anchor="middle"${op}>${text}</text>`;
+	return `<text x="${x.toFixed(2)}" y="${y.toFixed(2)}" fill="${color}"${bold} font-family="sans-serif" font-size="${fontSize}" text-anchor="middle"${op}>${text}</text>`;
 }
 
 // ============================================================
@@ -832,19 +835,18 @@ function generateSVG(info) {
   // ---- Layer 3: Text ----
   svg += `  <g inkscape:groupmode="layer" id="layer-text" inkscape:label="Text">\n`;
 
-  // Module name
-  const displayName = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
-  svg += `    ${textToPath(displayName, cx, ru2mm(10), FONT_SIZE_NAME, '#555')}\n`;
+  // Module name — strip the "ra-" prefix
+  let displayName = moduleName.replace(/^ra-/, '');
+  displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+  svg += `    ${textToPath(displayName, cx, ru2mm(10), FONT_SIZE_NAME, '#ffffff')}\n`;
 
   // Draw widget labels
   for (const w of widgets) {
     const mx = ru2mm(w.x);
     const my = ru2mm(w.y);
 
-    // Determine color
-    let color = '#888';
-    if (w.role === 'input') color = CFG.colors.input;
-    else if (w.role === 'output') color = CFG.colors.output;
+    // All panel text is pure white
+    const color = '#ffffff';
 
     // Determine label from config name or prettified enum
     let label = '';
@@ -877,7 +879,7 @@ function generateSVG(info) {
       }
       case 'knob': {
         const r = ru2mm(w.rad);
-        ly = my + r + 2.0;
+        ly = my + r + 3.0;
         break;
       }
       case 'switch': {
@@ -899,7 +901,7 @@ function generateSVG(info) {
         continue;
     }
 
-    svg += `    ${textToPath(label, mx, ly, FONT_SIZE_LABEL, color, 0.7)}\n`;
+    svg += `    ${textToPath(label, mx, ly, FONT_SIZE_LABEL, color)}\n`;
   }
 
   svg += `  </g>\n`;
