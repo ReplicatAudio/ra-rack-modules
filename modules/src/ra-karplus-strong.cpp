@@ -81,6 +81,9 @@ struct RaKarplusStrongModule : Module {
     float stiffXPrev2[NUM_VOICES] = {};
     float stiffYPrev2[NUM_VOICES] = {};
 
+    // Per-voice classic KS brightness filter state (previous input sample)
+    float brightPrev[NUM_VOICES] = {};
+
     // Per-voice DC blocker state (feedback path, 2 cascaded poles)
     float dcXPrev[NUM_VOICES] = {};
     float dcYPrev[NUM_VOICES] = {};
@@ -110,7 +113,7 @@ struct RaKarplusStrongModule : Module {
 
     RaKarplusStrongModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "Frequency", " Hz");
+        configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "Frequency", " Hz", 200.f, 20.f);
         configParam(FM_ATTN_PARAM, 0.f, 1.f, 0.f, "FM attenuation", "%", 0.f, 100.f);
         configParam(DAMP_PARAM, 0.f, 1.f, 0.3f, "Damping", "%", 0.f, 100.f);
         configParam(FEEDBACK_PARAM, 0.f, 2.f, 0.85f, "Feedback", "%", 0.f, 100.f);
@@ -159,6 +162,7 @@ struct RaKarplusStrongModule : Module {
             stiffYPrev[v] = 0.f;
             stiffXPrev2[v] = 0.f;
             stiffYPrev2[v] = 0.f;
+            brightPrev[v] = 0.f;
             dcXPrev[v] = 0.f;
             dcYPrev[v] = 0.f;
             dc2XPrev[v] = 0.f;
@@ -181,11 +185,8 @@ struct RaKarplusStrongModule : Module {
     void generateExcitation(int mode, int len, float brightness) {
         exciteLen = len;
 
-        // Brightness controls a simple one-pole lowpass on the excitation
-        // Higher brightness = more high-frequency content (1.0 = unfiltered)
-        float lpCoeff = clamp(brightness, 0.02f, 1.f);
-        float lpState = 0.f;
-
+        // Classic KS: the excitation is generated raw (no filtering here);
+        // brightness acts on the ringing loop instead (see process()).
         for (int i = 0; i < len; i++) {
             float t = (float)i / (float)len;
             float sample = 0.f;
@@ -197,8 +198,10 @@ struct RaKarplusStrongModule : Module {
                     break;
                 }
                 case EXCITE_CHIRP: {
-                    // Rapid sine sweep from high to low frequency
-                    float chirpPhase = t * (10.f - 8.f * t);
+                    // Rapid sine sweep from high (10 cycles per burst) down
+                    // to a low positive rate (2 cycles/burst), never crossing
+                    // 0 Hz (the old sweep went through zero and reversed)
+                    float chirpPhase = t * (10.f - 4.f * t);
                     sample = std::sin(2.f * M_PI * chirpPhase);
                     break;
                 }
@@ -219,12 +222,9 @@ struct RaKarplusStrongModule : Module {
                 }
             }
 
-            // Lowpass the excitation (brightness)
-            lpState += lpCoeff * (sample - lpState);
-
             // Mild decay envelope across the burst
             float env = std::exp(-t * (4.f - 3.f * brightness));
-            exciteBuf[i] = lpState * env;
+            exciteBuf[i] = sample * env;
         }
     }
 
@@ -263,6 +263,9 @@ struct RaKarplusStrongModule : Module {
         // this sign convention produced ~0 cents at string partials.
         float stiffP = stiffness * 0.85f;
 
+        // Classic KS brightness (loop filter blend; 0.5 = classic average)
+        float brightMix = brightness;
+
         // DC blocker coefficient (~8 Hz highpass)
         float dcRCoeff = 1.f - 2.f * M_PI * 8.f / args.sampleRate;
 
@@ -275,7 +278,7 @@ struct RaKarplusStrongModule : Module {
             1.f, 64.f);
 
         // Sympathetic string settings (shared)
-        // Count is quantized: 1V per string, clamped to 0..3
+        // Count is quantized: 1V per string, clamped to 0..NUM_SYMP
         int sympCount = clamp((int)std::round(params[SYMP_COUNT_PARAM].getValue()
             + inputs[SYMP_COUNT_CV_INPUT].getVoltage()), 0, NUM_SYMP);
         float sympDetune = clamp(
@@ -291,17 +294,21 @@ struct RaKarplusStrongModule : Module {
                     + inputs[FM_INPUT].getVoltage(c) * fmAtten);
             freq = clamp(freq, MIN_FREQ, MAX_FREQ);
 
-            // Calculate delay line length from frequency
-            // Account for filter group delay: ~0.5 samples for the averaging filter
-            // Subtract the stiffness allpasses' excess DC group delay
-            // (2*(1+p)/(1-p)) so the fundamental stays in tune; the delay
-            // line plus allpass phase then gives monotonic upward stretch.
+            // Calculate delay line length from frequency. Subtract the DC
+            // group delays of the in-loop filters so the fundamental stays
+            // in tune: damping 1-pole (1-a)/a, classic KS brightness filter
+            // 0.5*b, stiffness allpasses 2*(1+p)/(1-p) when enabled.
+            float stiffGD = (stiffP > 0.001f)
+                ? 2.f * (1.f + stiffP) / (1.f - stiffP) : 0.f;
             float idealDelay = args.sampleRate / freq
-                - 2.f * (1.f + stiffP) / (1.f - stiffP);
+                - (1.f - dampCoeff) / dampCoeff
+                - 0.5f * brightMix
+                - stiffGD;
             delayLen[c] = std::max(2, std::min(MAX_DELAY - 1, (int)std::round(idealDelay)));
 
-            // Pick position comb filter delay (0 = no comb, full = center of string)
-            // The comb creates notches at harmonics based on pick position
+            // Pick position comb filter delay (0 = no comb, full = nearly the
+            // full string length). H(z) = (1 - beta z^-C)/(1 + beta) creates
+            // notches at harmonics k where k*pickPos is an integer.
             int combDelay = std::max(0, std::min(delayLen[c] - 1, (int)(pickPos * delayLen[c])));
 
             // --- Trigger detection (per voice) ---
@@ -320,6 +327,7 @@ struct RaKarplusStrongModule : Module {
                 stiffYPrev[c] = 0.f;
                 stiffXPrev2[c] = 0.f;
                 stiffYPrev2[c] = 0.f;
+                brightPrev[c] = 0.f;
                 dcXPrev[c] = 0.f;
                 dcYPrev[c] = 0.f;
                 dc2XPrev[c] = 0.f;
@@ -350,6 +358,10 @@ struct RaKarplusStrongModule : Module {
             if (readPos < 0.f) readPos += (float)delayLen[c];
             int idx0 = (int)readPos;
             float frac = idealDelay - (float)delayLen[c];  // in [-0.5, 0.5)
+            // Guard the degenerate case where clamped delayLen diverges from
+            // idealDelay (extreme damping/stiffness at the top of the range).
+            if (frac < -0.5f) frac = -0.5f;
+            if (frac >= 0.5f) frac = 0.5f;
             float delayOut;
             if (frac >= 0.f) {
                 int idxB = idx0 - 1;
@@ -366,14 +378,26 @@ struct RaKarplusStrongModule : Module {
             float filtered = prevDelayOut[c] + dampCoeff * (delayOut - prevDelayOut[c]);
             prevDelayOut[c] = filtered;
 
+            // --- Brightness (classic KS loop filter) ---
+            // Classic KS: brightness sits in the loop, not on the excitation.
+            // 0 = no filtering, 0.5 = classic (x + x[n-1])/2 average,
+            // 1 = maximum filtering. Its 0.5*b sample group delay is
+            // compensated in idealDelay.
+            filtered = filtered + 0.5f * brightMix * (brightPrev[c] - filtered);
+            brightPrev[c] = filtered;
+
             // --- Pick position comb filter ---
             // H_beta(z) = 1 - z^{-beta*N} creates notches
             if (combDelay > 0) {
                 int combIdx = writePos[c] - combDelay;
                 if (combIdx < 0) combIdx += delayLen[c];
                 float combSample = combBuf[c][combIdx % delayLen[c]];
-                // Normalized comb: y = (x - a*x_delayed) / (1 + a)
-                // Keeps peak loop gain at unity so Feedback alone controls sustain
+                // Normalized comb: y = (x - beta*x_delayed) / (1 + beta).
+                // Normalization equalizes the comb's PEAK gain to unity only;
+                // at the fundamental the loop gain is
+                // |1 - beta*e^(-j*2*pi*pickPos)| / (1 + beta), so sustain
+                // varies with pick position (e.g. ~0.18 at full). This is
+                // inherent classic-KS comb behavior, documented not a bug.
                 filtered = (filtered - pickPos * 0.7f * combSample) / (1.f + pickPos * 0.7f);
             }
 
