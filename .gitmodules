@@ -1,0 +1,22 @@
+# RaCardinal (Cardinal fork) top-level submodules.
+#
+# NOTE: nested submodules (src/Rack's 13 deps, dpf's pugl-upstream) are NOT
+# listed here — they live below gitlink paths and are resolved by each
+# submodule's own .gitmodules on a recursive clone:
+#   git submodule update --init --recursive
+#
+# src/Rack/dep/speexdsp carries a local GCC-16 visibility patch (EXPORT
+# attribute removal) — do not discard it.
+
+[submodule "cardinal/src/Rack"]
+	path = cardinal/src/Rack
+	url = https://github.com/VCVRack/Rack.git
+[submodule "cardinal/dpf"]
+	path = cardinal/dpf
+	url = https://github.com/DISTRHO/DPF.git
+[submodule "cardinal/carla"]
+	path = cardinal/carla
+	url = https://github.com/falkTX/Carla.git
+[submodule "cardinal/deps/QuickJS"]
+	path = cardinal/deps/QuickJS
+	url = https://github.com/JerrySievert/QuickJS.git

@@ -12,6 +12,13 @@ static constexpr float MIN_FREQ = 20.f;
 static constexpr float MAX_FREQ = 4000.f;
 static constexpr float REF_FREQ = 65.406f; // C2 at 0 V
 
+struct RaKarplusFreqQuantity : ParamQuantity {
+    float getDisplayValue() override {
+        float v = getValue();
+        return 20.f * powf(200.f, v);
+    }
+};
+
 struct RaKarplusStrongModule : Module {
     enum ParamIds {
         FREQ_PARAM,
@@ -26,6 +33,7 @@ struct RaKarplusStrongModule : Module {
         SYMP_COUNT_PARAM,
         SYMP_DETUNE_PARAM,
         SYMP_LEVEL_PARAM,
+        LIMIT_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -42,6 +50,7 @@ struct RaKarplusStrongModule : Module {
         SYMP_COUNT_CV_INPUT,
         EXCITE_MODE_CV_INPUT,
         SYMP_LEVEL_CV_INPUT,
+        LIMIT_CV_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -76,15 +85,32 @@ struct RaKarplusStrongModule : Module {
     // Per-voice stiffness allpass state
     float stiffXPrev[NUM_VOICES] = {};
     float stiffYPrev[NUM_VOICES] = {};
+    float stiffXPrev2[NUM_VOICES] = {};
+    float stiffYPrev2[NUM_VOICES] = {};
+
+    // Per-voice classic KS brightness filter state (previous input sample)
+    float brightPrev[NUM_VOICES] = {};
+
+    // Per-voice DC blocker state (feedback path, 2 cascaded poles)
+    float dcXPrev[NUM_VOICES] = {};
+    float dcYPrev[NUM_VOICES] = {};
+    float dc2XPrev[NUM_VOICES] = {};
+    float dc2YPrev[NUM_VOICES] = {};
 
     // Excitation buffer (generated on trigger, consumed immediately)
     float exciteBuf[MAX_DELAY] = {};
     int exciteLen = 0;
 
     // Sympathetic strings — secondary KS resonators driven by the main string
-    static constexpr int NUM_SYMP = 3;
+    static constexpr int NUM_SYMP = 8;
     // Per-string detune spread in semitones at full detune setting
-    static constexpr float SYMP_SPREAD_SEMIS[NUM_SYMP] = {0.35f, -0.28f, 0.5f};
+    static constexpr float SYMP_SPREAD_SEMIS[NUM_SYMP] = {0.35f, -0.28f, 0.5f, 0.22f, -0.45f, 0.65f, -0.15f, 0.8f};
+
+    // Per-symp-string DC blocker state (recirculated path, 2 cascaded poles)
+    float sympDcXPrev[NUM_VOICES][NUM_SYMP] = {};
+    float sympDcYPrev[NUM_VOICES][NUM_SYMP] = {};
+    float sympDc2XPrev[NUM_VOICES][NUM_SYMP] = {};
+    float sympDc2YPrev[NUM_VOICES][NUM_SYMP] = {};
 
     float sympBuf[NUM_VOICES][NUM_SYMP][MAX_DELAY] = {};
     int sympWritePos[NUM_VOICES][NUM_SYMP] = {};
@@ -94,10 +120,10 @@ struct RaKarplusStrongModule : Module {
 
     RaKarplusStrongModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "Frequency", " Hz");
+        configParam<RaKarplusFreqQuantity>(FREQ_PARAM, 0.f, 1.f, 0.4853f, "Frequency", " Hz");
         configParam(FM_ATTN_PARAM, 0.f, 1.f, 0.f, "FM attenuation", "%", 0.f, 100.f);
         configParam(DAMP_PARAM, 0.f, 1.f, 0.3f, "Damping", "%", 0.f, 100.f);
-        configParam(FEEDBACK_PARAM, 0.f, 1.1f, 0.85f, "Feedback", "%", 0.f, 100.f);
+        configParam(FEEDBACK_PARAM, 0.f, 2.f, 0.85f, "Feedback", "%", 0.f, 100.f);
         configParam(BRIGHTNESS_PARAM, 0.f, 1.f, 0.5f, "Brightness", "%", 0.f, 100.f);
         configParam(PICK_POS_PARAM, 0.f, 1.f, 0.3f, "Pick position", "%", 0.f, 100.f);
         configParam(STIFFNESS_PARAM, 0.f, 1.f, 0.f, "Stiffness", "%", 0.f, 100.f);
@@ -117,12 +143,14 @@ struct RaKarplusStrongModule : Module {
         configInput(SYMP_COUNT_CV_INPUT, "Sympathetic strings CV");
         configInput(SYMP_LEVEL_CV_INPUT, "Sympathetic level CV");
         configInput(EXCITE_MODE_CV_INPUT, "Excitation mode CV");
+        configInput(LIMIT_CV_INPUT, "Loop limit CV");
 
-        configParam(SYMP_COUNT_PARAM, 0.f, 3.f, 2.f, "Sympathetic strings", " strings", 0.f, 1.f, 0.f);
+        configParam(SYMP_COUNT_PARAM, 0.f, 8.f, 2.f, "Sympathetic strings", " strings", 0.f, 1.f, 0.f);
         paramQuantities[EXCITE_MODE_PARAM]->snapEnabled = true;
         paramQuantities[SYMP_COUNT_PARAM]->snapEnabled = true;
         configParam(SYMP_DETUNE_PARAM, 0.f, 1.f, 0.4f, "Sympathetic detune", "%", 0.f, 100.f);
         configParam(SYMP_LEVEL_PARAM, 0.f, 1.f, 0.3f, "Sympathetic level", "%", 0.f, 100.f);
+        configParam(LIMIT_PARAM, 1.f, 64.f, 8.f, "Loop limit");
         configOutput(AUDIO_OUTPUT, "Audio");
 
         resetDelay();
@@ -139,9 +167,20 @@ struct RaKarplusStrongModule : Module {
             prevDelayOut[v] = 0.f;
             stiffXPrev[v] = 0.f;
             stiffYPrev[v] = 0.f;
+            stiffXPrev2[v] = 0.f;
+            stiffYPrev2[v] = 0.f;
+            brightPrev[v] = 0.f;
+            dcXPrev[v] = 0.f;
+            dcYPrev[v] = 0.f;
+            dc2XPrev[v] = 0.f;
+            dc2YPrev[v] = 0.f;
             for (int i = 0; i < NUM_SYMP; i++) {
                 sympWritePos[v][i] = 0;
                 sympPrevOut[v][i] = 0.f;
+                sympDcXPrev[v][i] = 0.f;
+                sympDcYPrev[v][i] = 0.f;
+                sympDc2XPrev[v][i] = 0.f;
+                sympDc2YPrev[v][i] = 0.f;
             }
         }
     }
@@ -153,11 +192,8 @@ struct RaKarplusStrongModule : Module {
     void generateExcitation(int mode, int len, float brightness) {
         exciteLen = len;
 
-        // Brightness controls a simple one-pole lowpass on the excitation
-        // Higher brightness = more high-frequency content (1.0 = unfiltered)
-        float lpCoeff = clamp(brightness, 0.02f, 1.f);
-        float lpState = 0.f;
-
+        // Classic KS: the excitation is generated raw (no filtering here);
+        // brightness acts on the ringing loop instead (see process()).
         for (int i = 0; i < len; i++) {
             float t = (float)i / (float)len;
             float sample = 0.f;
@@ -169,8 +205,10 @@ struct RaKarplusStrongModule : Module {
                     break;
                 }
                 case EXCITE_CHIRP: {
-                    // Rapid sine sweep from high to low frequency
-                    float chirpPhase = t * (10.f - 8.f * t);
+                    // Rapid sine sweep from high (10 cycles per burst) down
+                    // to a low positive rate (2 cycles/burst), never crossing
+                    // 0 Hz (the old sweep went through zero and reversed)
+                    float chirpPhase = t * (10.f - 4.f * t);
                     sample = std::sin(2.f * M_PI * chirpPhase);
                     break;
                 }
@@ -191,12 +229,9 @@ struct RaKarplusStrongModule : Module {
                 }
             }
 
-            // Lowpass the excitation (brightness)
-            lpState += lpCoeff * (sample - lpState);
-
             // Mild decay envelope across the burst
             float env = std::exp(-t * (4.f - 3.f * brightness));
-            exciteBuf[i] = lpState * env;
+            exciteBuf[i] = sample * env;
         }
     }
 
@@ -211,7 +246,7 @@ struct RaKarplusStrongModule : Module {
             0.f, 1.f);
         float feedback = clamp(
             params[FEEDBACK_PARAM].getValue() + inputs[FEEDBACK_CV_INPUT].getVoltage() / 10.f,
-            0.f, 1.1f);
+            0.f, 2.f);
         float brightness = clamp(
             params[BRIGHTNESS_PARAM].getValue() + inputs[BRIGHTNESS_CV_INPUT].getVoltage() / 10.f,
             0.f, 1.f);
@@ -229,15 +264,28 @@ struct RaKarplusStrongModule : Module {
         // damping = 0 -> bright, damping = 1 -> very damped
         float dampCoeff = 0.1f + 0.9f * (1.f - damping); // higher damping = lower cutoff
 
-        // Stiffness allpass coefficient (shared)
-        // Higher stiffness = more inharmonicity (like a stiff string)
-        float stiffCoeff = stiffness * 0.4f;
+        // Stiffness allpass pole (shared)
+        // Two cascaded first-order allpasses with pole near DC give real
+        // inharmonic stretch (f_k ~ k*sqrt(1+B k^2)); a single allpass with
+        // this sign convention produced ~0 cents at string partials.
+        float stiffP = stiffness * 0.85f;
+
+        // Classic KS brightness (loop filter blend; 0.5 = classic average)
+        float brightMix = brightness;
+
+        // DC blocker coefficient (~8 Hz highpass)
+        float dcRCoeff = 1.f - 2.f * M_PI * 8.f / args.sampleRate;
 
         int exciteMode = clamp((int)std::round(params[EXCITE_MODE_PARAM].getValue()
             + inputs[EXCITE_MODE_CV_INPUT].getVoltage()), 0, 4);
 
+        // Loop limit (in-loop saturation ceiling, 1..64)
+        float loopLimit = clamp(
+            params[LIMIT_PARAM].getValue() + inputs[LIMIT_CV_INPUT].getVoltage(),
+            1.f, 64.f);
+
         // Sympathetic string settings (shared)
-        // Count is quantized: 1V per string, clamped to 0..3
+        // Count is quantized: 1V per string, clamped to 0..NUM_SYMP
         int sympCount = clamp((int)std::round(params[SYMP_COUNT_PARAM].getValue()
             + inputs[SYMP_COUNT_CV_INPUT].getVoltage()), 0, NUM_SYMP);
         float sympDetune = clamp(
@@ -253,13 +301,21 @@ struct RaKarplusStrongModule : Module {
                     + inputs[FM_INPUT].getVoltage(c) * fmAtten);
             freq = clamp(freq, MIN_FREQ, MAX_FREQ);
 
-            // Calculate delay line length from frequency
-            // Account for filter group delay: ~0.5 samples for the averaging filter
-            float idealDelay = args.sampleRate / freq;
+            // Calculate delay line length from frequency. Subtract the DC
+            // group delays of the in-loop filters so the fundamental stays
+            // in tune: damping 1-pole (1-a)/a, classic KS brightness filter
+            // 0.5*b, stiffness allpasses 2*(1+p)/(1-p) when enabled.
+            float stiffGD = (stiffP > 0.001f)
+                ? 2.f * (1.f + stiffP) / (1.f - stiffP) : 0.f;
+            float idealDelay = args.sampleRate / freq
+                - (1.f - dampCoeff) / dampCoeff
+                - 0.5f * brightMix
+                - stiffGD;
             delayLen[c] = std::max(2, std::min(MAX_DELAY - 1, (int)std::round(idealDelay)));
 
-            // Pick position comb filter delay (0 = no comb, full = center of string)
-            // The comb creates notches at harmonics based on pick position
+            // Pick position comb filter delay (0 = no comb, full = nearly the
+            // full string length). H(z) = (1 - beta z^-C)/(1 + beta) creates
+            // notches at harmonics k where k*pickPos is an integer.
             int combDelay = std::max(0, std::min(delayLen[c] - 1, (int)(pickPos * delayLen[c])));
 
             // --- Trigger detection (per voice) ---
@@ -276,9 +332,20 @@ struct RaKarplusStrongModule : Module {
                 prevDelayOut[c] = 0.f;
                 stiffXPrev[c] = 0.f;
                 stiffYPrev[c] = 0.f;
+                stiffXPrev2[c] = 0.f;
+                stiffYPrev2[c] = 0.f;
+                brightPrev[c] = 0.f;
+                dcXPrev[c] = 0.f;
+                dcYPrev[c] = 0.f;
+                dc2XPrev[c] = 0.f;
+                dc2YPrev[c] = 0.f;
                 for (int i = 0; i < NUM_SYMP; i++) {
                     sympWritePos[c][i] = 0;
                     sympPrevOut[c][i] = 0.f;
+                    sympDcXPrev[c][i] = 0.f;
+                    sympDcYPrev[c][i] = 0.f;
+                    sympDc2XPrev[c][i] = 0.f;
+                    sympDc2YPrev[c][i] = 0.f;
                 }
                 for (int i = 0; i < burstLen; i++) {
                     delayBuf[c][i % delayLen[c]] = exciteBuf[i];
@@ -289,19 +356,42 @@ struct RaKarplusStrongModule : Module {
             // --- Per-sample processing ---
             float out = 0.f;
 
-            // Read from delay line (linear interpolation for fractional delay)
+            // Read from delay line with fractional-delay interpolation.
+            // Integer rounding alone quantizes pitch (up to half a sample,
+            // ~0.7 semitones at the top of the range, breaking 1V/oct
+            // tracking). Fractional part blends toward the neighboring tap;
+            // at frac == 0 the read is identical to before.
             float readPos = (float)writePos[c] - (float)delayLen[c];
             if (readPos < 0.f) readPos += (float)delayLen[c];
             int idx0 = (int)readPos;
-            int idx1 = idx0 + 1;
-            if (idx1 >= delayLen[c]) idx1 -= delayLen[c];
-            float frac = readPos - (float)idx0;
-            float delayOut = delayBuf[c][idx0] * (1.f - frac) + delayBuf[c][idx1] * frac;
+            float frac = idealDelay - (float)delayLen[c];  // in [-0.5, 0.5)
+            // Guard the degenerate case where clamped delayLen diverges from
+            // idealDelay (extreme damping/stiffness at the top of the range).
+            if (frac < -0.5f) frac = -0.5f;
+            if (frac >= 0.5f) frac = 0.5f;
+            float delayOut;
+            if (frac >= 0.f) {
+                int idxB = idx0 - 1;
+                if (idxB < 0) idxB += delayLen[c];
+                delayOut = delayBuf[c][idx0] * (1.f - frac) + delayBuf[c][idxB] * frac;
+            } else {
+                int idxB = idx0 + 1;
+                if (idxB >= delayLen[c]) idxB -= delayLen[c];
+                delayOut = delayBuf[c][idx0] * (1.f + frac) + delayBuf[c][idxB] * (-frac);
+            }
 
             // --- Damping filter (simple 1-pole lowpass) ---
             // More damping: single-pole lowpass with variable cutoff
             float filtered = prevDelayOut[c] + dampCoeff * (delayOut - prevDelayOut[c]);
             prevDelayOut[c] = filtered;
+
+            // --- Brightness (classic KS loop filter) ---
+            // Classic KS: brightness sits in the loop, not on the excitation.
+            // 0 = no filtering, 0.5 = classic (x + x[n-1])/2 average,
+            // 1 = maximum filtering. Its 0.5*b sample group delay is
+            // compensated in idealDelay.
+            filtered = filtered + 0.5f * brightMix * (brightPrev[c] - filtered);
+            brightPrev[c] = filtered;
 
             // --- Pick position comb filter ---
             // H_beta(z) = 1 - z^{-beta*N} creates notches
@@ -309,8 +399,12 @@ struct RaKarplusStrongModule : Module {
                 int combIdx = writePos[c] - combDelay;
                 if (combIdx < 0) combIdx += delayLen[c];
                 float combSample = combBuf[c][combIdx % delayLen[c]];
-                // Normalized comb: y = (x - a*x_delayed) / (1 + a)
-                // Keeps peak loop gain at unity so Feedback alone controls sustain
+                // Normalized comb: y = (x - beta*x_delayed) / (1 + beta).
+                // Normalization equalizes the comb's PEAK gain to unity only;
+                // at the fundamental the loop gain is
+                // |1 - beta*e^(-j*2*pi*pickPos)| / (1 + beta), so sustain
+                // varies with pick position (e.g. ~0.18 at full). This is
+                // inherent classic-KS comb behavior, documented not a bug.
                 filtered = (filtered - pickPos * 0.7f * combSample) / (1.f + pickPos * 0.7f);
             }
 
@@ -319,27 +413,52 @@ struct RaKarplusStrongModule : Module {
             combWritePos[c]++;
             if (combWritePos[c] >= delayLen[c]) combWritePos[c] = 0;
 
-            // --- Stiffness allpass ---
-            // First-order allpass y = a*x + x[n-1] - a*y[n-1]
-            // Adds inharmonic stretch of upper partials (stiff string behavior)
-            if (stiffCoeff > 0.001f) {
-                float apOut = stiffCoeff * filtered + stiffXPrev[c] - stiffCoeff * stiffYPrev[c];
+            // --- Stiffness allpass (2 cascaded stages) ---
+            // y = -p*x + x[n-1] + p*y[n-1], pole at +p bends phase near DC
+            // so group delay decreases across the partial range: upper
+            // partials stretch upward monotonically (stiff-string behavior).
+            if (stiffP > 0.001f) {
+                float apOut = -stiffP * filtered + stiffXPrev[c] + stiffP * stiffYPrev[c];
                 stiffXPrev[c] = filtered;
                 stiffYPrev[c] = apOut;
                 filtered = apOut;
+
+                apOut = -stiffP * filtered + stiffXPrev2[c] + stiffP * stiffYPrev2[c];
+                stiffXPrev2[c] = filtered;
+                stiffYPrev2[c] = apOut;
+                filtered = apOut;
             }
+
+            // --- DC blocker (2 cascaded one-pole highpasses) ---
+            // The LP/allpass have unity DC gain, so any residual DC grows
+            // unboundedly when feedback > 100% until floats hit inf/NaN.
+            // y[n] = x[n] - x[n-1] + R*y[n-1]
+            float dcOut = filtered - dcXPrev[c] + dcRCoeff * dcYPrev[c];
+            dcXPrev[c] = filtered;
+            dcYPrev[c] = dcOut;
+            float dcOut2 = dcOut - dc2XPrev[c] + dcRCoeff * dc2YPrev[c];
+            dc2XPrev[c] = dcOut;
+            dc2YPrev[c] = dcOut2;
+            filtered = dcOut2;
 
             // --- Feedback with gain ---
             float feedbackGain = feedback;
+
+            // --- Output (tapped before feedback gain, so low settings
+            // yield audible short plucks instead of silence) ---
+            out = filtered;
+
             filtered *= feedbackGain;
+
+            // Bound the recirculated signal so runaway modes saturate
+            // instead of overflowing to inf/NaN. Scaled tanh is transparent
+            // at normal levels, preserving extreme distortion when driven.
+            filtered = loopLimit * std::tanh(filtered / loopLimit);
 
             // --- Write back to delay line ---
             delayBuf[c][writePos[c]] = filtered;
             writePos[c]++;
             if (writePos[c] >= delayLen[c]) writePos[c] = 0;
-
-            // --- Output ---
-            out = filtered;
 
             // --- Sympathetic strings ---
             if (sympCount > 0) {
@@ -360,7 +479,22 @@ struct RaKarplusStrongModule : Module {
                     sympPrevOut[c][i] = sympFiltered;
 
                     // Slightly lower feedback so sympathetic strings decay a bit faster
-                    sympFiltered = drive + sympFiltered * feedbackGain * 0.985f;
+                    // DC-block the recirculated path so the symp loop can't build
+                    // up DC when feedback * 0.985 exceeds 1
+                    float sympRecirc = sympFiltered * feedbackGain * 0.985f;
+                    float sympDc = sympRecirc - sympDcXPrev[c][i] + dcRCoeff * sympDcYPrev[c][i];
+                    sympDcXPrev[c][i] = sympRecirc;
+                    sympDcYPrev[c][i] = sympDc;
+                    float sympDc2 = sympDc - sympDc2XPrev[c][i] + dcRCoeff * sympDc2YPrev[c][i];
+                    sympDc2XPrev[c][i] = sympDc;
+                    sympDc2YPrev[c][i] = sympDc2;
+
+                    sympFiltered = drive + sympDc2;
+
+                    // Bound the recirculated signal so runaway modes
+                    // saturate instead of overflowing to inf/NaN
+                    sympFiltered = loopLimit * std::tanh(sympFiltered / loopLimit);
+
                     sympBuf[c][i][sympWritePos[c][i]] = sympFiltered;
                     if (++sympWritePos[c][i] >= MAX_DELAY) sympWritePos[c][i] = 0;
 
@@ -397,27 +531,27 @@ struct RaKarplusStrongWidget : ModuleWidget {
         // Trigger at top center
         addInput(createInputCentered<RaPort>(Vec(cx, 25), module, RaKarplusStrongModule::TRIG_INPUT));
 
-        // Row 1: Frequency knob + V/Oct + FM | Damping + Feedback
+        // Row 1: Frequency knob + V/Oct + FM | Damping + Loop limit
         addParam(createParamCentered<RaKnob>(Vec(24, 68), module, RaKarplusStrongModule::FREQ_PARAM));
         addInput(createInputCentered<RaPort>(Vec(24, 105), module, RaKarplusStrongModule::PITCH_INPUT));
         addParam(createParamCentered<RaKnob>(Vec(68, 68), module, RaKarplusStrongModule::FM_ATTN_PARAM));
         addInput(createInputCentered<RaPort>(Vec(68, 105), module, RaKarplusStrongModule::FM_INPUT));
         addParam(createParamCentered<RaKnob>(Vec(112, 68), module, RaKarplusStrongModule::DAMP_PARAM));
         addInput(createInputCentered<RaPort>(Vec(112, 105), module, RaKarplusStrongModule::DAMP_CV_INPUT));
-        addParam(createParamCentered<RaKnob>(Vec(156, 68), module, RaKarplusStrongModule::FEEDBACK_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(156, 105), module, RaKarplusStrongModule::FEEDBACK_CV_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(156, 68), module, RaKarplusStrongModule::LIMIT_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(156, 105), module, RaKarplusStrongModule::LIMIT_CV_INPUT));
 
-        // Row 2: Brightness, Pick position, Stiffness, Excitation mode (+CV)
+        // Row 2: Brightness, Pick position, Stiffness (+CV), Feedback pushed down
         addParam(createParamCentered<RaKnob>(Vec(24, 152), module, RaKarplusStrongModule::BRIGHTNESS_PARAM));
         addParam(createParamCentered<RaKnob>(Vec(68, 152), module, RaKarplusStrongModule::PICK_POS_PARAM));
         addParam(createParamCentered<RaKnob>(Vec(112, 152), module, RaKarplusStrongModule::STIFFNESS_PARAM));
         addInput(createInputCentered<RaPort>(Vec(24, 189), module, RaKarplusStrongModule::BRIGHTNESS_CV_INPUT));
         addInput(createInputCentered<RaPort>(Vec(68, 189), module, RaKarplusStrongModule::PICK_POS_CV_INPUT));
         addInput(createInputCentered<RaPort>(Vec(112, 189), module, RaKarplusStrongModule::STIFFNESS_CV_INPUT));
-        addParam(createParamCentered<RaKnob>(Vec(156, 152), module, RaKarplusStrongModule::EXCITE_MODE_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(156, 189), module, RaKarplusStrongModule::EXCITE_MODE_CV_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(156, 152), module, RaKarplusStrongModule::FEEDBACK_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(156, 189), module, RaKarplusStrongModule::FEEDBACK_CV_INPUT));
 
-        // Row 3: Level | Sympathetic level, count (+CV), detune (+CV)
+        // Row 3: Level | Sympathetic level, count (+CV), Excitation mode pushed down
         addParam(createParamCentered<RaKnob>(Vec(24, 236), module, RaKarplusStrongModule::LEVEL_PARAM));
         addInput(createInputCentered<RaPort>(Vec(24, 273), module, RaKarplusStrongModule::LEVEL_CV_INPUT));
         addParam(createParamCentered<RaKnob>(Vec(68, 236), module, RaKarplusStrongModule::SYMP_LEVEL_PARAM));
@@ -426,6 +560,10 @@ struct RaKarplusStrongWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(112, 273), module, RaKarplusStrongModule::SYMP_COUNT_CV_INPUT));
         addParam(createParamCentered<RaKnob>(Vec(156, 236), module, RaKarplusStrongModule::SYMP_DETUNE_PARAM));
         addInput(createInputCentered<RaPort>(Vec(156, 273), module, RaKarplusStrongModule::SYMP_DETUNE_CV_INPUT));
+
+        // Row 4: Excitation mode (+CV)
+        addParam(createParamCentered<RaKnob>(Vec(156, 320), module, RaKarplusStrongModule::EXCITE_MODE_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(156, 357), module, RaKarplusStrongModule::EXCITE_MODE_CV_INPUT));
 
         // Bottom row: main output
         addOutput(createOutputCentered<RaPort>(Vec(cx, 330), module, RaKarplusStrongModule::AUDIO_OUTPUT));

@@ -95,7 +95,7 @@ struct RaMothershipModule : Module {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 
         configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Mode", {"LFO", "VCO"});
-        configParam<RaMothershipFreqQuantity>(FREQ_PARAM, 0.f, 1.f, 0.2f, "Frequency");
+        configParam<RaMothershipFreqQuantity>(FREQ_PARAM, 0.f, 1.f, 0.3722f, "Frequency");
         configParam(FREQ_ATTN_PARAM, 0.f, 1.f, 1.f, "Frequency CV attenuator", "%", 0.f, 100.f);
         configParam(FM_ATTN_PARAM, 0.f, 1.f, 0.f, "FM attenuation", "%", 0.f, 100.f);
         configParam(PHASE_PARAM, 0.f, 1.f, 0.f, "Global phase offset", "%", 0.f, 100.f);

@@ -8,6 +8,13 @@ using simd::float_4;
 
 extern Plugin *pluginInstance;
 
+struct RaVipberusFreqQuantity : ParamQuantity {
+    float getDisplayValue() override {
+        float v = getValue();
+        return 2.f * powf(4000.f, v);
+    }
+};
+
 struct RaVipberusModule : Module {
     enum ParamIds {
         FREQ_PARAM,
@@ -102,7 +109,7 @@ struct RaVipberusModule : Module {
 
     RaVipberusModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(FREQ_PARAM, 0.f, 1.f, 0.588f, "Frequency", " Hz");
+        configParam<RaVipberusFreqQuantity>(FREQ_PARAM, 0.f, 1.f, 0.5876f, "Frequency", " Hz");
         configParam(FM_ATTN_PARAM, 0.f, 1.f, 0.f, "FM attenuation", "%", 0.f, 100.f);
         configParam(HARM1_PARAM, 0.f, 1.f, 1.f, "Harmonic 1", "%", 0.f, 100.f);
         configParam(HARM2_PARAM, 0.f, 1.f, 0.f, "Harmonic 2", "%", 0.f, 100.f);
