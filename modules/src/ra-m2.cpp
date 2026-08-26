@@ -116,8 +116,8 @@ struct RaM2Module : Module {
             return;
         }
 
-        float lIn = inputs[L_INPUT].getVoltage();
-        float rIn = inputs[R_INPUT].getVoltage();
+        float lIn = inputs[L_INPUT].getVoltageSum();
+        float rIn = inputs[R_INPUT].getVoltageSum();
 
         bool limiterOn = params[LIMITER_PARAM].getValue() > 0.5f;
         bool softClipOn = params[SOFTCLIP_PARAM].getValue() > 0.5f;
