@@ -46,7 +46,8 @@ struct RaShapesModule : Module {
         NUM_LIGHTS
     };
 
-    float phase = 0.f;
+    float phase[16] = {};
+    int lastChannelCount = 0;
 
     static constexpr float MIN_FREQ = SHAPES_MIN_FREQ;
     static constexpr float MAX_FREQ = SHAPES_MAX_FREQ;
@@ -70,39 +71,57 @@ struct RaShapesModule : Module {
     }
 
     void process(const ProcessArgs &args) override {
-        float freq = MIN_FREQ * powf(MAX_FREQ / MIN_FREQ, params[FREQ_PARAM].getValue());
-        float pitch = inputs[PITCH_INPUT].getVoltage()
-            + inputs[FM1_INPUT].getVoltage() * params[FM1_ATTN_PARAM].getValue()
-            + inputs[FM2_INPUT].getVoltage() * params[FM2_ATTN_PARAM].getValue();
-        freq *= powf(2.f, pitch);
-        freq = clamp(freq, 0.1f, 20000.f);
+        int channels = std::max(1, inputs[PITCH_INPUT].getChannels());
+        channels = std::max(channels, inputs[FM1_INPUT].getChannels());
+        channels = std::max(channels, inputs[FM2_INPUT].getChannels());
+        channels = std::max(channels, inputs[PHASE_CV_INPUT].getChannels());
+        channels = std::min(channels, 16);
 
-        if (params[SLOW_PARAM].getValue() > 0.5f)
-            freq /= 8.f;
+        // Reset phases of channels that just disappeared
+        if (channels != lastChannelCount) {
+            for (int c = channels; c < lastChannelCount; c++)
+                phase[c] = 0.f;
+        }
+        lastChannelCount = channels;
 
-        phase += freq * args.sampleTime;
-        if (phase >= 1.f)
-            phase -= 1.f;
+        for (int c = 0; c < 5; c++)
+            outputs[SINE_OUTPUT + c].setChannels(channels);
 
-        float phaseOffset = params[PHASE_PARAM].getValue();
-        if (inputs[PHASE_CV_INPUT].isConnected())
-            phaseOffset += inputs[PHASE_CV_INPUT].getVoltage() / 10.f;
-        phaseOffset = clamp(phaseOffset, 0.f, 1.f);
+        for (int c = 0; c < channels; c++) {
+            float freq = MIN_FREQ * powf(MAX_FREQ / MIN_FREQ, params[FREQ_PARAM].getValue());
+            float pitch = inputs[PITCH_INPUT].getPolyVoltage(c)
+                + inputs[FM1_INPUT].getPolyVoltage(c) * params[FM1_ATTN_PARAM].getValue()
+                + inputs[FM2_INPUT].getPolyVoltage(c) * params[FM2_ATTN_PARAM].getValue();
+            freq *= powf(2.f, pitch);
+            freq = clamp(freq, 0.1f, 20000.f);
 
-        float p = fmodf(phase + phaseOffset, 1.f);
+            if (params[SLOW_PARAM].getValue() > 0.5f)
+                freq /= 8.f;
 
-        float sine = sinf(2.f * M_PI * p);
-        float tri = 1.f - 4.f * fabsf(p - 0.5f);
-        float sawUp = 2.f * p - 1.f;
-        float sawDown = 1.f - 2.f * p;
-        float square = (p < 0.5f) ? 1.f : -1.f;
+            phase[c] += freq * args.sampleTime;
+            if (phase[c] >= 1.f)
+                phase[c] -= 1.f;
 
-        float scale = 5.f;
-        outputs[SINE_OUTPUT].setVoltage(sine * scale);
-        outputs[TRI_OUTPUT].setVoltage(tri * scale);
-        outputs[SAW_UP_OUTPUT].setVoltage(sawUp * scale);
-        outputs[SAW_DOWN_OUTPUT].setVoltage(sawDown * scale);
-        outputs[SQUARE_OUTPUT].setVoltage(square * scale);
+            float phaseOffset = params[PHASE_PARAM].getValue();
+            if (inputs[PHASE_CV_INPUT].isConnected())
+                phaseOffset += inputs[PHASE_CV_INPUT].getPolyVoltage(c) / 10.f;
+            phaseOffset = clamp(phaseOffset, 0.f, 1.f);
+
+            float p = fmodf(phase[c] + phaseOffset, 1.f);
+
+            float sine = sinf(2.f * M_PI * p);
+            float tri = 1.f - 4.f * fabsf(p - 0.5f);
+            float sawUp = 2.f * p - 1.f;
+            float sawDown = 1.f - 2.f * p;
+            float square = (p < 0.5f) ? 1.f : -1.f;
+
+            float scale = 5.f;
+            outputs[SINE_OUTPUT].setVoltage(sine * scale, c);
+            outputs[TRI_OUTPUT].setVoltage(tri * scale, c);
+            outputs[SAW_UP_OUTPUT].setVoltage(sawUp * scale, c);
+            outputs[SAW_DOWN_OUTPUT].setVoltage(sawDown * scale, c);
+            outputs[SQUARE_OUTPUT].setVoltage(square * scale, c);
+        }
     }
 };
 
