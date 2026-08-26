@@ -33,7 +33,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as opentype from 'opentype.js';
+import opentype from 'opentype.js';
 
 // ============================================================
 // Configuration — default visual style
@@ -106,11 +106,11 @@ const ru2mm = (ru) => ru * 5.08 / 15;
 
 const FONT_SIZE_NAME = 2.6;   // module name, mm
 const FONT_SIZE_LABEL = 1.9;  // control/port labels, mm
-const LABEL_MAX_LEN = 12;     // truncate labels longer than this
+const LABEL_MAX_LEN = 8;     // truncate labels longer than this
 
 // Resolve the panel font relative to this script: util/ -> repo root ./font
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-let FONT_PATH = path.resolve(scriptDir, '../font/URWGothic-Book.otf');
+let FONT_PATH = path.resolve(scriptDir, '../font/FragmentMono-Regular.ttf');
 let font = null;
 
 function loadPanelFont(p) {
@@ -469,7 +469,7 @@ function processBlock(lines, ctx, components, loopVars = {}) {
 
     // ---- Variable declarations (with initialiser) ----
     // Pattern: float/int VAR = EXPR;
-    const varMatch = line.match(/^\s*(?:float|int)\s+(\w+)\s*=\s*(.+?);\s*$/);
+    const varMatch = line.match(/^\s*(?:const\s+)?(?:float|int)\s+(\w+)\s*=\s*(.+?);\s*$/);
     if (varMatch) {
       const val = ctx.resolve(varMatch[2]);
       ctx.setVar(varMatch[1], val);

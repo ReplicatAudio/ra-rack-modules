@@ -1,1592 +1,187 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   viewBox="0 0 30.48 128.5"
-   width="30.48mm"
-   height="128.5mm"
-   version="1.1"
-   id="svg162"
-   sodipodi:docname="ra-macrow.svg"
-   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <defs
-     id="defs162" />
-  <sodipodi:namedview
-     id="namedview162"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:document-units="mm"
-     inkscape:zoom="6.7089851"
-     inkscape:cx="74.452394"
-     inkscape:cy="306.4547"
-     inkscape:window-width="3440"
-     inkscape:window-height="1403"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
-  <g
-     inkscape:groupmode="layer"
-     id="layer-background"
-     inkscape:label="Background">
-    <rect
-       x="0.3"
-       y="0.3"
-       width="29.88"
-       height="127.9"
-       fill="none"
-       stroke="#333"
-       stroke-width="1.5"
-       id="rect1" />
-    <rect
-       x="0"
-       y="0.000"
-       width="30.48"
-       height="1.295"
-       fill="#303031"
-       id="rect2" />
-    <rect
-       x="0"
-       y="1.285"
-       width="30.48"
-       height="1.295"
-       fill="#303031"
-       id="rect3" />
-    <rect
-       x="0"
-       y="2.570"
-       width="30.48"
-       height="1.295"
-       fill="#2f2f30"
-       id="rect4" />
-    <rect
-       x="0"
-       y="3.855"
-       width="30.48"
-       height="1.295"
-       fill="#2f2f30"
-       id="rect5" />
-    <rect
-       x="0"
-       y="5.140"
-       width="30.48"
-       height="1.295"
-       fill="#2e2e2f"
-       id="rect6" />
-    <rect
-       x="0"
-       y="6.425"
-       width="30.48"
-       height="1.295"
-       fill="#2e2e2f"
-       id="rect7" />
-    <rect
-       x="0"
-       y="7.710"
-       width="30.48"
-       height="1.295"
-       fill="#2e2e2f"
-       id="rect8" />
-    <rect
-       x="0"
-       y="8.995"
-       width="30.48"
-       height="1.295"
-       fill="#2d2d2e"
-       id="rect9" />
-    <rect
-       x="0"
-       y="10.280"
-       width="30.48"
-       height="1.295"
-       fill="#2d2d2e"
-       id="rect10" />
-    <rect
-       x="0"
-       y="11.565"
-       width="30.48"
-       height="1.295"
-       fill="#2c2c2d"
-       id="rect11" />
-    <rect
-       x="0"
-       y="12.850"
-       width="30.48"
-       height="1.295"
-       fill="#2c2c2d"
-       id="rect12" />
-    <rect
-       x="0"
-       y="14.135"
-       width="30.48"
-       height="1.295"
-       fill="#2c2c2d"
-       id="rect13" />
-    <rect
-       x="0"
-       y="15.420"
-       width="30.48"
-       height="1.295"
-       fill="#2b2b2c"
-       id="rect14" />
-    <rect
-       x="0"
-       y="16.705"
-       width="30.48"
-       height="1.295"
-       fill="#2b2b2c"
-       id="rect15" />
-    <rect
-       x="0"
-       y="17.990"
-       width="30.48"
-       height="1.295"
-       fill="#2a2a2b"
-       id="rect16" />
-    <rect
-       x="0"
-       y="19.275"
-       width="30.48"
-       height="1.295"
-       fill="#2a2a2b"
-       id="rect17" />
-    <rect
-       x="0"
-       y="20.560"
-       width="30.48"
-       height="1.295"
-       fill="#2a2a2b"
-       id="rect18" />
-    <rect
-       x="0"
-       y="21.845"
-       width="30.48"
-       height="1.295"
-       fill="#29292a"
-       id="rect19" />
-    <rect
-       x="0"
-       y="23.130"
-       width="30.48"
-       height="1.295"
-       fill="#29292a"
-       id="rect20" />
-    <rect
-       x="0"
-       y="24.415"
-       width="30.48"
-       height="1.295"
-       fill="#29292a"
-       id="rect21" />
-    <rect
-       x="0"
-       y="25.700"
-       width="30.48"
-       height="1.295"
-       fill="#282829"
-       id="rect22" />
-    <rect
-       x="0"
-       y="26.985"
-       width="30.48"
-       height="1.295"
-       fill="#282829"
-       id="rect23" />
-    <rect
-       x="0"
-       y="28.270"
-       width="30.48"
-       height="1.295"
-       fill="#272728"
-       id="rect24" />
-    <rect
-       x="0"
-       y="29.555"
-       width="30.48"
-       height="1.295"
-       fill="#272728"
-       id="rect25" />
-    <rect
-       x="0"
-       y="30.840"
-       width="30.48"
-       height="1.295"
-       fill="#272728"
-       id="rect26" />
-    <rect
-       x="0"
-       y="32.125"
-       width="30.48"
-       height="1.295"
-       fill="#262627"
-       id="rect27" />
-    <rect
-       x="0"
-       y="33.410"
-       width="30.48"
-       height="1.295"
-       fill="#262627"
-       id="rect28" />
-    <rect
-       x="0"
-       y="34.695"
-       width="30.48"
-       height="1.295"
-       fill="#252526"
-       id="rect29" />
-    <rect
-       x="0"
-       y="35.980"
-       width="30.48"
-       height="1.295"
-       fill="#252526"
-       id="rect30" />
-    <rect
-       x="0"
-       y="37.265"
-       width="30.48"
-       height="1.295"
-       fill="#252526"
-       id="rect31" />
-    <rect
-       x="0"
-       y="38.550"
-       width="30.48"
-       height="1.295"
-       fill="#242425"
-       id="rect32" />
-    <rect
-       x="0"
-       y="39.835"
-       width="30.48"
-       height="1.295"
-       fill="#242425"
-       id="rect33" />
-    <rect
-       x="0"
-       y="41.120"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect34" />
-    <rect
-       x="0"
-       y="42.405"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect35" />
-    <rect
-       x="0"
-       y="43.690"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect36" />
-    <rect
-       x="0"
-       y="44.975"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect37" />
-    <rect
-       x="0"
-       y="46.260"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect38" />
-    <rect
-       x="0"
-       y="47.545"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect39" />
-    <rect
-       x="0"
-       y="48.830"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect40" />
-    <rect
-       x="0"
-       y="50.115"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect41" />
-    <rect
-       x="0"
-       y="51.400"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect42" />
-    <rect
-       x="0"
-       y="52.685"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect43" />
-    <rect
-       x="0"
-       y="53.970"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect44" />
-    <rect
-       x="0"
-       y="55.255"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect45" />
-    <rect
-       x="0"
-       y="56.540"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect46" />
-    <rect
-       x="0"
-       y="57.825"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect47" />
-    <rect
-       x="0"
-       y="59.110"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect48" />
-    <rect
-       x="0"
-       y="60.395"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect49" />
-    <rect
-       x="0"
-       y="61.680"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect50" />
-    <rect
-       x="0"
-       y="62.965"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect51" />
-    <rect
-       x="0"
-       y="64.250"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect52" />
-    <rect
-       x="0"
-       y="65.535"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect53" />
-    <rect
-       x="0"
-       y="66.820"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect54" />
-    <rect
-       x="0"
-       y="68.105"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect55" />
-    <rect
-       x="0"
-       y="69.390"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect56" />
-    <rect
-       x="0"
-       y="70.675"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect57" />
-    <rect
-       x="0"
-       y="71.960"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect58" />
-    <rect
-       x="0"
-       y="73.245"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect59" />
-    <rect
-       x="0"
-       y="74.530"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect60" />
-    <rect
-       x="0"
-       y="75.815"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect61" />
-    <rect
-       x="0"
-       y="77.100"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect62" />
-    <rect
-       x="0"
-       y="78.385"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect63" />
-    <rect
-       x="0"
-       y="79.670"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect64" />
-    <rect
-       x="0"
-       y="80.955"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect65" />
-    <rect
-       x="0"
-       y="82.240"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect66" />
-    <rect
-       x="0"
-       y="83.525"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect67" />
-    <rect
-       x="0"
-       y="84.810"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect68" />
-    <rect
-       x="0"
-       y="86.095"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect69" />
-    <rect
-       x="0"
-       y="87.380"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect70" />
-    <rect
-       x="0"
-       y="88.665"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect71" />
-    <rect
-       x="0"
-       y="89.950"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect72" />
-    <rect
-       x="0"
-       y="91.235"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect73" />
-    <rect
-       x="0"
-       y="92.520"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect74" />
-    <rect
-       x="0"
-       y="93.805"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect75" />
-    <rect
-       x="0"
-       y="95.090"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect76" />
-    <rect
-       x="0"
-       y="96.375"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect77" />
-    <rect
-       x="0"
-       y="97.660"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect78" />
-    <rect
-       x="0"
-       y="98.945"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect79" />
-    <rect
-       x="0"
-       y="100.230"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect80" />
-    <rect
-       x="0"
-       y="101.515"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect81" />
-    <rect
-       x="0"
-       y="102.800"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect82" />
-    <rect
-       x="0"
-       y="104.085"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect83" />
-    <rect
-       x="0"
-       y="105.370"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect84" />
-    <rect
-       x="0"
-       y="106.655"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect85" />
-    <rect
-       x="0"
-       y="107.940"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect86" />
-    <rect
-       x="0"
-       y="109.225"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect87" />
-    <rect
-       x="0"
-       y="110.510"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect88" />
-    <rect
-       x="0"
-       y="111.795"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect89" />
-    <rect
-       x="0"
-       y="113.080"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect90" />
-    <rect
-       x="0"
-       y="114.365"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect91" />
-    <rect
-       x="0"
-       y="115.650"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect92" />
-    <rect
-       x="0"
-       y="116.935"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect93" />
-    <rect
-       x="0"
-       y="118.220"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect94" />
-    <rect
-       x="0"
-       y="119.505"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect95" />
-    <rect
-       x="0"
-       y="120.790"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect96" />
-    <rect
-       x="0"
-       y="122.075"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect97" />
-    <rect
-       x="0"
-       y="123.360"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect98" />
-    <rect
-       x="0"
-       y="124.645"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect99" />
-    <rect
-       x="0"
-       y="125.930"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect100" />
-    <rect
-       x="0"
-       y="127.215"
-       width="30.48"
-       height="1.295"
-       fill="#232324"
-       id="rect101" />
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" viewBox="0 0 30.48 128.5" width="30.48mm" height="128.5mm">
+  <g inkscape:groupmode="layer" id="layer-background" inkscape:label="Background">
+    <rect x="0.3" y="0.3" width="29.88" height="127.9" fill="none" stroke="#333" stroke-width="1.5"/>
+    <rect x="0" y="0.000" width="30.48" height="1.295" fill="#303031"/>
+    <rect x="0" y="1.285" width="30.48" height="1.295" fill="#303031"/>
+    <rect x="0" y="2.570" width="30.48" height="1.295" fill="#2f2f30"/>
+    <rect x="0" y="3.855" width="30.48" height="1.295" fill="#2f2f30"/>
+    <rect x="0" y="5.140" width="30.48" height="1.295" fill="#2e2e2f"/>
+    <rect x="0" y="6.425" width="30.48" height="1.295" fill="#2e2e2f"/>
+    <rect x="0" y="7.710" width="30.48" height="1.295" fill="#2e2e2f"/>
+    <rect x="0" y="8.995" width="30.48" height="1.295" fill="#2d2d2e"/>
+    <rect x="0" y="10.280" width="30.48" height="1.295" fill="#2d2d2e"/>
+    <rect x="0" y="11.565" width="30.48" height="1.295" fill="#2c2c2d"/>
+    <rect x="0" y="12.850" width="30.48" height="1.295" fill="#2c2c2d"/>
+    <rect x="0" y="14.135" width="30.48" height="1.295" fill="#2c2c2d"/>
+    <rect x="0" y="15.420" width="30.48" height="1.295" fill="#2b2b2c"/>
+    <rect x="0" y="16.705" width="30.48" height="1.295" fill="#2b2b2c"/>
+    <rect x="0" y="17.990" width="30.48" height="1.295" fill="#2a2a2b"/>
+    <rect x="0" y="19.275" width="30.48" height="1.295" fill="#2a2a2b"/>
+    <rect x="0" y="20.560" width="30.48" height="1.295" fill="#2a2a2b"/>
+    <rect x="0" y="21.845" width="30.48" height="1.295" fill="#29292a"/>
+    <rect x="0" y="23.130" width="30.48" height="1.295" fill="#29292a"/>
+    <rect x="0" y="24.415" width="30.48" height="1.295" fill="#29292a"/>
+    <rect x="0" y="25.700" width="30.48" height="1.295" fill="#282829"/>
+    <rect x="0" y="26.985" width="30.48" height="1.295" fill="#282829"/>
+    <rect x="0" y="28.270" width="30.48" height="1.295" fill="#272728"/>
+    <rect x="0" y="29.555" width="30.48" height="1.295" fill="#272728"/>
+    <rect x="0" y="30.840" width="30.48" height="1.295" fill="#272728"/>
+    <rect x="0" y="32.125" width="30.48" height="1.295" fill="#262627"/>
+    <rect x="0" y="33.410" width="30.48" height="1.295" fill="#262627"/>
+    <rect x="0" y="34.695" width="30.48" height="1.295" fill="#252526"/>
+    <rect x="0" y="35.980" width="30.48" height="1.295" fill="#252526"/>
+    <rect x="0" y="37.265" width="30.48" height="1.295" fill="#252526"/>
+    <rect x="0" y="38.550" width="30.48" height="1.295" fill="#242425"/>
+    <rect x="0" y="39.835" width="30.48" height="1.295" fill="#242425"/>
+    <rect x="0" y="41.120" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="42.405" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="43.690" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="44.975" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="46.260" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="47.545" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="48.830" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="50.115" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="51.400" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="52.685" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="53.970" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="55.255" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="56.540" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="57.825" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="59.110" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="60.395" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="61.680" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="62.965" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="64.250" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="65.535" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="66.820" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="68.105" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="69.390" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="70.675" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="71.960" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="73.245" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="74.530" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="75.815" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="77.100" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="78.385" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="79.670" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="80.955" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="82.240" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="83.525" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="84.810" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="86.095" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="87.380" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="88.665" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="89.950" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="91.235" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="92.520" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="93.805" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="95.090" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="96.375" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="97.660" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="98.945" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="100.230" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="101.515" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="102.800" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="104.085" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="105.370" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="106.655" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="107.940" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="109.225" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="110.510" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="111.795" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="113.080" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="114.365" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="115.650" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="116.935" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="118.220" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="119.505" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="120.790" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="122.075" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="123.360" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="124.645" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="125.930" width="30.48" height="1.295" fill="#232324"/>
+    <rect x="0" y="127.215" width="30.48" height="1.295" fill="#232324"/>
   </g>
-  <g
-     inkscape:groupmode="layer"
-     id="layer-outlines"
-     inkscape:label="Component Outlines">
-    <circle
-       cx="2.54"
-       cy="2.54"
-       r="2.54"
-       fill="#2a2a2a"
-       stroke="#444"
-       stroke-width="1.5"
-       id="circle101" />
-    <circle
-       cx="2.54"
-       cy="2.54"
-       r="0.8"
-       fill="#444"
-       id="circle102" />
-    <circle
-       cx="2.54"
-       cy="125.96"
-       r="2.54"
-       fill="#2a2a2a"
-       stroke="#444"
-       stroke-width="1.5"
-       id="circle103" />
-    <circle
-       cx="2.54"
-       cy="125.96"
-       r="0.8"
-       fill="#444"
-       id="circle104" />
-    <circle
-       cx="27.94"
-       cy="2.54"
-       r="2.54"
-       fill="#2a2a2a"
-       stroke="#444"
-       stroke-width="1.5"
-       id="circle105" />
-    <circle
-       cx="27.94"
-       cy="2.54"
-       r="0.8"
-       fill="#444"
-       id="circle106" />
-    <circle
-       cx="27.94"
-       cy="125.96"
-       r="2.54"
-       fill="#2a2a2a"
-       stroke="#444"
-       stroke-width="1.5"
-       id="circle107" />
-    <circle
-       cx="27.94"
-       cy="125.96"
-       r="0.8"
-       fill="#444"
-       id="circle108" />
-    <circle
-       cx="12.87"
-       cy="21.34"
-       r="6.10"
-       fill="#222"
-       stroke="#888"
-       stroke-width="1.5"
-       opacity="0.6"
-       id="circle109" />
-    <circle
-       cx="12.87"
-       cy="21.34"
-       r="2.13"
-       fill="#333"
-       opacity="0.4"
-       id="circle110" />
-    <line
-       x1="12.87"
-       y1="21.34"
-       x2="16.83"
-       y2="21.34"
-       stroke="#666"
-       stroke-width="0.5"
-       opacity="0.6"
-       id="line110" />
-    <circle
-       cx="24.38"
-       cy="34.54"
-       r="4.01"
-       fill="#111"
-       stroke="#996dd2"
-       stroke-width="1.6"
-       opacity="0.7"
-       id="circle111" />
-    <circle
-       cx="24.38"
-       cy="34.54"
-       r="1.40"
-       fill="#996dd2"
-       opacity="0.5"
-       id="circle112" />
-    <circle
-       cx="4.06"
-       cy="14.22"
-       r="3.05"
-       fill="#1a1a1a"
-       stroke="#888"
-       stroke-width="1.6"
-       opacity="0.6"
-       id="circle113" />
-    <circle
-       cx="4.06"
-       cy="14.22"
-       r="1.07"
-       fill="#333"
-       opacity="0.5"
-       id="circle114" />
-    <rect
-       x="12.87"
-       y="31.05"
-       width="4.74"
-       height="6.99"
-       rx="1"
-       fill="none"
-       stroke="#888"
-       stroke-width="1.4"
-       opacity="0.5"
-       id="rect114" />
-    <line
-       x1="15.24"
-       y1="36.29"
-       x2="15.24"
-       y2="32.80"
-       stroke="#888"
-       stroke-width="1.7"
-       opacity="0.6"
-       id="line114" />
-    <circle
-       cx="8.13"
-       cy="45.38"
-       r="4.80"
-       fill="#222"
-       stroke="#888"
-       stroke-width="1.5"
-       opacity="0.6"
-       id="circle115" />
-    <circle
-       cx="8.13"
-       cy="45.38"
-       r="1.68"
-       fill="#333"
-       opacity="0.4"
-       id="circle116" />
-    <line
-       x1="8.13"
-       y1="45.38"
-       x2="11.25"
-       y2="45.38"
-       stroke="#666"
-       stroke-width="0.5"
-       opacity="0.6"
-       id="line116" />
-    <circle
-       cx="8.13"
-       cy="56.90"
-       r="3.84"
-       fill="#222"
-       stroke="#888"
-       stroke-width="1.5"
-       opacity="0.6"
-       id="circle117" />
-    <circle
-       cx="8.13"
-       cy="56.90"
-       r="1.34"
-       fill="#333"
-       opacity="0.4"
-       id="circle118" />
-    <line
-       x1="8.13"
-       y1="56.90"
-       x2="10.62"
-       y2="56.90"
-       stroke="#666"
-       stroke-width="0.5"
-       opacity="0.6"
-       id="line118" />
-    <rect
-       x="3.31"
-       y="61.57"
-       width="9.63"
-       height="9.63"
-       rx="1.5"
-       fill="#c8b7c7"
-       opacity="0.7"
-       id="rect118" />
-    <circle
-       cx="8.13"
-       cy="66.38"
-       r="2.61"
-       fill="#111"
-       opacity="0.5"
-       id="circle119" />
-    <circle
-       cx="8.13"
-       cy="75.18"
-       r="3.05"
-       fill="#1a1a1a"
-       stroke="#888"
-       stroke-width="1.6"
-       opacity="0.6"
-       id="circle120" />
-    <circle
-       cx="8.13"
-       cy="75.18"
-       r="1.07"
-       fill="#333"
-       opacity="0.5"
-       id="circle121" />
-    <circle
-       cx="22.35"
-       cy="45.38"
-       r="4.80"
-       fill="#222"
-       stroke="#888"
-       stroke-width="1.5"
-       opacity="0.6"
-       id="circle122" />
-    <circle
-       cx="22.35"
-       cy="45.38"
-       r="1.68"
-       fill="#333"
-       opacity="0.4"
-       id="circle123" />
-    <line
-       x1="22.35"
-       y1="45.38"
-       x2="25.47"
-       y2="45.38"
-       stroke="#666"
-       stroke-width="0.5"
-       opacity="0.6"
-       id="line123" />
-    <circle
-       cx="22.35"
-       cy="56.90"
-       r="3.84"
-       fill="#222"
-       stroke="#888"
-       stroke-width="1.5"
-       opacity="0.6"
-       id="circle124" />
-    <circle
-       cx="22.35"
-       cy="56.90"
-       r="1.34"
-       fill="#333"
-       opacity="0.4"
-       id="circle125" />
-    <line
-       x1="22.35"
-       y1="56.90"
-       x2="24.85"
-       y2="56.90"
-       stroke="#666"
-       stroke-width="0.5"
-       opacity="0.6"
-       id="line125" />
-    <rect
-       x="17.54"
-       y="61.57"
-       width="9.63"
-       height="9.63"
-       rx="1.5"
-       fill="#c8b7c7"
-       opacity="0.7"
-       id="rect125" />
-    <circle
-       cx="22.35"
-       cy="66.38"
-       r="2.61"
-       fill="#111"
-       opacity="0.5"
-       id="circle126" />
-    <circle
-       cx="22.35"
-       cy="75.18"
-       r="3.05"
-       fill="#1a1a1a"
-       stroke="#888"
-       stroke-width="1.6"
-       opacity="0.6"
-       id="circle127" />
-    <circle
-       cx="22.35"
-       cy="75.18"
-       r="1.07"
-       fill="#333"
-       opacity="0.5"
-       id="circle128" />
-    <circle
-       cx="8.13"
-       cy="86.02"
-       r="4.80"
-       fill="#222"
-       stroke="#888"
-       stroke-width="1.5"
-       opacity="0.6"
-       id="circle129" />
-    <circle
-       cx="8.13"
-       cy="86.02"
-       r="1.68"
-       fill="#333"
-       opacity="0.4"
-       id="circle130" />
-    <line
-       x1="8.13"
-       y1="86.02"
-       x2="11.25"
-       y2="86.02"
-       stroke="#666"
-       stroke-width="0.5"
-       opacity="0.6"
-       id="line130" />
-    <circle
-       cx="8.13"
-       cy="97.54"
-       r="3.84"
-       fill="#222"
-       stroke="#888"
-       stroke-width="1.5"
-       opacity="0.6"
-       id="circle131" />
-    <circle
-       cx="8.13"
-       cy="97.54"
-       r="1.34"
-       fill="#333"
-       opacity="0.4"
-       id="circle132" />
-    <line
-       x1="8.13"
-       y1="97.54"
-       x2="10.62"
-       y2="97.54"
-       stroke="#666"
-       stroke-width="0.5"
-       opacity="0.6"
-       id="line132" />
-    <rect
-       x="3.31"
-       y="102.21"
-       width="9.63"
-       height="9.63"
-       rx="1.5"
-       fill="#c8b7c7"
-       opacity="0.7"
-       id="rect132" />
-    <circle
-       cx="8.13"
-       cy="107.02"
-       r="2.61"
-       fill="#111"
-       opacity="0.5"
-       id="circle133" />
-    <circle
-       cx="8.13"
-       cy="115.82"
-       r="3.05"
-       fill="#1a1a1a"
-       stroke="#888"
-       stroke-width="1.6"
-       opacity="0.6"
-       id="circle134" />
-    <circle
-       cx="8.13"
-       cy="115.82"
-       r="1.07"
-       fill="#333"
-       opacity="0.5"
-       id="circle135" />
-    <circle
-       cx="22.35"
-       cy="86.02"
-       r="4.80"
-       fill="#222"
-       stroke="#888"
-       stroke-width="1.5"
-       opacity="0.6"
-       id="circle136" />
-    <circle
-       cx="22.35"
-       cy="86.02"
-       r="1.68"
-       fill="#333"
-       opacity="0.4"
-       id="circle137" />
-    <line
-       x1="22.35"
-       y1="86.02"
-       x2="25.47"
-       y2="86.02"
-       stroke="#666"
-       stroke-width="0.5"
-       opacity="0.6"
-       id="line137" />
-    <circle
-       cx="22.35"
-       cy="97.54"
-       r="3.84"
-       fill="#222"
-       stroke="#888"
-       stroke-width="1.5"
-       opacity="0.6"
-       id="circle138" />
-    <circle
-       cx="22.35"
-       cy="97.54"
-       r="1.34"
-       fill="#333"
-       opacity="0.4"
-       id="circle139" />
-    <line
-       x1="22.35"
-       y1="97.54"
-       x2="24.85"
-       y2="97.54"
-       stroke="#666"
-       stroke-width="0.5"
-       opacity="0.6"
-       id="line139" />
-    <rect
-       x="17.54"
-       y="102.21"
-       width="9.63"
-       height="9.63"
-       rx="1.5"
-       fill="#c8b7c7"
-       opacity="0.7"
-       id="rect139" />
-    <circle
-       cx="22.35"
-       cy="107.02"
-       r="2.61"
-       fill="#111"
-       opacity="0.5"
-       id="circle140" />
-    <circle
-       cx="22.35"
-       cy="115.82"
-       r="3.05"
-       fill="#1a1a1a"
-       stroke="#888"
-       stroke-width="1.6"
-       opacity="0.6"
-       id="circle141" />
-    <circle
-       cx="22.35"
-       cy="115.82"
-       r="1.07"
-       fill="#333"
-       opacity="0.5"
-       id="circle142" />
+  <g inkscape:groupmode="layer" id="layer-outlines" inkscape:label="Component Outlines">
+    <circle cx="2.54" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
+    <circle cx="2.54" cy="2.54" r="0.8" fill="#444"/>
+    <circle cx="2.54" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
+    <circle cx="2.54" cy="125.96" r="0.8" fill="#444"/>
+    <circle cx="27.94" cy="2.54" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
+    <circle cx="27.94" cy="2.54" r="0.8" fill="#444"/>
+    <circle cx="27.94" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
+    <circle cx="27.94" cy="125.96" r="0.8" fill="#444"/>
+    <circle cx="12.87" cy="21.34" r="6.10" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="12.87" cy="21.34" r="2.13" fill="#333" opacity="0.4"/>
+    <line x1="12.87" y1="21.34" x2="16.83" y2="21.34" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+    <circle cx="24.38" cy="34.54" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
+    <circle cx="24.38" cy="34.54" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <circle cx="4.06" cy="14.22" r="3.05" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="4.06" cy="14.22" r="1.07" fill="#333" opacity="0.5"/>
+    <rect x="12.87" y="31.05" width="4.74" height="6.99" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
+    <line x1="15.24" y1="36.29" x2="15.24" y2="32.80" stroke="#888" stroke-width="1.7" opacity="0.6"/>
+    <circle cx="8.13" cy="45.38" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="8.13" cy="45.38" r="1.68" fill="#333" opacity="0.4"/>
+    <line x1="8.13" y1="45.38" x2="11.25" y2="45.38" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+    <circle cx="8.13" cy="56.90" r="3.84" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="8.13" cy="56.90" r="1.34" fill="#333" opacity="0.4"/>
+    <line x1="8.13" y1="56.90" x2="10.62" y2="56.90" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+    <rect x="3.31" y="61.57" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
+    <circle cx="8.13" cy="66.38" r="2.61" fill="#111" opacity="0.5"/>
+    <circle cx="8.13" cy="75.18" r="3.05" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="8.13" cy="75.18" r="1.07" fill="#333" opacity="0.5"/>
+    <circle cx="22.35" cy="45.38" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="22.35" cy="45.38" r="1.68" fill="#333" opacity="0.4"/>
+    <line x1="22.35" y1="45.38" x2="25.47" y2="45.38" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+    <circle cx="22.35" cy="56.90" r="3.84" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="22.35" cy="56.90" r="1.34" fill="#333" opacity="0.4"/>
+    <line x1="22.35" y1="56.90" x2="24.85" y2="56.90" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+    <rect x="17.54" y="61.57" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
+    <circle cx="22.35" cy="66.38" r="2.61" fill="#111" opacity="0.5"/>
+    <circle cx="22.35" cy="75.18" r="3.05" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="22.35" cy="75.18" r="1.07" fill="#333" opacity="0.5"/>
+    <circle cx="8.13" cy="86.02" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="8.13" cy="86.02" r="1.68" fill="#333" opacity="0.4"/>
+    <line x1="8.13" y1="86.02" x2="11.25" y2="86.02" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+    <circle cx="8.13" cy="97.54" r="3.84" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="8.13" cy="97.54" r="1.34" fill="#333" opacity="0.4"/>
+    <line x1="8.13" y1="97.54" x2="10.62" y2="97.54" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+    <rect x="3.31" y="102.21" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
+    <circle cx="8.13" cy="107.02" r="2.61" fill="#111" opacity="0.5"/>
+    <circle cx="8.13" cy="115.82" r="3.05" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="8.13" cy="115.82" r="1.07" fill="#333" opacity="0.5"/>
+    <circle cx="22.35" cy="86.02" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="22.35" cy="86.02" r="1.68" fill="#333" opacity="0.4"/>
+    <line x1="22.35" y1="86.02" x2="25.47" y2="86.02" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+    <circle cx="22.35" cy="97.54" r="3.84" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
+    <circle cx="22.35" cy="97.54" r="1.34" fill="#333" opacity="0.4"/>
+    <line x1="22.35" y1="97.54" x2="24.85" y2="97.54" stroke="#666" stroke-width="0.5" opacity="0.6"/>
+    <rect x="17.54" y="102.21" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
+    <circle cx="22.35" cy="107.02" r="2.61" fill="#111" opacity="0.5"/>
+    <circle cx="22.35" cy="115.82" r="3.05" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="22.35" cy="115.82" r="1.07" fill="#333" opacity="0.5"/>
   </g>
-  <g
-     inkscape:groupmode="layer"
-     id="layer-text"
-     inkscape:label="Text">
-    <text
-       x="15.24"
-       y="3.39"
-       fill="#555"
-       font-family="sans-serif"
-       font-size="2.8"
-       text-anchor="middle"
-       font-weight="bold"
-       id="text142">Ra-macrow</text>
-    <text
-       x="12.87"
-       y="29.43"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text143">Macro</text>
-    <text
-       x="24.38"
-       y="40.56"
-       fill="#996dd2"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text144">Macro CV</text>
-    <text
-       x="4.06"
-       y="19.27"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text145">MACRO LED R</text>
-    <text
-       x="15.24"
-       y="40.04"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text146">RANGE</text>
-    <text
-       x="8.13"
-       y="52.18"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text147">ATTN1</text>
-    <text
-       x="8.13"
-       y="62.74"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text148">OFFSET1</text>
-    <text
-       x="8.13"
-       y="72.39"
-       fill="#c8b7c7"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text149">OUTPUT1</text>
-    <text
-       x="8.13"
-       y="80.23"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text150">OUTPUT1 LED R</text>
-    <text
-       x="22.35"
-       y="52.18"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text151">ATTN1</text>
-    <text
-       x="22.35"
-       y="62.74"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text152">OFFSET1</text>
-    <text
-       x="22.35"
-       y="72.39"
-       fill="#c8b7c7"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text153">OUTPUT1</text>
-    <text
-       x="22.35"
-       y="80.23"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text154">OUTPUT1 LED R</text>
-    <text
-       x="8.13"
-       y="92.82"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text155">ATTN1</text>
-    <text
-       x="8.13"
-       y="103.38"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text156">OFFSET1</text>
-    <text
-       x="8.13"
-       y="113.03"
-       fill="#c8b7c7"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text157">OUTPUT1</text>
-    <text
-       x="8.13"
-       y="120.87"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text158">OUTPUT1 LED R</text>
-    <text
-       x="22.35"
-       y="92.82"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text159">ATTN1</text>
-    <text
-       x="22.35"
-       y="103.38"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text160">OFFSET1</text>
-    <text
-       x="22.35"
-       y="113.03"
-       fill="#c8b7c7"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text161">OUTPUT1</text>
-    <text
-       x="22.35"
-       y="120.87"
-       fill="#888"
-       font-family="sans-serif"
-       font-size="2.0"
-       text-anchor="middle"
-       opacity="0.7"
-       id="text162">OUTPUT1 LED R</text>
-  </g>
-  <g
-     inkscape:groupmode="layer"
-     id="layer1"
-     inkscape:label="Text 1">
-    <path
-       style="fill:none;stroke:#999999;stroke-width:0.259984;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
-       d="m 29.630224,13.770973 c 0,0 0.777353,0.319665 0.849775,0.675619 0.07242,0.355953 -0.522155,0.961183 -0.522155,0.961183 l -4.707021,3.712949 1.969695,-3.568539 -4.915836,2.837888 1.977581,-2.993525 -0.179205,-1.423373 c 0,0 0.365262,-0.812359 0.758693,-1.231214 0.393431,-0.418855 1.007605,-1.011371 1.635144,-1.154638 0.627538,-0.14327 1.834831,0.307262 1.834831,0.307262"
-       id="path159"
-       sodipodi:nodetypes="czcccccczzc" />
-    <path
-       style="fill:none;stroke:#999999;stroke-width:0.104615;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
-       d="m 24.282263,15.396548 c 0,0 0.828882,-0.376725 1.392365,-0.32903 0.465576,0.03941 1.54589,0.484667 1.54589,0.484667 0,0 0.63665,0.0023 0.953762,0.221152 0.282168,0.194763 0.475329,0.666385 0.475329,0.666385"
-       id="path160"
-       sodipodi:nodetypes="cscsc" />
-    <path
-       d="m 13.832204,68.502339 c 0,0.830154 0.677437,1.531086 1.48018,1.531086 0.841901,0 1.515422,-0.681353 1.515422,-1.535001 0,-0.83407 -0.677437,-1.523254 -1.495843,-1.523254 -0.826238,0 -1.499759,0.689184 -1.499759,1.527169 z m 0.266275,0 c 0,-0.677436 0.559963,-1.233483 1.2374,-1.233483 0.669605,0 1.225651,0.559962 1.225651,1.229568 0,0.689184 -0.556046,1.241314 -1.241315,1.241314 -0.661773,0 -1.221736,-0.567793 -1.221736,-1.237399 z m -0.21537,-1.875396 h 1.805193 c 0.372003,0 0.591289,-0.05874 0.783164,-0.203622 0.227118,-0.172296 0.35634,-0.458151 0.35634,-0.779248 0,-0.325013 -0.129222,-0.610868 -0.35634,-0.783164 -0.191875,-0.144886 -0.411161,-0.203623 -0.783164,-0.203623 h -1.805193 v 0.289771 h 1.805193 c 0.26236,0 0.462067,0.04307 0.599121,0.133137 0.16838,0.109643 0.274107,0.325014 0.274107,0.563879 0,0.234949 -0.105727,0.450319 -0.274107,0.559962 -0.137054,0.09006 -0.336761,0.133138 -0.599121,0.133138 H 13.883109 Z M 16.7769,63.784332 v -0.289771 h -2.631431 v -0.661773 h -0.26236 v 1.613317 h 0.26236 v -0.661773 z"
-       id="text162-7-4"
-       style="font-size:3.91582px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.12167px;fill:#f9f9f9;stroke-width:0.158571;stroke-linecap:round;stroke-linejoin:round"
-       aria-label="OUT" />
-    <path
-       d="m 6.2775955,10.685651 0.366863,0.002 0.01791,-3.2621059 1.355348,3.2696459 0.317286,0.0017 1.396124,-3.2545399 -0.01791,3.2621059 0.3668615,0.002 0.02011,-3.6636719 -0.5701235,-0.0031 -1.345758,3.1110399 -1.316476,-3.1256559 -0.570125,-0.0031 z m 4.0748015,0.02237 0.386694,0.0021 0.542198,-1.2315059 1.705416,0.0094 0.523687,1.2373579 0.401567,0.0022 -1.556405,-3.6722959 -0.411482,-0.0023 z m 1.069529,-1.5607789 0.728079,-1.676682 0.694753,1.684493 z m 5.623203,0.635718 c -0.154747,0.192502 -0.244528,0.2911649 -0.368985,0.3846799 -0.248942,0.191985 -0.576743,0.299256 -0.908902,0.297433 -0.852709,-0.0047 -1.542936,-0.7075159 -1.5382,-1.5701389 0.0048,-0.882454 0.672865,-1.553041 1.550362,-1.548223 0.317286,0.0017 0.61428,0.08765 0.856305,0.252589 0.163029,0.105007 0.261582,0.214619 0.399198,0.433516 l 0.411481,0.0023 c -0.279127,-0.631169 -0.921493,-1.0214 -1.680006,-1.025565 -1.090674,-0.006 -1.903227,0.802624 -1.909242,1.898254 -0.0059,1.075802 0.817577,1.8884379 1.913208,1.8944529 0.743641,0.0041 1.310714,-0.339848 1.681305,-1.0170259 z M 19.2928,9.3887631 c 0.704388,-0.07049 1.083289,-0.455124 1.086908,-1.114486 0.0025,-0.456099 -0.188936,-0.804193 -0.544823,-0.999499 -0.227369,-0.125192 -0.539399,-0.181441 -1.025244,-0.184108 l -0.907242,-0.005 -0.02011,3.6636709 0.366862,0.002 0.01829,-3.3315109 0.515592,0.0028 c 0.386693,0.0021 0.64427,0.0432 0.842057,0.138482 0.247227,0.120343 0.384679,0.368985 0.382856,0.701145 -0.0023,0.416439 -0.192117,0.678158 -0.559498,0.770338 -0.173761,0.04367 -0.411835,0.06219 -0.818359,0.05996 l 1.225326,1.6675769 0.4561,0.0025 z m 3.24496,-2.342077 c -1.051012,-0.0058 -1.943132,0.847024 -1.948712,1.863333 -0.0059,1.065886 0.852091,1.9233309 1.932849,1.9292649 1.05597,0.0058 1.933218,-0.8470799 1.938906,-1.8832199 0.0057,-1.046055 -0.862115,-1.903553 -1.923043,-1.909378 z m -0.0019,0.337118 c 0.857666,0.0047 1.557754,0.717511 1.553045,1.575176 -0.0047,0.847752 -0.717457,1.5478399 -1.565207,1.5431859 -0.872539,-0.0048 -1.567697,-0.7126079 -1.562934,-1.5801899 0.0046,-0.837835 0.727345,-1.542826 1.575096,-1.538172 z m 3.005166,3.4076039 0.47593,0.0026 0.819626,-2.9999009 0.796554,3.0087739 0.470973,0.0026 1.071126,-3.6579019 -0.376779,-0.0021 -0.919785,3.1827889 -0.859995,-3.1925599 -0.347033,-0.0019 -0.894996,3.1829239 -0.884784,-3.1926949 -0.376778,-0.0021 z"
-       id="text157-9"
-       style="font-size:4.95768px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.154043px;fill:#b7b7b7;stroke:#ffffff;stroke-width:1.302;stroke-linecap:round"
-       aria-label="MACROW" />
-    <path
-       d="M 3.5148651,24.030151 V 23.748212 L 0.62107422,22.549971 v 0.313266 l 2.53353558,1.022029 -2.53353558,1.018113 v 0.317182 z m 0,-1.170548 V 22.554169 L 2.539826,22.131261 v -1.347042 l 0.9750391,-0.418993 v -0.317182 l -2.89379088,1.245231 v 0.325013 z M 2.2774661,22.021618 0.95000312,21.453824 2.2774661,20.897777 Z m 1.237399,-2.192579 V 18.341027 H 3.2525053 v 1.198241 H 0.62107422 v 0.289771 z"
-       id="text162-3"
-       style="font-size:3.91582px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.12167px;fill:#f9f9f9;stroke-width:0.158571;stroke-linecap:round;stroke-linejoin:round"
-       aria-label="VAL" />
-    <path
-       d="m 10.105459,37.743416 c -0.05874,-0.556047 -0.3641707,-0.853649 -0.8849747,-0.853649 -0.3602554,0 -0.6343628,0.152717 -0.7870798,0.434656 -0.097895,0.180127 -0.1409694,0.426824 -0.1409694,0.810574 v 0.716596 H 11.186226 V 38.561822 H 8.554795 v -0.407245 c 0,-0.305434 0.031327,-0.509057 0.105727,-0.66569 0.09398,-0.195791 0.2897707,-0.305434 0.5521306,-0.305434 0.3289289,0 0.5364673,0.148801 0.6108679,0.438572 0.035242,0.137054 0.050906,0.325013 0.050906,0.64611 l 1.3117995,-0.975039 v -0.360255 z m 1.080767,-1.201879 v -0.28977 H 8.6409429 L 11.186226,34.528806 V 34.239035 H 8.2924351 v 0.289771 h 2.4003979 l -2.4003979,1.621149 v 0.391582 z M 9.8509314,32.747388 H 10.11329 v -1.617234 c 0.18796,0.04307 0.348509,0.14097 0.512973,0.305434 0.223201,0.223202 0.344593,0.528636 0.344593,0.865397 0,0.708763 -0.540383,1.268725 -1.2295677,1.268725 -0.6970159,0 -1.2334832,-0.548215 -1.2334832,-1.26481 0,-0.446403 0.2036227,-0.822322 0.5560465,-1.022029 v -0.325013 c -0.4933933,0.191876 -0.8223222,0.74009 -0.8223222,1.370537 0,0.861481 0.6539419,1.535002 1.4919274,1.535002 0.8497332,0 1.5036752,-0.685269 1.5036752,-1.57416 0,-0.458151 -0.168382,-0.849733 -0.489479,-1.127756 -0.270191,-0.234949 -0.571709,-0.360255 -0.8967216,-0.379835 z"
-       id="text162-7"
-       style="font-size:3.91582px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.12167px;fill:#f9f9f9;stroke-width:0.158571;stroke-linecap:round;stroke-linejoin:round"
-       aria-label="RNG" />
-    <path
-       style="fill:#f9f9f9;stroke:#ffffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 3.5148649,21.420192 c 2.0063367,-0.05916 2.0063367,-0.05916 2.0063367,-0.05916"
-       id="path163" />
-    <path
-       style="font-size:2.46944px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.0767292px;fill:#f9f9f9;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round"
-       d="m 12.455009,51.485678 h 0.192616 l 0.2667,-0.614891 h 0.849487 l 0.26423,0.614891 h 0.200025 l -0.785282,-1.824916 h -0.204964 z m 0.52846,-0.780343 0.358069,-0.837141 0.35066,0.837141 z m 1.506183,0.780343 h 0.182739 v -1.659464 h 0.417335 v -0.165452 h -1.017409 v 0.165452 h 0.417335 z m 1.064152,0 h 0.182739 v -1.659464 h 0.417335 v -0.165452 h -1.017409 v 0.165452 h 0.417335 z m 0.733251,0 h 0.182738 v -1.605136 l 1.086554,1.605136 h 0.182738 v -1.824916 h -0.182738 v 1.513766 l -1.022348,-1.513766 h -0.246944 z"
-       id="text163"
-       aria-label="ATTN" />
-    <path
-       style="font-size:2.46944px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.0767292px;fill:#f9f9f9;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round"
-       d="m 13.38962,52.310002 c -0.523521,0 -0.965551,0.427213 -0.965551,0.933448 0,0.53093 0.429682,0.955674 0.96802,0.955674 0.525991,0 0.960612,-0.427213 0.960612,-0.943326 0,-0.521052 -0.434621,-0.945796 -0.963081,-0.945796 z m 0,0.167922 c 0.427213,0 0.777873,0.35313 0.777873,0.780343 0,0.422274 -0.35313,0.772935 -0.775404,0.772935 -0.434621,0 -0.782812,-0.350661 -0.782812,-0.782813 0,-0.417335 0.358069,-0.770465 0.780343,-0.770465 z m 1.182684,1.689097 h 0.182738 V 53.33235 h 0.716138 v -0.165452 h -0.716138 v -0.659341 h 0.743302 v -0.165452 h -0.92604 z m 1.12095,0 h 0.182739 V 53.33235 h 0.716137 v -0.165452 h -0.716137 v -0.659341 h 0.743301 v -0.165452 h -0.92604 z m 0.94562,-0.511174 c 0.01729,0.328435 0.242005,0.543277 0.570441,0.543277 0.316088,0 0.550685,-0.229658 0.550685,-0.540808 0,-0.160513 -0.06668,-0.303741 -0.180269,-0.390171 -0.07655,-0.05433 -0.153105,-0.0889 -0.340783,-0.145697 -0.165452,-0.04939 -0.21978,-0.07161 -0.269169,-0.113594 -0.05186,-0.04692 -0.08643,-0.128411 -0.08643,-0.212372 0,-0.185208 0.13335,-0.318558 0.316088,-0.318558 0.185208,0 0.31115,0.125941 0.325966,0.325966 h 0.190147 c -0.0074,-0.296333 -0.212372,-0.493888 -0.511174,-0.493888 -0.293863,0 -0.506235,0.204964 -0.506235,0.491419 0,0.125941 0.04692,0.246944 0.128411,0.323496 0.07161,0.06915 0.125941,0.09384 0.340782,0.162983 0.143228,0.04198 0.22225,0.07655 0.283986,0.118533 0.07902,0.0568 0.123472,0.150636 0.123472,0.261761 0,0.209902 -0.150636,0.363008 -0.360538,0.363008 -0.116064,0 -0.227189,-0.05186 -0.293864,-0.135819 -0.05186,-0.06421 -0.07408,-0.125942 -0.08643,-0.239536 z"
-       id="text163-3"
-       aria-label="OFFS" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 15.239999,47.85659 v -2.57"
-       id="path164"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 14.384704,45.27659 1.685939,0.01"
-       id="path165"
-       sodipodi:nodetypes="cc" />
-    <path
-       d="m 13.832204,109.41741 c 0,0.83016 0.677437,1.53109 1.48018,1.53109 0.841901,0 1.515422,-0.68135 1.515422,-1.535 0,-0.83407 -0.677437,-1.52326 -1.495843,-1.52326 -0.826238,0 -1.499759,0.68919 -1.499759,1.52717 z m 0.266275,0 c 0,-0.67743 0.559963,-1.23348 1.2374,-1.23348 0.669605,0 1.225651,0.55996 1.225651,1.22957 0,0.68918 -0.556046,1.24131 -1.241315,1.24131 -0.661773,0 -1.221736,-0.56779 -1.221736,-1.2374 z m -0.21537,-1.87539 h 1.805193 c 0.372003,0 0.591289,-0.0587 0.783164,-0.20362 0.227118,-0.1723 0.35634,-0.45816 0.35634,-0.77925 0,-0.32502 -0.129222,-0.61087 -0.35634,-0.78317 -0.191875,-0.14488 -0.411161,-0.20362 -0.783164,-0.20362 h -1.805193 v 0.28977 h 1.805193 c 0.26236,0 0.462067,0.0431 0.599121,0.13314 0.16838,0.10964 0.274107,0.32501 0.274107,0.56388 0,0.23495 -0.105727,0.45032 -0.274107,0.55996 -0.137054,0.0901 -0.336761,0.13314 -0.599121,0.13314 h -1.805193 z m 2.893791,-2.84261 v -0.28977 h -2.631431 v -0.66178 h -0.26236 v 1.61332 h 0.26236 v -0.66177 z"
-       id="text162-7-4-8"
-       style="font-size:3.91582px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.12167px;fill:#f9f9f9;stroke-width:0.158571;stroke-linecap:round;stroke-linejoin:round"
-       aria-label="OUT" />
-    <path
-       style="font-size:2.46944px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.0767292px;fill:#f9f9f9;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round"
-       d="m 12.455007,92.400759 h 0.192616 l 0.2667,-0.614891 h 0.849487 l 0.26423,0.614891 h 0.200025 l -0.785282,-1.824916 h -0.204964 z m 0.52846,-0.780343 0.358069,-0.83714 0.35066,0.83714 z m 1.506183,0.780343 h 0.182739 v -1.659464 h 0.417335 v -0.165452 h -1.017409 v 0.165452 h 0.417335 z m 1.064152,0 h 0.182739 v -1.659464 h 0.417335 v -0.165452 h -1.017409 v 0.165452 h 0.417335 z m 0.733251,0 h 0.182738 v -1.605136 l 1.086554,1.605136 h 0.182738 v -1.824916 h -0.182738 v 1.513766 l -1.022348,-1.513766 h -0.246944 z"
-       id="text163-0"
-       aria-label="ATTN" />
-    <path
-       style="font-size:2.46944px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.0767292px;fill:#f9f9f9;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round"
-       d="m 13.389619,93.225083 c -0.523521,0 -0.965551,0.427213 -0.965551,0.933448 0,0.53093 0.429682,0.955674 0.96802,0.955674 0.525991,0 0.960612,-0.427213 0.960612,-0.943326 0,-0.521052 -0.434621,-0.945796 -0.963081,-0.945796 z m 0,0.167922 c 0.427213,0 0.777873,0.35313 0.777873,0.780343 0,0.422274 -0.353129,0.772935 -0.775404,0.772935 -0.434621,0 -0.782812,-0.350661 -0.782812,-0.782813 0,-0.417335 0.358069,-0.770465 0.780343,-0.770465 z m 1.182684,1.689097 h 0.182738 v -0.834671 h 0.716138 v -0.165452 h -0.716138 v -0.659341 h 0.743302 v -0.165452 h -0.92604 z m 1.12095,0 h 0.182739 v -0.834671 h 0.716137 v -0.165452 h -0.716137 v -0.659341 h 0.743301 v -0.165452 h -0.92604 z m 0.94562,-0.511174 c 0.01729,0.328435 0.242005,0.543277 0.570441,0.543277 0.316088,0 0.550685,-0.229658 0.550685,-0.540808 0,-0.160513 -0.06668,-0.303741 -0.180269,-0.390171 -0.07655,-0.05433 -0.153105,-0.0889 -0.340783,-0.145697 -0.165452,-0.04939 -0.21978,-0.07161 -0.269169,-0.113594 -0.05186,-0.04692 -0.08643,-0.128411 -0.08643,-0.212372 0,-0.185208 0.13335,-0.318558 0.316088,-0.318558 0.185208,0 0.31115,0.125941 0.325966,0.325966 h 0.190147 c -0.0074,-0.296333 -0.212372,-0.493888 -0.511174,-0.493888 -0.293863,0 -0.506235,0.204964 -0.506235,0.491419 0,0.125941 0.04692,0.246944 0.128411,0.323496 0.07161,0.06915 0.125941,0.09384 0.340782,0.162983 0.143228,0.04198 0.22225,0.07655 0.283986,0.118533 0.07902,0.0568 0.123472,0.150636 0.123472,0.261761 0,0.209902 -0.150636,0.363008 -0.360538,0.363008 -0.116064,0 -0.227189,-0.05186 -0.293864,-0.135819 -0.05186,-0.06421 -0.07408,-0.125942 -0.08643,-0.239536 z"
-       id="text163-3-0"
-       aria-label="OFFS" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="M 15.239999,88.976589 V 86.201676"
-       id="path164-4"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 14.384704,86.191676 1.685939,0.01"
-       id="path165-4"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 15.271821,96.471679 v 1.499913"
-       id="path164-6-4"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 17.123194,97.966592 -3.74682,0.01"
-       id="path165-3-7"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 15.299707,55.566593 v 1.499913"
-       id="path164-6-4-3"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 17.15108,57.061506 -3.74682,0.01"
-       id="path165-3-7-1"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;stroke:#999999;stroke-width:0.104615;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
-       d="m 24.66769,14.785149 c 0,0 1.351908,0.131177 1.727372,-0.318045 0.311899,-0.373172 0.0054,-1.459045 0.0054,-1.459045 0,0 -1.327055,0.199256 -1.676105,0.692868 -0.208949,0.295486 -0.05663,1.084222 -0.05663,1.084222 z"
-       id="path161"
-       sodipodi:nodetypes="cscsc" />
-    <path
-       style="fill:none;stroke:#999999;stroke-width:0.0517896;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
-       d="m 27.451534,13.446365 c 0,0 -0.727045,-0.537474 -0.737944,-0.792896 -0.0109,-0.255423 0.09219,-0.360187 0.277872,-0.35493 0.185685,0.0053 0.458638,0.402804 0.378969,0.54498 -0.07967,0.142172 -0.313526,-0.01831 -0.313526,-0.01831"
-       id="path162"
-       sodipodi:nodetypes="czzzc" />
-    <path
-       style="font-size:4.58021px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.142314px;fill:#f9f9f9;stroke-width:0.927378;stroke-linecap:round;stroke-linejoin:round"
-       d="m 25.678587,53.7456 h 0.838178 c 0.453441,0 0.709933,-0.05038 0.925203,-0.178628 0.238171,-0.146567 0.380157,-0.444281 0.380157,-0.792377 0,-0.416799 -0.174048,-0.66871 -0.567946,-0.833598 0.261072,-0.146567 0.375578,-0.366417 0.375578,-0.700772 0,-0.293134 -0.109926,-0.540465 -0.302294,-0.682451 -0.192369,-0.137407 -0.444281,-0.196949 -0.8565,-0.196949 h -0.792376 z m 0.338936,-0.306874 v -1.314521 h 0.403058 c 0.398478,0 0.600008,0.02748 0.741994,0.09619 0.201529,0.100764 0.316035,0.302294 0.316035,0.572526 0,0.233591 -0.105345,0.4397 -0.265653,0.522144 -0.160307,0.08702 -0.389317,0.123666 -0.732833,0.123666 z m 0,-1.621395 v -1.149632 h 0.407638 c 0.348096,0 0.535885,0.03206 0.664131,0.119085 0.119085,0.07786 0.196949,0.256492 0.196949,0.458021 0,0.233591 -0.0916,0.407639 -0.261072,0.485502 -0.141987,0.06412 -0.288553,0.08702 -0.595428,0.08702 z"
-       id="text163-5"
-       aria-label="B" />
-    <path
-       style="font-size:4.26186px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.132422px;fill:#f9f9f9;stroke-width:0.86292;stroke-linecap:round;stroke-linejoin:round"
-       d="m 4.7756236,93.551885 c -0.122935,0.178629 -0.194317,0.270233 -0.2934574,0.357257 -0.1982818,0.178628 -0.4600141,0.279393 -0.7257111,0.279393 -0.6820896,0 -1.2372793,-0.64581 -1.2372793,-1.442766 0,-0.815278 0.531396,-1.438186 1.2333135,-1.438186 0.2538007,0 0.4917383,0.07786 0.6860544,0.22901 0.1308666,0.09618 0.2101791,0.196949 0.3212168,0.398479 H 5.088909 C 4.8628677,91.353384 4.3473348,90.996128 3.740592,90.996128 c -0.8724398,0 -1.5188384,0.751154 -1.5188384,1.763381 0,0.993906 0.6622607,1.74048 1.5386663,1.74048 0.5948455,0 1.046928,-0.320615 1.3403854,-0.948104 z"
-       id="text163-5-8"
-       aria-label="C" />
-    <path
-       style="font-size:4.32599px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.134415px;fill:#f9f9f9;stroke-width:0.875904;stroke-linecap:round;stroke-linejoin:round"
-       d="m 2.2794108,53.476734 h 0.3186983 l 0.4412748,-1.140473 h 1.4055415 l 0.4371888,1.140473 H 5.2130703 L 3.9137615,50.091956 H 3.5746337 Z m 0.8743776,-1.447348 0.5924521,-1.552692 0.5801945,1.552692 z"
-       id="text163-5-2"
-       aria-label="A" />
-    <path
-       style="font-size:4.26186px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.132422px;fill:#f9f9f9;stroke-width:0.86292;stroke-linecap:round;stroke-linejoin:round"
-       d="m 25.649051,94.359154 h 0.789161 c 0.440186,0 0.749505,-0.07786 1.007272,-0.251913 0.444151,-0.302294 0.678124,-0.796956 0.678124,-1.429025 0,-0.63665 -0.230007,-1.140473 -0.662262,-1.438186 -0.28156,-0.192369 -0.59088,-0.265653 -1.122275,-0.265653 h -0.69002 z m 0.293457,-0.306875 v -2.771027 h 0.40846 c 0.440186,0 0.729677,0.0687 0.943822,0.215269 0.337079,0.238172 0.531395,0.664131 0.531395,1.167954 0,0.444281 -0.150694,0.833599 -0.420358,1.08551 -0.233972,0.21527 -0.535361,0.302294 -1.054859,0.302294 z"
-       id="text163-5-8-4"
-       aria-label="D" />
-    <path
-       style="fill:#f9f9f9;stroke:#333333;stroke-width:0.325894;stroke-linecap:round;stroke-opacity:1"
-       d="m 19.585253,118.83256 -8.690509,8.69051 h 8.690509 z"
-       id="path4-6" />
-    <path
-       style="fill:#333333;stroke-width:0.144843;stroke-linecap:round"
-       d="m 17.526974,123.76227 -3.862457,3.86244 h 3.862457 z"
-       id="path4-2" />
-    <path
-       id="path3"
-       style="fill:#f9f9f9;stroke:#333333;stroke-width:0.25939;stroke-linecap:round;stroke-opacity:1"
-       d="m 10.894753,118.81669 v 2.91271 1.44047 4.3532 h 5.793675 l -2.080726,-2.08069 a 4.3531952,4.3531952 0 0 0 0,-3e-5 4.3531952,4.3531952 0 0 0 0.05701,-0.0959 4.3531952,4.3531952 0 0 0 0,-4.35319 4.3531952,4.3531952 0 0 0 -3.769961,-2.1766 z" />
-    <path
-       style="font-size:4.33344px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic';letter-spacing:-0.134646px;fill:#f9f9f9;stroke-width:0.877413;stroke-linecap:round;stroke-linejoin:round"
-       d="m 23.988443,27.158557 c -0.134337,0.169005 -0.212339,0.255673 -0.320675,0.338009 -0.216672,0.169004 -0.502679,0.264339 -0.793019,0.264339 -0.745352,0 -1.352033,-0.611015 -1.352033,-1.365033 0,-0.771352 0.58068,-1.3607 1.347699,-1.3607 0.27734,0 0.537347,0.07367 0.749685,0.216672 0.143004,0.091 0.229673,0.186338 0.351009,0.377009 h 0.359676 c -0.247007,-0.550347 -0.810354,-0.888355 -1.47337,-0.888355 -0.953357,0 -1.659707,0.710684 -1.659707,1.668374 0,0.940357 0.723684,1.646707 1.681374,1.646707 0.650016,0 1.144028,-0.30334 1.464703,-0.897022 z m 1.668061,0.840688 h 0.312007 l 1.326033,-3.202412 h -0.346675 l -1.131028,2.803735 -1.126694,-2.803735 h -0.351009 z"
-       id="text164"
-       aria-label="CV" />
-    <path
-       style="fill:#f9f9f9;fill-opacity:1;stroke:#ffffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;stroke-dasharray:none"
-       d="m 24.421462,27.999245 v 1.322284"
-       id="path166" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 24.079807,18.418891 c -0.218274,0.988109 -1.952605,0.655892 -2.593425,1.296712 -3.30571,3.305711 6.916633,6.325183 7.459582,3.067491 0.532238,-3.19344 -2.462935,-1.581536 -3.959853,-2.579481 -1.702404,-1.134936 0.01413,-3.099624 -0.906304,-1.784722 z"
-       id="path167" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 21.737359,21.854999 c 1.030511,1.402093 0.740065,-1.037888 1.185167,-1.037888 0.06251,0 0.164153,0.774487 0.195204,0.836589 0.441275,0.882551 0.542407,-0.740362 0.66927,-0.613498 0.435115,0.435114 -0.399783,1.924153 0.585613,1.924153 0.283486,0 0.02789,-1.802008 0.02789,-1.993869 0,-0.201926 -0.353353,-1.43137 -0.7111,-1.073622 -0.04544,0.04543 -0.279062,0.934091 -0.334636,0.906304 -0.993595,-0.496798 0.456824,-1.739593 -1.017849,-0.26492 -0.41574,0.41574 -0.568587,1.064493 -0.599555,1.316751 z"
-       id="path168" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 25.195258,23.139999 c 0.730051,-4.601384 3.353021,-0.516946 2.426107,0.409968 -0.944137,0.944136 -0.567418,-1.305809 -1.199111,-0.989963 -0.556607,0.278304 -0.874758,1.495925 -1.226996,0.579995 z"
-       id="path169" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 26.129449,21.854999 c 1.504041,1.594931 0.52698,-1.313774 0,0 z"
-       id="path170" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 2.0914713,29.555 h 4.6570096 l -2.225685,3.855001 H 6.9157984 L 4.3357987,35.99 H 6.7205946 L 1.5805952,41.129997 2.6162187,37.264998 H 0.8923611 L 1.7467592,34.076341 0,34.544383 1.3369015,29.555 Z"
-       id="path171" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.0694976;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 16.179349,75.394694 h -3.236511 l 1.546798,2.679133 h -1.663079 l 1.793037,1.793038 h -1.657376 l 3.572177,3.572175 -0.719734,-2.686082 h 1.19804 l -0.593786,-2.21604 1.213956,0.325278 -0.929115,-3.467502 z"
-       id="path171-6" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#b3b3b3;stroke-width:0.0434264;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
-       d="m 14.809278,113.15424 h 2.022372 l -0.966535,1.67409 h 1.039195 l -1.120401,1.1204 h 1.035631 l -2.232117,2.23211 0.449734,-1.67843 h -0.748609 l 0.371034,-1.38471 -0.758555,0.20325 0.580569,-2.16671 z"
-       id="path171-9" />
+  <g inkscape:groupmode="layer" id="layer-text" inkscape:label="Text">
+    <path d="M11.33 2.87L11.12 2.87L10.79 1.95L10.79 3.39L10.59 3.39L10.59 1.57L10.86 1.57L11.23 2.61L11.59 1.57L11.86 1.57L11.86 3.39L11.65 3.39L11.65 1.95L11.33 2.87M13.56 3.39L13.30 3.39L13.14 2.84L12.52 2.84L12.35 3.39L12.10 3.39L12.68 1.57L12.98 1.57L13.56 3.39M12.83 1.79L12.57 2.64L13.08 2.64L12.83 1.79M15.13 2.08L14.88 2.08Q14.84 1.93 14.76 1.83Q14.68 1.74 14.50 1.74Q14.33 1.74 14.22 1.83Q14.12 1.93 14.07 2.10Q14.03 2.26 14.03 2.48Q14.03 2.85 14.15 3.04Q14.27 3.22 14.50 3.22Q14.68 3.22 14.77 3.11Q14.86 2.99 14.90 2.77L15.15 2.77Q15.11 3.10 14.94 3.27Q14.77 3.43 14.50 3.43Q14.26 3.43 14.10 3.32Q13.94 3.20 13.86 2.99Q13.77 2.78 13.77 2.48Q13.77 2.29 13.81 2.12Q13.85 1.94 13.94 1.81Q14.03 1.68 14.17 1.60Q14.31 1.53 14.51 1.53Q14.69 1.53 14.82 1.60Q14.95 1.67 15.02 1.80Q15.10 1.92 15.13 2.08M16.11 2.64L15.72 2.64L15.72 3.39L15.48 3.39L15.48 1.57L16.12 1.57Q16.38 1.57 16.54 1.69Q16.70 1.81 16.70 2.07Q16.70 2.22 16.63 2.33Q16.56 2.44 16.40 2.52Q16.50 2.56 16.55 2.61Q16.60 2.65 16.62 2.73Q16.65 2.81 16.65 2.94L16.66 3.08Q16.67 3.14 16.68 3.22Q16.70 3.29 16.76 3.33L16.76 3.39L16.49 3.39Q16.46 3.33 16.44 3.25Q16.42 3.17 16.42 3.08L16.42 2.97Q16.42 2.81 16.35 2.72Q16.27 2.64 16.11 2.64M16.07 1.77L15.72 1.77L15.72 2.44L16.07 2.44Q16.25 2.44 16.35 2.36Q16.45 2.28 16.45 2.09Q16.45 1.93 16.35 1.85Q16.25 1.77 16.07 1.77M17.65 1.53Q17.99 1.53 18.17 1.78Q18.36 2.03 18.36 2.48Q18.36 2.93 18.17 3.18Q17.99 3.43 17.65 3.43Q17.31 3.43 17.13 3.18Q16.94 2.93 16.94 2.48Q16.94 2.03 17.13 1.78Q17.31 1.53 17.65 1.53M17.65 1.74Q17.44 1.74 17.32 1.94Q17.20 2.13 17.20 2.48Q17.20 2.83 17.32 3.02Q17.44 3.22 17.65 3.22Q17.87 3.22 17.99 3.02Q18.11 2.83 18.11 2.48Q18.11 2.13 17.99 1.94Q17.87 1.74 17.65 1.74M19.79 1.57L20 1.57L19.74 3.39L19.48 3.39L19.26 1.77L19.25 1.77L19.03 3.39L18.77 3.39L18.51 1.57L18.74 1.57L18.91 3.02L18.92 3.02L19.10 1.57L19.41 1.57L19.60 3.04L19.60 3.04" fill="#ffffff" stroke="#ffffff" stroke-width="0.14300000000000002" stroke-linejoin="round"/>
+    <path d="M10.60 30.05L10.45 30.05L10.21 29.38L10.21 30.43L10.06 30.43L10.06 29.10L10.25 29.10L10.52 29.87L10.79 29.10L10.99 29.10L10.99 30.43L10.84 30.43L10.84 29.38L10.60 30.05M12.23 30.43L12.04 30.43L11.92 30.03L11.47 30.03L11.35 30.43L11.17 30.43L11.58 29.10L11.81 29.10L12.23 30.43M11.69 29.26L11.51 29.89L11.88 29.89L11.69 29.26M13.37 29.47L13.19 29.47Q13.17 29.37 13.10 29.30Q13.04 29.23 12.92 29.23Q12.79 29.23 12.71 29.30Q12.64 29.37 12.60 29.49Q12.57 29.61 12.57 29.77Q12.57 30.04 12.66 30.18Q12.75 30.31 12.92 30.31Q13.05 30.31 13.11 30.23Q13.18 30.14 13.21 29.98L13.39 29.98Q13.36 30.22 13.24 30.34Q13.11 30.47 12.91 30.47Q12.74 30.47 12.62 30.38Q12.51 30.30 12.45 30.14Q12.38 29.99 12.38 29.77Q12.38 29.63 12.41 29.50Q12.44 29.38 12.51 29.28Q12.57 29.18 12.67 29.13Q12.77 29.07 12.92 29.07Q13.06 29.07 13.15 29.13Q13.24 29.18 13.30 29.27Q13.36 29.36 13.37 29.47M14.09 29.89L13.81 29.89L13.81 30.43L13.64 30.43L13.64 29.10L14.10 29.10Q14.29 29.10 14.41 29.19Q14.52 29.28 14.52 29.47Q14.52 29.58 14.47 29.66Q14.42 29.74 14.30 29.80Q14.37 29.83 14.41 29.86Q14.45 29.90 14.47 29.95Q14.48 30.01 14.49 30.11L14.50 30.21Q14.50 30.26 14.51 30.31Q14.52 30.36 14.56 30.39L14.56 30.43L14.37 30.43Q14.35 30.39 14.33 30.33Q14.32 30.27 14.32 30.21L14.32 30.13Q14.32 30.01 14.27 29.95Q14.21 29.89 14.09 29.89M14.07 29.25L13.81 29.25L13.81 29.74L14.07 29.74Q14.20 29.74 14.27 29.68Q14.34 29.62 14.34 29.49Q14.34 29.36 14.27 29.31Q14.20 29.25 14.07 29.25M15.22 29.07Q15.46 29.07 15.60 29.26Q15.73 29.44 15.73 29.77Q15.73 30.10 15.60 30.28Q15.46 30.47 15.22 30.47Q14.97 30.47 14.84 30.28Q14.70 30.10 14.70 29.77Q14.70 29.44 14.84 29.26Q14.97 29.07 15.22 29.07M15.22 29.23Q15.06 29.23 14.97 29.37Q14.89 29.52 14.89 29.77Q14.89 30.02 14.97 30.17Q15.06 30.31 15.22 30.31Q15.38 30.31 15.46 30.17Q15.55 30.02 15.55 29.77Q15.55 29.52 15.46 29.37Q15.38 29.23 15.22 29.23" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M20.35 40.18L20.20 40.18L19.96 39.51L19.96 40.56L19.81 40.56L19.81 39.23L20.01 39.23L20.28 39.99L20.55 39.23L20.74 39.23L20.74 40.56L20.59 40.56L20.59 39.50L20.35 40.18M21.98 40.56L21.79 40.56L21.68 40.16L21.22 40.16L21.10 40.56L20.92 40.56L21.34 39.23L21.56 39.23L21.98 40.56M21.45 39.39L21.26 40.01L21.63 40.01L21.45 39.39M23.13 39.60L22.95 39.60Q22.92 39.49 22.86 39.42Q22.80 39.35 22.67 39.35Q22.54 39.35 22.47 39.42Q22.39 39.49 22.36 39.61Q22.32 39.74 22.32 39.90Q22.32 40.17 22.41 40.30Q22.50 40.44 22.67 40.44Q22.80 40.44 22.87 40.35Q22.93 40.27 22.96 40.11L23.14 40.11Q23.11 40.35 22.99 40.47Q22.86 40.59 22.67 40.59Q22.50 40.59 22.38 40.51Q22.26 40.42 22.20 40.27Q22.14 40.11 22.14 39.90Q22.14 39.76 22.17 39.63Q22.20 39.50 22.26 39.40Q22.32 39.31 22.43 39.25Q22.53 39.20 22.68 39.20Q22.81 39.20 22.90 39.25Q23 39.31 23.05 39.40Q23.11 39.49 23.13 39.60M23.85 40.01L23.56 40.01L23.56 40.56L23.39 40.56L23.39 39.23L23.85 39.23Q24.05 39.23 24.16 39.32Q24.28 39.41 24.28 39.59Q24.28 39.71 24.23 39.79Q24.17 39.87 24.06 39.92Q24.13 39.95 24.17 39.99Q24.20 40.02 24.22 40.08Q24.24 40.14 24.24 40.23L24.25 40.33Q24.25 40.38 24.26 40.43Q24.28 40.48 24.32 40.51L24.32 40.56L24.12 40.56Q24.10 40.51 24.09 40.46Q24.07 40.40 24.07 40.33L24.07 40.25Q24.07 40.13 24.02 40.07Q23.97 40.01 23.85 40.01M23.82 39.38L23.56 39.38L23.56 39.86L23.82 39.86Q23.95 39.86 24.02 39.81Q24.10 39.75 24.10 39.61Q24.10 39.49 24.02 39.43Q23.95 39.38 23.82 39.38M24.97 39.20Q25.22 39.20 25.35 39.38Q25.49 39.57 25.49 39.90Q25.49 40.23 25.35 40.41Q25.22 40.59 24.97 40.59Q24.73 40.59 24.59 40.41Q24.45 40.23 24.45 39.90Q24.45 39.57 24.59 39.38Q24.73 39.20 24.97 39.20M24.97 39.35Q24.82 39.35 24.73 39.50Q24.64 39.64 24.64 39.90Q24.64 40.15 24.73 40.29Q24.82 40.44 24.97 40.44Q25.13 40.44 25.22 40.29Q25.30 40.15 25.30 39.90Q25.30 39.64 25.22 39.50Q25.13 39.35 24.97 39.35M27.82 39.60L27.64 39.60Q27.62 39.49 27.56 39.42Q27.49 39.35 27.37 39.35Q27.24 39.35 27.16 39.42Q27.09 39.49 27.05 39.61Q27.02 39.74 27.02 39.90Q27.02 40.17 27.11 40.30Q27.20 40.44 27.37 40.44Q27.50 40.44 27.56 40.35Q27.63 40.27 27.66 40.11L27.84 40.11Q27.81 40.35 27.69 40.47Q27.56 40.59 27.37 40.59Q27.19 40.59 27.07 40.51Q26.96 40.42 26.90 40.27Q26.83 40.11 26.83 39.90Q26.83 39.76 26.86 39.63Q26.89 39.50 26.96 39.40Q27.02 39.31 27.12 39.25Q27.22 39.20 27.37 39.20Q27.51 39.20 27.60 39.25Q27.69 39.31 27.75 39.40Q27.81 39.49 27.82 39.60M28.84 39.23L29.02 39.23L28.60 40.56L28.39 40.56L27.96 39.23L28.15 39.23L28.50 40.37" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M0.03 18.89L-0.12 18.89L-0.36 18.22L-0.36 19.27L-0.51 19.27L-0.51 17.94L-0.31 17.94L-0.04 18.71L0.23 17.94L0.42 17.94L0.42 19.27L0.27 19.27L0.27 18.22L0.03 18.89M1.66 19.27L1.47 19.27L1.36 18.87L0.90 18.87L0.78 19.27L0.60 19.27L1.02 17.94L1.24 17.94L1.66 19.27M1.13 18.10L0.94 18.73L1.31 18.73L1.13 18.10M2.81 18.31L2.63 18.31Q2.60 18.21 2.54 18.14Q2.48 18.07 2.35 18.07Q2.22 18.07 2.15 18.14Q2.07 18.21 2.04 18.33Q2 18.45 2 18.61Q2 18.88 2.09 19.02Q2.18 19.15 2.35 19.15Q2.48 19.15 2.55 19.07Q2.61 18.98 2.64 18.82L2.82 18.82Q2.79 19.06 2.67 19.18Q2.54 19.31 2.35 19.31Q2.18 19.31 2.06 19.22Q1.94 19.14 1.88 18.98Q1.82 18.83 1.82 18.61Q1.82 18.47 1.85 18.34Q1.88 18.22 1.94 18.12Q2 18.02 2.11 17.97Q2.21 17.91 2.36 17.91Q2.49 17.91 2.58 17.97Q2.68 18.02 2.73 18.11Q2.79 18.20 2.81 18.31M3.53 18.73L3.24 18.73L3.24 19.27L3.07 19.27L3.07 17.94L3.53 17.94Q3.73 17.94 3.84 18.03Q3.96 18.12 3.96 18.31Q3.96 18.42 3.91 18.50Q3.86 18.58 3.74 18.64Q3.81 18.67 3.85 18.70Q3.88 18.74 3.90 18.79Q3.92 18.85 3.92 18.95L3.93 19.05Q3.93 19.10 3.94 19.15Q3.96 19.20 4 19.23L4 19.27L3.80 19.27Q3.78 19.23 3.77 19.17Q3.75 19.11 3.75 19.05L3.75 18.97Q3.75 18.85 3.70 18.79Q3.65 18.73 3.53 18.73M3.50 18.09L3.24 18.09L3.24 18.58L3.50 18.58Q3.63 18.58 3.70 18.52Q3.78 18.46 3.78 18.33Q3.78 18.20 3.70 18.15Q3.63 18.09 3.50 18.09M4.65 17.91Q4.90 17.91 5.03 18.10Q5.17 18.28 5.17 18.61Q5.17 18.94 5.03 19.12Q4.90 19.31 4.65 19.31Q4.41 19.31 4.27 19.12Q4.13 18.94 4.13 18.61Q4.13 18.28 4.27 18.10Q4.41 17.91 4.65 17.91M4.65 18.07Q4.50 18.07 4.41 18.21Q4.32 18.36 4.32 18.61Q4.32 18.86 4.41 19.01Q4.50 19.15 4.65 19.15Q4.81 19.15 4.90 19.01Q4.98 18.86 4.98 18.61Q4.98 18.36 4.90 18.21Q4.81 18.07 4.65 18.07M6.65 19.27L6.65 17.94L6.82 17.94L6.82 19.12L7.46 19.12L7.46 19.27L6.65 19.27M8.55 18.51L8.55 18.67L7.98 18.67L7.98 19.12L8.61 19.12L8.61 19.27L7.80 19.27L7.80 17.94L8.58 17.94L8.58 18.10L7.98 18.10L7.98 18.51" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M12.94 39.49L12.66 39.49L12.66 40.04L12.48 40.04L12.48 38.71L12.95 38.71Q13.14 38.71 13.26 38.80Q13.37 38.89 13.37 39.07Q13.37 39.19 13.32 39.27Q13.27 39.35 13.15 39.41Q13.22 39.43 13.26 39.47Q13.30 39.50 13.32 39.56Q13.33 39.62 13.34 39.72L13.34 39.81Q13.35 39.86 13.36 39.91Q13.37 39.96 13.41 40L13.41 40.04L13.22 40.04Q13.20 40 13.18 39.94Q13.17 39.88 13.17 39.82L13.17 39.73Q13.17 39.62 13.11 39.55Q13.06 39.49 12.94 39.49M12.91 38.86L12.66 38.86L12.66 39.34L12.91 39.34Q13.04 39.34 13.12 39.29Q13.19 39.23 13.19 39.09Q13.19 38.97 13.12 38.92Q13.05 38.86 12.91 38.86M14.60 40.04L14.41 40.04L14.29 39.64L13.84 39.64L13.72 40.04L13.54 40.04L13.96 38.71L14.18 38.71L14.60 40.04M14.06 38.87L13.88 39.49L14.25 39.49L14.06 38.87M15.52 39.78L15.52 38.71L15.68 38.71L15.68 40.04L15.49 40.04L14.96 38.98L14.96 38.98L14.96 40.04L14.80 40.04L14.80 38.71L14.99 38.71L15.52 39.78L15.52 39.78M16.44 39.49L16.44 39.34L16.90 39.34L16.90 40.04L16.77 40.04L16.76 39.86Q16.71 39.97 16.62 40.02Q16.54 40.07 16.43 40.07Q16.27 40.07 16.15 39.99Q16.03 39.91 15.97 39.76Q15.91 39.60 15.91 39.38Q15.91 39.16 15.97 39Q16.04 38.84 16.16 38.76Q16.28 38.68 16.44 38.68Q16.62 38.68 16.74 38.77Q16.86 38.87 16.91 39.08L16.73 39.08Q16.70 38.94 16.62 38.89Q16.55 38.84 16.44 38.84Q16.27 38.84 16.18 38.98Q16.09 39.13 16.09 39.37Q16.09 39.65 16.18 39.78Q16.28 39.92 16.43 39.92Q16.54 39.92 16.61 39.87Q16.68 39.81 16.71 39.73Q16.75 39.64 16.75 39.53L16.75 39.49L16.44 39.49M17.96 39.28L17.96 39.44L17.39 39.44L17.39 39.88L18.03 39.88L18.03 40.04L17.22 40.04L17.22 38.71L17.99 38.71L17.99 38.87L17.39 38.87L17.39 39.28" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M6.31 53.18L6.13 53.18L6.01 52.78L5.55 52.78L5.43 53.18L5.25 53.18L5.67 51.85L5.89 51.85L6.31 53.18M5.78 52.01L5.59 52.63L5.96 52.63L5.78 52.01M7.44 51.85L7.44 52.01L7.04 52.01L7.04 53.18L6.87 53.18L6.87 52.01L6.47 52.01L6.47 51.85L7.44 51.85M8.61 51.85L8.61 52.01L8.22 52.01L8.22 53.18L8.04 53.18L8.04 52.01L7.64 52.01L7.64 51.85L8.61 51.85M9.58 52.92L9.58 51.85L9.74 51.85L9.74 53.18L9.55 53.18L9.02 52.12L9.02 52.12L9.02 53.18L8.86 53.18L8.86 51.85L9.05 51.85L9.58 52.92L9.58 52.92M10.63 53.18L10.46 53.18L10.46 52.22L10.11 52.22L10.11 52.09Q10.23 52.09 10.30 52.08Q10.37 52.07 10.40 52.04Q10.44 52.02 10.46 51.97Q10.49 51.92 10.51 51.84L10.63 51.84" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M4.61 62.38Q4.85 62.38 4.99 62.56Q5.12 62.74 5.12 63.08Q5.12 63.41 4.99 63.59Q4.85 63.77 4.61 63.77Q4.36 63.77 4.22 63.59Q4.09 63.41 4.09 63.08Q4.09 62.74 4.22 62.56Q4.36 62.38 4.61 62.38M4.61 62.53Q4.45 62.53 4.36 62.68Q4.27 62.82 4.27 63.08Q4.27 63.33 4.36 63.47Q4.45 63.61 4.61 63.61Q4.76 63.61 4.85 63.47Q4.94 63.33 4.94 63.08Q4.94 62.82 4.85 62.68Q4.76 62.53 4.61 62.53M6.15 62.98L6.15 63.13L5.60 63.13L5.60 63.74L5.42 63.74L5.42 62.41L6.24 62.41L6.24 62.56L5.60 62.56L5.60 62.98L6.15 62.98M7.32 62.98L7.32 63.13L6.77 63.13L6.77 63.74L6.60 63.74L6.60 62.41L7.42 62.41L7.42 62.56L6.77 62.56L6.77 62.98L7.32 62.98M8.59 62.77L8.59 62.79L8.42 62.79Q8.41 62.68 8.35 62.60Q8.28 62.53 8.14 62.53Q8 62.53 7.93 62.59Q7.86 62.65 7.86 62.74Q7.86 62.90 8.04 62.94L8.31 63Q8.47 63.04 8.55 63.13Q8.63 63.23 8.63 63.36Q8.63 63.49 8.57 63.58Q8.51 63.67 8.40 63.72Q8.30 63.77 8.16 63.77Q7.91 63.77 7.78 63.65Q7.65 63.53 7.65 63.31L7.82 63.31Q7.82 63.45 7.91 63.53Q7.99 63.61 8.16 63.61Q8.31 63.61 8.38 63.55Q8.45 63.48 8.45 63.38Q8.45 63.29 8.40 63.24Q8.35 63.19 8.25 63.17L7.98 63.10Q7.83 63.07 7.76 62.98Q7.68 62.89 7.68 62.76Q7.68 62.64 7.74 62.56Q7.80 62.47 7.90 62.43Q8 62.38 8.15 62.38Q8.28 62.38 8.38 62.43Q8.48 62.48 8.54 62.57Q8.59 62.66 8.59 62.77M9.68 62.98L9.68 63.13L9.11 63.13L9.11 63.58L9.74 63.58L9.74 63.74L8.93 63.74L8.93 62.41L9.71 62.41L9.71 62.56L9.11 62.56L9.11 62.98L9.68 62.98M10.96 62.41L10.96 62.56L10.57 62.56L10.57 63.74L10.39 63.74L10.39 62.56L9.99 62.56L9.99 62.41L10.96 62.41M11.81 63.74L11.64 63.74L11.64 62.77L11.28 62.77L11.28 62.65Q11.40 62.64 11.47 62.63Q11.54 62.62 11.58 62.60Q11.62 62.57 11.64 62.53Q11.66 62.48 11.68 62.39L11.81 62.39" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M4.61 71.03Q4.85 71.03 4.99 71.22Q5.12 71.40 5.12 71.73Q5.12 72.06 4.99 72.24Q4.85 72.43 4.61 72.43Q4.36 72.43 4.22 72.24Q4.09 72.06 4.09 71.73Q4.09 71.40 4.22 71.22Q4.36 71.03 4.61 71.03M4.61 71.19Q4.45 71.19 4.36 71.33Q4.27 71.48 4.27 71.73Q4.27 71.98 4.36 72.13Q4.45 72.27 4.61 72.27Q4.76 72.27 4.85 72.13Q4.94 71.98 4.94 71.73Q4.94 71.48 4.85 71.33Q4.76 71.19 4.61 71.19M6.06 71.98L6.06 71.06L6.24 71.06L6.24 72Q6.24 72.15 6.18 72.25Q6.11 72.34 6.01 72.38Q5.90 72.43 5.78 72.43Q5.65 72.43 5.54 72.38Q5.44 72.34 5.38 72.24Q5.32 72.15 5.32 72L5.32 71.06L5.49 71.06L5.49 71.98Q5.49 72.09 5.53 72.16Q5.57 72.22 5.64 72.24Q5.70 72.27 5.78 72.27Q5.86 72.27 5.92 72.24Q5.98 72.22 6.02 72.15Q6.06 72.09 6.06 71.98M7.44 71.06L7.44 71.22L7.04 71.22L7.04 72.39L6.87 72.39L6.87 71.22L6.47 71.22L6.47 71.06L7.44 71.06M7.89 72.39L7.71 72.39L7.71 71.06L8.20 71.06Q8.32 71.06 8.41 71.11Q8.51 71.15 8.57 71.24Q8.63 71.33 8.63 71.46Q8.63 71.59 8.57 71.68Q8.51 71.77 8.41 71.81Q8.32 71.86 8.20 71.86L7.89 71.86L7.89 72.39M7.89 71.21L7.89 71.71L8.18 71.71Q8.30 71.71 8.37 71.64Q8.45 71.57 8.45 71.46Q8.45 71.35 8.37 71.28Q8.30 71.21 8.18 71.21L7.89 71.21M9.59 71.98L9.59 71.06L9.76 71.06L9.76 72Q9.76 72.15 9.70 72.25Q9.64 72.34 9.53 72.38Q9.43 72.43 9.30 72.43Q9.17 72.43 9.07 72.38Q8.96 72.34 8.90 72.24Q8.84 72.15 8.84 72L8.84 71.06L9.02 71.06L9.02 71.98Q9.02 72.09 9.06 72.16Q9.10 72.22 9.16 72.24Q9.22 72.27 9.30 72.27Q9.38 72.27 9.44 72.24Q9.51 72.22 9.55 72.15Q9.59 72.09 9.59 71.98M10.96 71.06L10.96 71.22L10.57 71.22L10.57 72.39L10.39 72.39L10.39 71.22L9.99 71.22L9.99 71.06L10.96 71.06M11.81 72.39L11.64 72.39L11.64 71.43L11.28 71.43L11.28 71.30Q11.40 71.30 11.47 71.29Q11.54 71.28 11.58 71.25Q11.62 71.23 11.64 71.18Q11.66 71.13 11.68 71.05L11.81 71.05" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M4.02 78.87Q4.26 78.87 4.40 79.06Q4.54 79.24 4.54 79.57Q4.54 79.90 4.40 80.08Q4.26 80.27 4.02 80.27Q3.77 80.27 3.64 80.08Q3.50 79.90 3.50 79.57Q3.50 79.24 3.64 79.06Q3.77 78.87 4.02 78.87M4.02 79.03Q3.86 79.03 3.77 79.17Q3.69 79.32 3.69 79.57Q3.69 79.82 3.77 79.97Q3.86 80.11 4.02 80.11Q4.18 80.11 4.26 79.97Q4.35 79.82 4.35 79.57Q4.35 79.32 4.26 79.17Q4.18 79.03 4.02 79.03M5.48 79.82L5.48 78.90L5.65 78.90L5.65 79.84Q5.65 79.99 5.59 80.09Q5.53 80.18 5.42 80.22Q5.32 80.27 5.19 80.27Q5.06 80.27 4.96 80.22Q4.85 80.18 4.79 80.08Q4.73 79.99 4.73 79.84L4.73 78.90L4.91 78.90L4.91 79.82Q4.91 79.93 4.95 80Q4.99 80.06 5.05 80.08Q5.11 80.11 5.19 80.11Q5.27 80.11 5.33 80.08Q5.40 80.06 5.44 79.99Q5.48 79.93 5.48 79.82M6.85 78.90L6.85 79.06L6.46 79.06L6.46 80.23L6.28 80.23L6.28 79.06L5.88 79.06L5.88 78.90L6.85 78.90M7.30 80.23L7.13 80.23L7.13 78.90L7.61 78.90Q7.73 78.90 7.83 78.95Q7.92 78.99 7.98 79.08Q8.04 79.17 8.04 79.30Q8.04 79.43 7.98 79.52Q7.92 79.61 7.83 79.65Q7.73 79.70 7.61 79.70L7.30 79.70L7.30 80.23M7.30 79.05L7.30 79.55L7.59 79.55Q7.72 79.55 7.79 79.48Q7.86 79.42 7.86 79.30Q7.86 79.19 7.79 79.12Q7.72 79.05 7.59 79.05L7.30 79.05M9 79.82L9 78.90L9.18 78.90L9.18 79.84Q9.18 79.99 9.11 80.09Q9.05 80.18 8.94 80.22Q8.84 80.27 8.71 80.27Q8.58 80.27 8.48 80.22Q8.38 80.18 8.31 80.08Q8.25 79.99 8.25 79.84L8.25 78.90L8.43 78.90L8.43 79.82Q8.43 79.93 8.47 80Q8.51 80.06 8.57 80.08Q8.64 80.11 8.71 80.11Q8.79 80.11 8.86 80.08Q8.92 80.06 8.96 79.99Q9 79.93 9 79.82M10.38 78.90L10.38 79.06L9.98 79.06L9.98 80.23L9.80 80.23L9.80 79.06L9.40 79.06L9.40 78.90L10.38 78.90M11.22 80.23L11.05 80.23L11.05 79.27L10.70 79.27L10.70 79.14Q10.81 79.14 10.88 79.13Q10.95 79.12 10.99 79.09Q11.03 79.07 11.05 79.02Q11.07 78.97 11.09 78.89L11.22 78.89" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M20.53 53.18L20.35 53.18L20.23 52.78L19.77 52.78L19.66 53.18L19.47 53.18L19.89 51.85L20.12 51.85L20.53 53.18M20 52.01L19.82 52.63L20.19 52.63L20 52.01M21.66 51.85L21.66 52.01L21.27 52.01L21.27 53.18L21.09 53.18L21.09 52.01L20.69 52.01L20.69 51.85L21.66 51.85M22.84 51.85L22.84 52.01L22.44 52.01L22.44 53.18L22.26 53.18L22.26 52.01L21.87 52.01L21.87 51.85L22.84 51.85M23.81 52.92L23.81 51.85L23.97 51.85L23.97 53.18L23.77 53.18L23.25 52.12L23.25 52.12L23.25 53.18L23.08 53.18L23.08 51.85L23.28 51.85L23.80 52.92L23.81 52.92M24.86 53.18L24.69 53.18L24.69 52.22L24.33 52.22L24.33 52.09Q24.45 52.09 24.52 52.08Q24.59 52.07 24.63 52.04Q24.67 52.02 24.69 51.97Q24.71 51.92 24.73 51.84L24.86 51.84" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M18.83 62.38Q19.07 62.38 19.21 62.56Q19.35 62.74 19.35 63.08Q19.35 63.41 19.21 63.59Q19.07 63.77 18.83 63.77Q18.58 63.77 18.45 63.59Q18.31 63.41 18.31 63.08Q18.31 62.74 18.45 62.56Q18.58 62.38 18.83 62.38M18.83 62.53Q18.67 62.53 18.59 62.68Q18.50 62.82 18.50 63.08Q18.50 63.33 18.59 63.47Q18.67 63.61 18.83 63.61Q18.99 63.61 19.07 63.47Q19.16 63.33 19.16 63.08Q19.16 62.82 19.07 62.68Q18.99 62.53 18.83 62.53M20.37 62.98L20.37 63.13L19.82 63.13L19.82 63.74L19.65 63.74L19.65 62.41L20.47 62.41L20.47 62.56L19.82 62.56L19.82 62.98L20.37 62.98M21.55 62.98L21.55 63.13L21 63.13L21 63.74L20.82 63.74L20.82 62.41L21.64 62.41L21.64 62.56L21 62.56L21 62.98L21.55 62.98M22.81 62.77L22.81 62.79L22.64 62.79Q22.64 62.68 22.57 62.60Q22.50 62.53 22.36 62.53Q22.23 62.53 22.16 62.59Q22.08 62.65 22.08 62.74Q22.08 62.90 22.26 62.94L22.54 63Q22.69 63.04 22.77 63.13Q22.85 63.23 22.85 63.36Q22.85 63.49 22.79 63.58Q22.73 63.67 22.63 63.72Q22.52 63.77 22.38 63.77Q22.13 63.77 22 63.65Q21.87 63.53 21.87 63.31L22.04 63.31Q22.04 63.45 22.13 63.53Q22.22 63.61 22.38 63.61Q22.53 63.61 22.60 63.55Q22.67 63.48 22.67 63.38Q22.67 63.29 22.62 63.24Q22.58 63.19 22.48 63.17L22.20 63.10Q22.06 63.07 21.98 62.98Q21.91 62.89 21.91 62.76Q21.91 62.64 21.96 62.56Q22.02 62.47 22.12 62.43Q22.23 62.38 22.37 62.38Q22.51 62.38 22.61 62.43Q22.71 62.48 22.76 62.57Q22.81 62.66 22.81 62.77M23.90 62.98L23.90 63.13L23.33 63.13L23.33 63.58L23.96 63.58L23.96 63.74L23.15 63.74L23.15 62.41L23.93 62.41L23.93 62.56L23.33 62.56L23.33 62.98L23.90 62.98M25.19 62.41L25.19 62.56L24.79 62.56L24.79 63.74L24.61 63.74L24.61 62.56L24.21 62.56L24.21 62.41L25.19 62.41M26.03 63.74L25.86 63.74L25.86 62.77L25.51 62.77L25.51 62.65Q25.63 62.64 25.70 62.63Q25.76 62.62 25.80 62.60Q25.84 62.57 25.86 62.53Q25.88 62.48 25.90 62.39L26.03 62.39" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M18.83 71.03Q19.07 71.03 19.21 71.22Q19.35 71.40 19.35 71.73Q19.35 72.06 19.21 72.24Q19.07 72.43 18.83 72.43Q18.58 72.43 18.45 72.24Q18.31 72.06 18.31 71.73Q18.31 71.40 18.45 71.22Q18.58 71.03 18.83 71.03M18.83 71.19Q18.67 71.19 18.59 71.33Q18.50 71.48 18.50 71.73Q18.50 71.98 18.59 72.13Q18.67 72.27 18.83 72.27Q18.99 72.27 19.07 72.13Q19.16 71.98 19.16 71.73Q19.16 71.48 19.07 71.33Q18.99 71.19 18.83 71.19M20.29 71.98L20.29 71.06L20.47 71.06L20.47 72Q20.47 72.15 20.40 72.25Q20.34 72.34 20.23 72.38Q20.13 72.43 20 72.43Q19.87 72.43 19.77 72.38Q19.66 72.34 19.60 72.24Q19.54 72.15 19.54 72L19.54 71.06L19.72 71.06L19.72 71.98Q19.72 72.09 19.76 72.16Q19.80 72.22 19.86 72.24Q19.93 72.27 20 72.27Q20.08 72.27 20.14 72.24Q20.21 72.22 20.25 72.15Q20.29 72.09 20.29 71.98M21.66 71.06L21.66 71.22L21.27 71.22L21.27 72.39L21.09 72.39L21.09 71.22L20.69 71.22L20.69 71.06L21.66 71.06M22.11 72.39L21.94 72.39L21.94 71.06L22.42 71.06Q22.54 71.06 22.64 71.11Q22.74 71.15 22.79 71.24Q22.85 71.33 22.85 71.46Q22.85 71.59 22.79 71.68Q22.74 71.77 22.64 71.81Q22.54 71.86 22.42 71.86L22.11 71.86L22.11 72.39M22.11 71.21L22.11 71.71L22.40 71.71Q22.53 71.71 22.60 71.64Q22.67 71.57 22.67 71.46Q22.67 71.35 22.60 71.28Q22.53 71.21 22.40 71.21L22.11 71.21M23.81 71.98L23.81 71.06L23.99 71.06L23.99 72Q23.99 72.15 23.92 72.25Q23.86 72.34 23.76 72.38Q23.65 72.43 23.52 72.43Q23.40 72.43 23.29 72.38Q23.19 72.34 23.13 72.24Q23.06 72.15 23.06 72L23.06 71.06L23.24 71.06L23.24 71.98Q23.24 72.09 23.28 72.16Q23.32 72.22 23.38 72.24Q23.45 72.27 23.52 72.27Q23.60 72.27 23.67 72.24Q23.73 72.22 23.77 72.15Q23.81 72.09 23.81 71.98M25.19 71.06L25.19 71.22L24.79 71.22L24.79 72.39L24.61 72.39L24.61 71.22L24.21 71.22L24.21 71.06L25.19 71.06M26.03 72.39L25.86 72.39L25.86 71.43L25.51 71.43L25.51 71.30Q25.63 71.30 25.70 71.29Q25.76 71.28 25.80 71.25Q25.84 71.23 25.86 71.18Q25.88 71.13 25.90 71.05L26.03 71.05" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M18.24 78.87Q18.49 78.87 18.62 79.06Q18.76 79.24 18.76 79.57Q18.76 79.90 18.62 80.08Q18.49 80.27 18.24 80.27Q18 80.27 17.86 80.08Q17.73 79.90 17.73 79.57Q17.73 79.24 17.86 79.06Q18 78.87 18.24 78.87M18.24 79.03Q18.09 79.03 18 79.17Q17.91 79.32 17.91 79.57Q17.91 79.82 18 79.97Q18.09 80.11 18.24 80.11Q18.40 80.11 18.49 79.97Q18.57 79.82 18.57 79.57Q18.57 79.32 18.49 79.17Q18.40 79.03 18.24 79.03M19.70 79.82L19.70 78.90L19.88 78.90L19.88 79.84Q19.88 79.99 19.81 80.09Q19.75 80.18 19.65 80.22Q19.54 80.27 19.41 80.27Q19.29 80.27 19.18 80.22Q19.08 80.18 19.02 80.08Q18.95 79.99 18.95 79.84L18.95 78.90L19.13 78.90L19.13 79.82Q19.13 79.93 19.17 80Q19.21 80.06 19.27 80.08Q19.34 80.11 19.41 80.11Q19.49 80.11 19.56 80.08Q19.62 80.06 19.66 79.99Q19.70 79.93 19.70 79.82M21.08 78.90L21.08 79.06L20.68 79.06L20.68 80.23L20.50 80.23L20.50 79.06L20.10 79.06L20.10 78.90L21.08 78.90M21.52 80.23L21.35 80.23L21.35 78.90L21.84 78.90Q21.95 78.90 22.05 78.95Q22.15 78.99 22.21 79.08Q22.26 79.17 22.26 79.30Q22.26 79.43 22.21 79.52Q22.15 79.61 22.05 79.65Q21.95 79.70 21.84 79.70L21.52 79.70L21.52 80.23M21.52 79.05L21.52 79.55L21.81 79.55Q21.94 79.55 22.01 79.48Q22.08 79.42 22.08 79.30Q22.08 79.19 22.01 79.12Q21.94 79.05 21.81 79.05L21.52 79.05M23.22 79.82L23.22 78.90L23.40 78.90L23.40 79.84Q23.40 79.99 23.34 80.09Q23.27 80.18 23.17 80.22Q23.06 80.27 22.94 80.27Q22.81 80.27 22.70 80.22Q22.60 80.18 22.54 80.08Q22.48 79.99 22.48 79.84L22.48 78.90L22.65 78.90L22.65 79.82Q22.65 79.93 22.69 80Q22.73 80.06 22.80 80.08Q22.86 80.11 22.94 80.11Q23.02 80.11 23.08 80.08Q23.14 80.06 23.18 79.99Q23.22 79.93 23.22 79.82M24.60 78.90L24.60 79.06L24.20 79.06L24.20 80.23L24.03 80.23L24.03 79.06L23.63 79.06L23.63 78.90L24.60 78.90M25.44 80.23L25.28 80.23L25.28 79.27L24.92 79.27L24.92 79.14Q25.04 79.14 25.11 79.13Q25.18 79.12 25.22 79.09Q25.25 79.07 25.28 79.02Q25.30 78.97 25.32 78.89L25.44 78.89" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M6.31 93.82L6.13 93.82L6.01 93.42L5.55 93.42L5.43 93.82L5.25 93.82L5.67 92.49L5.89 92.49L6.31 93.82M5.78 92.65L5.59 93.27L5.96 93.27L5.78 92.65M7.44 92.49L7.44 92.65L7.04 92.65L7.04 93.82L6.87 93.82L6.87 92.65L6.47 92.65L6.47 92.49L7.44 92.49M8.61 92.49L8.61 92.65L8.22 92.65L8.22 93.82L8.04 93.82L8.04 92.65L7.64 92.65L7.64 92.49L8.61 92.49M9.58 93.56L9.58 92.49L9.74 92.49L9.74 93.82L9.55 93.82L9.02 92.76L9.02 92.76L9.02 93.82L8.86 93.82L8.86 92.49L9.05 92.49L9.58 93.56L9.58 93.56M10.63 93.82L10.46 93.82L10.46 92.86L10.11 92.86L10.11 92.73Q10.23 92.73 10.30 92.72Q10.37 92.71 10.40 92.68Q10.44 92.66 10.46 92.61Q10.49 92.56 10.51 92.48L10.63 92.48" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M4.61 103.02Q4.85 103.02 4.99 103.20Q5.12 103.38 5.12 103.72Q5.12 104.05 4.99 104.23Q4.85 104.41 4.61 104.41Q4.36 104.41 4.22 104.23Q4.09 104.05 4.09 103.72Q4.09 103.38 4.22 103.20Q4.36 103.02 4.61 103.02M4.61 103.17Q4.45 103.17 4.36 103.32Q4.27 103.46 4.27 103.72Q4.27 103.97 4.36 104.11Q4.45 104.25 4.61 104.25Q4.76 104.25 4.85 104.11Q4.94 103.97 4.94 103.72Q4.94 103.46 4.85 103.32Q4.76 103.17 4.61 103.17M6.15 103.62L6.15 103.77L5.60 103.77L5.60 104.38L5.42 104.38L5.42 103.05L6.24 103.05L6.24 103.20L5.60 103.20L5.60 103.62L6.15 103.62M7.32 103.62L7.32 103.77L6.77 103.77L6.77 104.38L6.60 104.38L6.60 103.05L7.42 103.05L7.42 103.20L6.77 103.20L6.77 103.62L7.32 103.62M8.59 103.41L8.59 103.43L8.42 103.43Q8.41 103.32 8.35 103.24Q8.28 103.17 8.14 103.17Q8 103.17 7.93 103.23Q7.86 103.29 7.86 103.38Q7.86 103.54 8.04 103.58L8.31 103.64Q8.47 103.68 8.55 103.77Q8.63 103.87 8.63 104Q8.63 104.13 8.57 104.22Q8.51 104.31 8.40 104.36Q8.30 104.41 8.16 104.41Q7.91 104.41 7.78 104.29Q7.65 104.17 7.65 103.95L7.82 103.95Q7.82 104.09 7.91 104.17Q7.99 104.25 8.16 104.25Q8.31 104.25 8.38 104.19Q8.45 104.12 8.45 104.02Q8.45 103.93 8.40 103.88Q8.35 103.83 8.25 103.81L7.98 103.74Q7.83 103.71 7.76 103.62Q7.68 103.53 7.68 103.40Q7.68 103.28 7.74 103.20Q7.80 103.11 7.90 103.07Q8 103.02 8.15 103.02Q8.28 103.02 8.38 103.07Q8.48 103.12 8.54 103.21Q8.59 103.30 8.59 103.41M9.68 103.62L9.68 103.77L9.11 103.77L9.11 104.22L9.74 104.22L9.74 104.38L8.93 104.38L8.93 103.05L9.71 103.05L9.71 103.20L9.11 103.20L9.11 103.62L9.68 103.62M10.96 103.05L10.96 103.20L10.57 103.20L10.57 104.38L10.39 104.38L10.39 103.20L9.99 103.20L9.99 103.05L10.96 103.05M11.81 104.38L11.64 104.38L11.64 103.41L11.28 103.41L11.28 103.29Q11.40 103.28 11.47 103.27Q11.54 103.26 11.58 103.24Q11.62 103.21 11.64 103.17Q11.66 103.12 11.68 103.03L11.81 103.03" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M4.61 111.67Q4.85 111.67 4.99 111.86Q5.12 112.04 5.12 112.37Q5.12 112.70 4.99 112.88Q4.85 113.07 4.61 113.07Q4.36 113.07 4.22 112.88Q4.09 112.70 4.09 112.37Q4.09 112.04 4.22 111.86Q4.36 111.67 4.61 111.67M4.61 111.83Q4.45 111.83 4.36 111.97Q4.27 112.12 4.27 112.37Q4.27 112.62 4.36 112.77Q4.45 112.91 4.61 112.91Q4.76 112.91 4.85 112.77Q4.94 112.62 4.94 112.37Q4.94 112.12 4.85 111.97Q4.76 111.83 4.61 111.83M6.06 112.62L6.06 111.70L6.24 111.70L6.24 112.64Q6.24 112.79 6.18 112.89Q6.11 112.98 6.01 113.02Q5.90 113.07 5.78 113.07Q5.65 113.07 5.54 113.02Q5.44 112.98 5.38 112.88Q5.32 112.79 5.32 112.64L5.32 111.70L5.49 111.70L5.49 112.62Q5.49 112.73 5.53 112.80Q5.57 112.86 5.64 112.88Q5.70 112.91 5.78 112.91Q5.86 112.91 5.92 112.88Q5.98 112.86 6.02 112.79Q6.06 112.73 6.06 112.62M7.44 111.70L7.44 111.86L7.04 111.86L7.04 113.03L6.87 113.03L6.87 111.86L6.47 111.86L6.47 111.70L7.44 111.70M7.89 113.03L7.71 113.03L7.71 111.70L8.20 111.70Q8.32 111.70 8.41 111.75Q8.51 111.79 8.57 111.88Q8.63 111.97 8.63 112.10Q8.63 112.23 8.57 112.32Q8.51 112.41 8.41 112.45Q8.32 112.50 8.20 112.50L7.89 112.50L7.89 113.03M7.89 111.85L7.89 112.35L8.18 112.35Q8.30 112.35 8.37 112.28Q8.45 112.21 8.45 112.10Q8.45 111.99 8.37 111.92Q8.30 111.85 8.18 111.85L7.89 111.85M9.59 112.62L9.59 111.70L9.76 111.70L9.76 112.64Q9.76 112.79 9.70 112.89Q9.64 112.98 9.53 113.02Q9.43 113.07 9.30 113.07Q9.17 113.07 9.07 113.02Q8.96 112.98 8.90 112.88Q8.84 112.79 8.84 112.64L8.84 111.70L9.02 111.70L9.02 112.62Q9.02 112.73 9.06 112.80Q9.10 112.86 9.16 112.88Q9.22 112.91 9.30 112.91Q9.38 112.91 9.44 112.88Q9.51 112.86 9.55 112.79Q9.59 112.73 9.59 112.62M10.96 111.70L10.96 111.86L10.57 111.86L10.57 113.03L10.39 113.03L10.39 111.86L9.99 111.86L9.99 111.70L10.96 111.70M11.81 113.03L11.64 113.03L11.64 112.07L11.28 112.07L11.28 111.94Q11.40 111.94 11.47 111.93Q11.54 111.92 11.58 111.89Q11.62 111.87 11.64 111.82Q11.66 111.77 11.68 111.69L11.81 111.69" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M4.02 119.51Q4.26 119.51 4.40 119.70Q4.54 119.88 4.54 120.21Q4.54 120.54 4.40 120.72Q4.26 120.91 4.02 120.91Q3.77 120.91 3.64 120.72Q3.50 120.54 3.50 120.21Q3.50 119.88 3.64 119.70Q3.77 119.51 4.02 119.51M4.02 119.67Q3.86 119.67 3.77 119.81Q3.69 119.96 3.69 120.21Q3.69 120.46 3.77 120.61Q3.86 120.75 4.02 120.75Q4.18 120.75 4.26 120.61Q4.35 120.46 4.35 120.21Q4.35 119.96 4.26 119.81Q4.18 119.67 4.02 119.67M5.48 120.46L5.48 119.54L5.65 119.54L5.65 120.48Q5.65 120.63 5.59 120.73Q5.53 120.82 5.42 120.86Q5.32 120.91 5.19 120.91Q5.06 120.91 4.96 120.86Q4.85 120.82 4.79 120.72Q4.73 120.63 4.73 120.48L4.73 119.54L4.91 119.54L4.91 120.46Q4.91 120.57 4.95 120.64Q4.99 120.70 5.05 120.72Q5.11 120.75 5.19 120.75Q5.27 120.75 5.33 120.72Q5.40 120.70 5.44 120.63Q5.48 120.57 5.48 120.46M6.85 119.54L6.85 119.70L6.46 119.70L6.46 120.87L6.28 120.87L6.28 119.70L5.88 119.70L5.88 119.54L6.85 119.54M7.30 120.87L7.13 120.87L7.13 119.54L7.61 119.54Q7.73 119.54 7.83 119.59Q7.92 119.63 7.98 119.72Q8.04 119.81 8.04 119.94Q8.04 120.07 7.98 120.16Q7.92 120.25 7.83 120.29Q7.73 120.34 7.61 120.34L7.30 120.34L7.30 120.87M7.30 119.69L7.30 120.19L7.59 120.19Q7.72 120.19 7.79 120.12Q7.86 120.06 7.86 119.94Q7.86 119.83 7.79 119.76Q7.72 119.69 7.59 119.69L7.30 119.69M9 120.46L9 119.54L9.18 119.54L9.18 120.48Q9.18 120.63 9.11 120.73Q9.05 120.82 8.94 120.86Q8.84 120.91 8.71 120.91Q8.58 120.91 8.48 120.86Q8.38 120.82 8.31 120.72Q8.25 120.63 8.25 120.48L8.25 119.54L8.43 119.54L8.43 120.46Q8.43 120.57 8.47 120.64Q8.51 120.70 8.57 120.72Q8.64 120.75 8.71 120.75Q8.79 120.75 8.86 120.72Q8.92 120.70 8.96 120.63Q9 120.57 9 120.46M10.38 119.54L10.38 119.70L9.98 119.70L9.98 120.87L9.80 120.87L9.80 119.70L9.40 119.70L9.40 119.54L10.38 119.54M11.22 120.87L11.05 120.87L11.05 119.91L10.70 119.91L10.70 119.78Q10.81 119.78 10.88 119.77Q10.95 119.76 10.99 119.73Q11.03 119.71 11.05 119.66Q11.07 119.61 11.09 119.53L11.22 119.53" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M20.53 93.82L20.35 93.82L20.23 93.42L19.77 93.42L19.66 93.82L19.47 93.82L19.89 92.49L20.12 92.49L20.53 93.82M20 92.65L19.82 93.27L20.19 93.27L20 92.65M21.66 92.49L21.66 92.65L21.27 92.65L21.27 93.82L21.09 93.82L21.09 92.65L20.69 92.65L20.69 92.49L21.66 92.49M22.84 92.49L22.84 92.65L22.44 92.65L22.44 93.82L22.26 93.82L22.26 92.65L21.87 92.65L21.87 92.49L22.84 92.49M23.81 93.56L23.81 92.49L23.97 92.49L23.97 93.82L23.77 93.82L23.25 92.76L23.25 92.76L23.25 93.82L23.08 93.82L23.08 92.49L23.28 92.49L23.80 93.56L23.81 93.56M24.86 93.82L24.69 93.82L24.69 92.86L24.33 92.86L24.33 92.73Q24.45 92.73 24.52 92.72Q24.59 92.71 24.63 92.68Q24.67 92.66 24.69 92.61Q24.71 92.56 24.73 92.48L24.86 92.48" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M18.83 103.02Q19.07 103.02 19.21 103.20Q19.35 103.38 19.35 103.72Q19.35 104.05 19.21 104.23Q19.07 104.41 18.83 104.41Q18.58 104.41 18.45 104.23Q18.31 104.05 18.31 103.72Q18.31 103.38 18.45 103.20Q18.58 103.02 18.83 103.02M18.83 103.17Q18.67 103.17 18.59 103.32Q18.50 103.46 18.50 103.72Q18.50 103.97 18.59 104.11Q18.67 104.25 18.83 104.25Q18.99 104.25 19.07 104.11Q19.16 103.97 19.16 103.72Q19.16 103.46 19.07 103.32Q18.99 103.17 18.83 103.17M20.37 103.62L20.37 103.77L19.82 103.77L19.82 104.38L19.65 104.38L19.65 103.05L20.47 103.05L20.47 103.20L19.82 103.20L19.82 103.62L20.37 103.62M21.55 103.62L21.55 103.77L21 103.77L21 104.38L20.82 104.38L20.82 103.05L21.64 103.05L21.64 103.20L21 103.20L21 103.62L21.55 103.62M22.81 103.41L22.81 103.43L22.64 103.43Q22.64 103.32 22.57 103.24Q22.50 103.17 22.36 103.17Q22.23 103.17 22.16 103.23Q22.08 103.29 22.08 103.38Q22.08 103.54 22.26 103.58L22.54 103.64Q22.69 103.68 22.77 103.77Q22.85 103.87 22.85 104Q22.85 104.13 22.79 104.22Q22.73 104.31 22.63 104.36Q22.52 104.41 22.38 104.41Q22.13 104.41 22 104.29Q21.87 104.17 21.87 103.95L22.04 103.95Q22.04 104.09 22.13 104.17Q22.22 104.25 22.38 104.25Q22.53 104.25 22.60 104.19Q22.67 104.12 22.67 104.02Q22.67 103.93 22.62 103.88Q22.58 103.83 22.48 103.81L22.20 103.74Q22.06 103.71 21.98 103.62Q21.91 103.53 21.91 103.40Q21.91 103.28 21.96 103.20Q22.02 103.11 22.12 103.07Q22.23 103.02 22.37 103.02Q22.51 103.02 22.61 103.07Q22.71 103.12 22.76 103.21Q22.81 103.30 22.81 103.41M23.90 103.62L23.90 103.77L23.33 103.77L23.33 104.22L23.96 104.22L23.96 104.38L23.15 104.38L23.15 103.05L23.93 103.05L23.93 103.20L23.33 103.20L23.33 103.62L23.90 103.62M25.19 103.05L25.19 103.20L24.79 103.20L24.79 104.38L24.61 104.38L24.61 103.20L24.21 103.20L24.21 103.05L25.19 103.05M26.03 104.38L25.86 104.38L25.86 103.41L25.51 103.41L25.51 103.29Q25.63 103.28 25.70 103.27Q25.76 103.26 25.80 103.24Q25.84 103.21 25.86 103.17Q25.88 103.12 25.90 103.03L26.03 103.03" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M18.83 111.67Q19.07 111.67 19.21 111.86Q19.35 112.04 19.35 112.37Q19.35 112.70 19.21 112.88Q19.07 113.07 18.83 113.07Q18.58 113.07 18.45 112.88Q18.31 112.70 18.31 112.37Q18.31 112.04 18.45 111.86Q18.58 111.67 18.83 111.67M18.83 111.83Q18.67 111.83 18.59 111.97Q18.50 112.12 18.50 112.37Q18.50 112.62 18.59 112.77Q18.67 112.91 18.83 112.91Q18.99 112.91 19.07 112.77Q19.16 112.62 19.16 112.37Q19.16 112.12 19.07 111.97Q18.99 111.83 18.83 111.83M20.29 112.62L20.29 111.70L20.47 111.70L20.47 112.64Q20.47 112.79 20.40 112.89Q20.34 112.98 20.23 113.02Q20.13 113.07 20 113.07Q19.87 113.07 19.77 113.02Q19.66 112.98 19.60 112.88Q19.54 112.79 19.54 112.64L19.54 111.70L19.72 111.70L19.72 112.62Q19.72 112.73 19.76 112.80Q19.80 112.86 19.86 112.88Q19.93 112.91 20 112.91Q20.08 112.91 20.14 112.88Q20.21 112.86 20.25 112.79Q20.29 112.73 20.29 112.62M21.66 111.70L21.66 111.86L21.27 111.86L21.27 113.03L21.09 113.03L21.09 111.86L20.69 111.86L20.69 111.70L21.66 111.70M22.11 113.03L21.94 113.03L21.94 111.70L22.42 111.70Q22.54 111.70 22.64 111.75Q22.74 111.79 22.79 111.88Q22.85 111.97 22.85 112.10Q22.85 112.23 22.79 112.32Q22.74 112.41 22.64 112.45Q22.54 112.50 22.42 112.50L22.11 112.50L22.11 113.03M22.11 111.85L22.11 112.35L22.40 112.35Q22.53 112.35 22.60 112.28Q22.67 112.21 22.67 112.10Q22.67 111.99 22.60 111.92Q22.53 111.85 22.40 111.85L22.11 111.85M23.81 112.62L23.81 111.70L23.99 111.70L23.99 112.64Q23.99 112.79 23.92 112.89Q23.86 112.98 23.76 113.02Q23.65 113.07 23.52 113.07Q23.40 113.07 23.29 113.02Q23.19 112.98 23.13 112.88Q23.06 112.79 23.06 112.64L23.06 111.70L23.24 111.70L23.24 112.62Q23.24 112.73 23.28 112.80Q23.32 112.86 23.38 112.88Q23.45 112.91 23.52 112.91Q23.60 112.91 23.67 112.88Q23.73 112.86 23.77 112.79Q23.81 112.73 23.81 112.62M25.19 111.70L25.19 111.86L24.79 111.86L24.79 113.03L24.61 113.03L24.61 111.86L24.21 111.86L24.21 111.70L25.19 111.70M26.03 113.03L25.86 113.03L25.86 112.07L25.51 112.07L25.51 111.94Q25.63 111.94 25.70 111.93Q25.76 111.92 25.80 111.89Q25.84 111.87 25.86 111.82Q25.88 111.77 25.90 111.69L26.03 111.69" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
+    <path d="M18.24 119.51Q18.49 119.51 18.62 119.70Q18.76 119.88 18.76 120.21Q18.76 120.54 18.62 120.72Q18.49 120.91 18.24 120.91Q18 120.91 17.86 120.72Q17.73 120.54 17.73 120.21Q17.73 119.88 17.86 119.70Q18 119.51 18.24 119.51M18.24 119.67Q18.09 119.67 18 119.81Q17.91 119.96 17.91 120.21Q17.91 120.46 18 120.61Q18.09 120.75 18.24 120.75Q18.40 120.75 18.49 120.61Q18.57 120.46 18.57 120.21Q18.57 119.96 18.49 119.81Q18.40 119.67 18.24 119.67M19.70 120.46L19.70 119.54L19.88 119.54L19.88 120.48Q19.88 120.63 19.81 120.73Q19.75 120.82 19.65 120.86Q19.54 120.91 19.41 120.91Q19.29 120.91 19.18 120.86Q19.08 120.82 19.02 120.72Q18.95 120.63 18.95 120.48L18.95 119.54L19.13 119.54L19.13 120.46Q19.13 120.57 19.17 120.64Q19.21 120.70 19.27 120.72Q19.34 120.75 19.41 120.75Q19.49 120.75 19.56 120.72Q19.62 120.70 19.66 120.63Q19.70 120.57 19.70 120.46M21.08 119.54L21.08 119.70L20.68 119.70L20.68 120.87L20.50 120.87L20.50 119.70L20.10 119.70L20.10 119.54L21.08 119.54M21.52 120.87L21.35 120.87L21.35 119.54L21.84 119.54Q21.95 119.54 22.05 119.59Q22.15 119.63 22.21 119.72Q22.26 119.81 22.26 119.94Q22.26 120.07 22.21 120.16Q22.15 120.25 22.05 120.29Q21.95 120.34 21.84 120.34L21.52 120.34L21.52 120.87M21.52 119.69L21.52 120.19L21.81 120.19Q21.94 120.19 22.01 120.12Q22.08 120.06 22.08 119.94Q22.08 119.83 22.01 119.76Q21.94 119.69 21.81 119.69L21.52 119.69M23.22 120.46L23.22 119.54L23.40 119.54L23.40 120.48Q23.40 120.63 23.34 120.73Q23.27 120.82 23.17 120.86Q23.06 120.91 22.94 120.91Q22.81 120.91 22.70 120.86Q22.60 120.82 22.54 120.72Q22.48 120.63 22.48 120.48L22.48 119.54L22.65 119.54L22.65 120.46Q22.65 120.57 22.69 120.64Q22.73 120.70 22.80 120.72Q22.86 120.75 22.94 120.75Q23.02 120.75 23.08 120.72Q23.14 120.70 23.18 120.63Q23.22 120.57 23.22 120.46M24.60 119.54L24.60 119.70L24.20 119.70L24.20 120.87L24.03 120.87L24.03 119.70L23.63 119.70L23.63 119.54L24.60 119.54M25.44 120.87L25.28 120.87L25.28 119.91L24.92 119.91L24.92 119.78Q25.04 119.78 25.11 119.77Q25.18 119.76 25.22 119.73Q25.25 119.71 25.28 119.66Q25.30 119.61 25.32 119.53L25.44 119.53" fill="#ffffff" stroke="#ffffff" stroke-width="0.1045" stroke-linejoin="round"/>
   </g>
 </svg>
