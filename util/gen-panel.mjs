@@ -239,17 +239,27 @@ function parseModule(filePath) {
 
   // ---- Extract display labels from configParam/Input/Output calls ----
   // Builds a lookup: configNames["GAIN_PARAM"] = "Gain"
+  // Handles bare enums (configParam(GAIN_PARAM, ..., "Gain", ...)), template
+  // args (configParam<MyQuantity>(...)), and computed enums such as
+  // configParam(oscParam(i, OSC_SHAPE), ..., "Shape", ...) — the key is the
+  // bare name or, for function-wrapped enums, the trailing identifier token.
   const configNames = {};
-  // Match: configParam(GAIN_PARAM, ..., "Gain", ...)
-  const configParamRe = /configParam\(\s*(\w+)\s*,.*?"([^"]+?)"/g;
+  const configCallRe = /config\w+(?:<[^>]*>)?\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g;
   let m;
-  while ((m = configParamRe.exec(src)) !== null) configNames[m[1]] = m[2];
-  // Match: configInput(IN_ID, "Audio In")
-  const configInputRe = /configInput\(\s*(\w+)\s*,\s*"([^"]+?)"\s*\)/g;
-  while ((m = configInputRe.exec(src)) !== null) configNames[m[1]] = m[2];
-  // Match: configOutput(OUT_ID, "Audio Out")
-  const configOutputRe = /configOutput\(\s*(\w+)\s*,\s*"([^"]+?)"\s*\)/g;
-  while ((m = configOutputRe.exec(src)) !== null) configNames[m[1]] = m[2];
+  while ((m = configCallRe.exec(src)) !== null) {
+    const args = m[1];
+    const label = args.match(/"([^"]+)"/);
+    const first = args.match(/^\s*(\w+(?:\([^()]*\))?)\s*,/);
+    if (!first || !label) continue; // e.g. configBypass() has no label
+    let key = first[1];
+    const inner = key.match(/\(([^()]*)\)$/);
+    if (inner) {
+      const tok = inner[1].match(/(\w+)\s*$/);
+      if (tok) key = tok[1];
+    }
+    key = key.replace(/.*::/, '');
+    configNames[key] = label[1];
+  }
 
   // ---- Determine HP width & existing height ----
   // Preferred source: read the existing panel SVG's viewBox and compute
@@ -574,28 +584,28 @@ function parseComponentLine(line, ctx) {
   const patterns = [
     // createLightParamCentered<Type>(Vec(x, y), module, PARAM, LIGHT)
     {
-      re: /createLightParamCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^,]+),\s*([^)]+)\)/,
+      re: /createLightParamCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*((?:[^()]|\([^)]*\))+),\s*((?:[^()]|\([^)]*\))+)\)/,
       role: 'param',
       isBezel: true,
     },
     // createParamCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /createParamCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)/,
+      re: /createParamCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*((?:[^()]|\([^)]*\))+)\)/,
       role: 'param',
     },
     // createInputCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /createInputCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)/,
+      re: /createInputCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*((?:[^()]|\([^)]*\))+)\)/,
       role: 'input',
     },
     // createOutputCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /createOutputCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)/,
+      re: /createOutputCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*((?:[^()]|\([^)]*\))+)\)/,
       role: 'output',
     },
     // createLightCentered<Type>(Vec(x, y), module, ENUM)
     {
-      re: /createLightCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*([^)]+)\)/,
+      re: /createLightCentered<([^>]+(?:<[^>]+>)?)>\s*\((?:mm2px\()?\s*Vec\(([^,]+),\s*([^)]+)\)\s*\)?,\s*module,\s*((?:[^()]|\([^)]*\))+)\)/,
       role: 'light',
     },
     // createWidget<Type>(Vec(x, y)) — screws
@@ -623,8 +633,14 @@ function parseComponentLine(line, ctx) {
       const resolved = ctx.resolve(enumName);
       const resolvedEnum = (typeof resolved === 'string' && /^[A-Z]/.test(resolved)) ? resolved : '';
 
+      // Unwrap function-wrapped enums (RaMothershipModule::oscParam(i, OSC_SHAPE) → OSC_SHAPE)
+      const wrapped = enumName.match(/\(([^)]*)\)\s*$/);
+      const enumKey = wrapped
+        ? ((wrapped[1].match(/(\w+)\s*$/)) ? wrapped[1].match(/(\w+)\s*$/)[1] : wrapped[1])
+        : enumName.replace(/.*::/, '');
+
       // Strip module:: prefix and + i suffix from enum names for cleaner labels
-      const labelEnum = resolvedEnum || enumName.replace(/.*::/, '').replace(/\s*\+.*$/, '');
+      const labelEnum = resolvedEnum || enumKey.replace(/\s*\+.*$/, '');
       const lightLabel = lightEnum.replace(/.*::/, '').replace(/\s*\+.*$/, '');
 
       // Determine base info
@@ -640,7 +656,7 @@ function parseComponentLine(line, ctx) {
         x,
         y,
         role: pat.role,
-        enum: resolvedEnum || enumName,
+        enum: resolvedEnum || enumKey,
         label: labelEnum,
         lightEnum: lightLabel,
       };
@@ -874,7 +890,7 @@ function generateSVG(info) {
       }
       case 'jack': {
         const r = ru2mm(w.rad);
-        ly = my + r + 2.0;
+        ly = my + r + 3.0;
         break;
       }
       case 'knob': {

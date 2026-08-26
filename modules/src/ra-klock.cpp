@@ -514,50 +514,50 @@ struct RaKlockWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         auto *display = new KlockDisplay();
-        display->box.pos = Vec(24, 24);
+        display->box.pos = Vec(39, 24);
         display->box.size = Vec(192, 124);
         display->module = module;
         addChild(display);
 
         // Controls — row 1
-        addInput(createInputCentered<RaPort>(Vec(30, 172), module, RaKlockModule::V_OCT_INPUT));
-        addParam(createParamCentered<RaKnobLarge>(Vec(95, 172), module, RaKlockModule::BPM_PARAM));
-        addChild(createLightCentered<LargeLight<PurpleLight>>(Vec(150, 172), module, RaKlockModule::BEAT_LIGHT));
-        addInput(createInputCentered<RaPort>(Vec(180, 172), module, RaKlockModule::SWING_INPUT));
-        addParam(createParamCentered<RaKnob>(Vec(214, 172), module, RaKlockModule::SWING_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(39, 172), module, RaKlockModule::V_OCT_INPUT));
+        addParam(createParamCentered<RaKnobLarge>(Vec(87, 172), module, RaKlockModule::BPM_PARAM));
+        addChild(createLightCentered<LargeLight<PurpleLight>>(Vec(135, 172), module, RaKlockModule::BEAT_LIGHT));
+        addInput(createInputCentered<RaPort>(Vec(183, 172), module, RaKlockModule::SWING_INPUT));
+        addParam(createParamCentered<RaKnob>(Vec(231, 172), module, RaKlockModule::SWING_PARAM));
 
         // Controls — row 2: run/reset + main CLK/RST outputs
-        addInput(createInputCentered<RaPort>(Vec(30, 230), module, RaKlockModule::RUN_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(75, 230), module, RaKlockModule::RUN_PARAM, RaKlockModule::RUN_LIGHT));
-        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(120, 230), module, RaKlockModule::RESET_PARAM, RaKlockModule::RESET_LIGHT));
-        addInput(createInputCentered<RaPort>(Vec(152, 230), module, RaKlockModule::RESET_INPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(184, 230), module, RaKlockModule::RST_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(216, 230), module, RaKlockModule::CLK_OUTPUT));
+        addInput(createInputCentered<RaPort>(Vec(25, 230), module, RaKlockModule::RUN_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(69, 230), module, RaKlockModule::RUN_PARAM, RaKlockModule::RUN_LIGHT));
+        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(113, 230), module, RaKlockModule::RESET_PARAM, RaKlockModule::RESET_LIGHT));
+        addInput(createInputCentered<RaPort>(Vec(157, 230), module, RaKlockModule::RESET_INPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(201, 230), module, RaKlockModule::RST_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(245, 230), module, RaKlockModule::CLK_OUTPUT));
 
         // Ratio outputs — 6 knobs with jacks below
         // Out 1
-        addParam(createParamCentered<RaKnob>(Vec(24, 292), module, RaKlockModule::OUT1_PARAM));
-        addOutput(createOutputCentered<RaPort>(Vec(24, 348), module, RaKlockModule::OUT1_OUTPUT));
+        addParam(createParamCentered<RaKnob>(Vec(25, 292), module, RaKlockModule::OUT1_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(25, 348), module, RaKlockModule::OUT1_OUTPUT));
 
         // Out 2
-        addParam(createParamCentered<RaKnob>(Vec(64, 292), module, RaKlockModule::OUT2_PARAM));
-        addOutput(createOutputCentered<RaPort>(Vec(64, 348), module, RaKlockModule::OUT2_OUTPUT));
+        addParam(createParamCentered<RaKnob>(Vec(69, 292), module, RaKlockModule::OUT2_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(69, 348), module, RaKlockModule::OUT2_OUTPUT));
 
         // Out 3
-        addParam(createParamCentered<RaKnob>(Vec(104, 292), module, RaKlockModule::OUT3_PARAM));
-        addOutput(createOutputCentered<RaPort>(Vec(104, 348), module, RaKlockModule::OUT3_OUTPUT));
+        addParam(createParamCentered<RaKnob>(Vec(113, 292), module, RaKlockModule::OUT3_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(113, 348), module, RaKlockModule::OUT3_OUTPUT));
 
         // Out 4
-        addParam(createParamCentered<RaKnob>(Vec(144, 292), module, RaKlockModule::OUT4_PARAM));
-        addOutput(createOutputCentered<RaPort>(Vec(144, 348), module, RaKlockModule::OUT4_OUTPUT));
+        addParam(createParamCentered<RaKnob>(Vec(157, 292), module, RaKlockModule::OUT4_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(157, 348), module, RaKlockModule::OUT4_OUTPUT));
 
         // Out 5
-        addParam(createParamCentered<RaKnob>(Vec(184, 292), module, RaKlockModule::OUT5_PARAM));
-        addOutput(createOutputCentered<RaPort>(Vec(184, 348), module, RaKlockModule::OUT5_OUTPUT));
+        addParam(createParamCentered<RaKnob>(Vec(201, 292), module, RaKlockModule::OUT5_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(201, 348), module, RaKlockModule::OUT5_OUTPUT));
 
         // Out 6
-        addParam(createParamCentered<RaKnob>(Vec(216, 292), module, RaKlockModule::OUT6_PARAM));
-        addOutput(createOutputCentered<RaPort>(Vec(216, 348), module, RaKlockModule::OUT6_OUTPUT));
+        addParam(createParamCentered<RaKnob>(Vec(245, 292), module, RaKlockModule::OUT6_PARAM));
+        addOutput(createOutputCentered<RaPort>(Vec(245, 348), module, RaKlockModule::OUT6_OUTPUT));
 
         // Point the display at the knobs so it can detect drags via Rack's event state
         display->knobBpm = getParam(RaKlockModule::BPM_PARAM);

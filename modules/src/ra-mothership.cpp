@@ -101,12 +101,12 @@ struct RaMothershipModule : Module {
         configParam(PHASE_PARAM, 0.f, 1.f, 0.f, "Global phase offset", "%", 0.f, 100.f);
 
         for (int i = 0; i < 8; i++) {
-            configParam(oscParam(i, OSC_SHAPE), 0.f, 1.f, 0.f, "Shape", "%", 0.f, 100.f);
-            configParam(oscParam(i, OSC_PHASE), 0.f, 1.f, 0.f, "Phase offset", "%", 0.f, 100.f);
-            configParam(oscParam(i, OSC_FILTER), 0.f, 1.f, 1.f, "Filter cutoff", "%", 0.f, 100.f);
-            configParam(oscParam(i, OSC_FM), 0.f, 1.f, 0.f, "FM attenuation", "%", 0.f, 100.f);
-            configSwitch(oscParam(i, OSC_INVERT), 0.f, 1.f, 0.f, "Invert", {"Off", "Invert"});
-            configParam(oscParam(i, OSC_DETUNE), 0.f, 1.f, 0.5f, "Detune", "%", 0.f, 100.f);
+            configParam(oscParam(i, RaMothershipModule::OSC_SHAPE), 0.f, 1.f, 0.f, "Shape", "%", 0.f, 100.f);
+            configParam(oscParam(i, RaMothershipModule::OSC_PHASE), 0.f, 1.f, 0.f, "Phase offset", "%", 0.f, 100.f);
+            configParam(oscParam(i, RaMothershipModule::OSC_FILTER), 0.f, 1.f, 1.f, "Filter cutoff", "%", 0.f, 100.f);
+            configParam(oscParam(i, RaMothershipModule::OSC_FM), 0.f, 1.f, 0.f, "FM attenuation", "%", 0.f, 100.f);
+            configSwitch(oscParam(i, RaMothershipModule::OSC_INVERT), 0.f, 1.f, 0.f, "Invert", {"Off", "Invert"});
+            configParam(oscParam(i, RaMothershipModule::OSC_DETUNE), 0.f, 1.f, 0.5f, "Detune", "%", 0.f, 100.f);
         }
 
         configInput(FREQ_CV_INPUT, "Frequency CV");
@@ -115,11 +115,11 @@ struct RaMothershipModule : Module {
         configInput(PHASE_CV_INPUT, "Phase CV");
 
         for (int i = 0; i < 8; i++) {
-            configInput(oscInput(i, OSC_SHAPE_CV), "Shape CV");
-            configInput(oscInput(i, OSC_PHASE_CV), "Phase CV");
-            configInput(oscInput(i, OSC_FILTER_CV), "Filter CV");
-            configInput(oscInput(i, OSC_FM_CV), "FM CV");
-            configInput(oscInput(i, OSC_DETUNE_CV), "Detune CV");
+            configInput(oscInput(i, RaMothershipModule::OSC_SHAPE_CV), "Shape CV");
+            configInput(oscInput(i, RaMothershipModule::OSC_PHASE_CV), "Phase CV");
+            configInput(oscInput(i, RaMothershipModule::OSC_FILTER_CV), "Filter CV");
+            configInput(oscInput(i, RaMothershipModule::OSC_FM_CV), "FM CV");
+            configInput(oscInput(i, RaMothershipModule::OSC_DETUNE_CV), "Detune CV");
         }
 
         for (int i = 0; i < 8; i++)
@@ -152,31 +152,31 @@ struct RaMothershipModule : Module {
 
         for (int i = 0; i < NUM_OSC; i++) {
             float oscFreq = freq;
-            if (inputs[oscInput(i, OSC_FM_CV)].isConnected()) {
-                float fmAttn = params[oscParam(i, OSC_FM)].getValue();
-                oscFreq *= powf(2.f, inputs[oscInput(i, OSC_FM_CV)].getVoltage() * fmAttn);
+            if (inputs[oscInput(i, RaMothershipModule::OSC_FM_CV)].isConnected()) {
+                float fmAttn = params[oscParam(i, RaMothershipModule::OSC_FM)].getValue();
+                oscFreq *= powf(2.f, inputs[oscInput(i, RaMothershipModule::OSC_FM_CV)].getVoltage() * fmAttn);
             }
 
             // Detune — knob is an attenuator when CV is connected, otherwise sets the offset.
             float detune;
-            if (inputs[oscInput(i, OSC_DETUNE_CV)].isConnected())
-                detune = clamp(inputs[oscInput(i, OSC_DETUNE_CV)].getVoltage() / 5.f, -1.f, 1.f) * params[oscParam(i, OSC_DETUNE)].getValue();
+            if (inputs[oscInput(i, RaMothershipModule::OSC_DETUNE_CV)].isConnected())
+                detune = clamp(inputs[oscInput(i, RaMothershipModule::OSC_DETUNE_CV)].getVoltage() / 5.f, -1.f, 1.f) * params[oscParam(i, RaMothershipModule::OSC_DETUNE)].getValue();
             else
-                detune = params[oscParam(i, OSC_DETUNE)].getValue() - 0.5f;
+                detune = params[oscParam(i, RaMothershipModule::OSC_DETUNE)].getValue() - 0.5f;
             oscFreq *= powf(2.f, detune * DETUNE_OCT);
 
             phase[i] += oscFreq * args.sampleTime;
             if (phase[i] >= 1.f)
                 phase[i] -= 1.f;
 
-            float shape = params[oscParam(i, OSC_SHAPE)].getValue();
-            if (inputs[oscInput(i, OSC_SHAPE_CV)].isConnected())
-                shape *= clamp(inputs[oscInput(i, OSC_SHAPE_CV)].getVoltage() / 5.f, 0.f, 1.f);
+            float shape = params[oscParam(i, RaMothershipModule::OSC_SHAPE)].getValue();
+            if (inputs[oscInput(i, RaMothershipModule::OSC_SHAPE_CV)].isConnected())
+                shape *= clamp(inputs[oscInput(i, RaMothershipModule::OSC_SHAPE_CV)].getVoltage() / 5.f, 0.f, 1.f);
             shape = clamp(shape, 0.f, 1.f);
 
-            float phaseOffset = params[oscParam(i, OSC_PHASE)].getValue();
-            if (inputs[oscInput(i, OSC_PHASE_CV)].isConnected())
-                phaseOffset *= clamp(inputs[oscInput(i, OSC_PHASE_CV)].getVoltage() / 5.f, 0.f, 1.f);
+            float phaseOffset = params[oscParam(i, RaMothershipModule::OSC_PHASE)].getValue();
+            if (inputs[oscInput(i, RaMothershipModule::OSC_PHASE_CV)].isConnected())
+                phaseOffset *= clamp(inputs[oscInput(i, RaMothershipModule::OSC_PHASE_CV)].getVoltage() / 5.f, 0.f, 1.f);
             phaseOffset = clamp(phaseOffset, 0.f, 1.f);
 
             float p = fmodf(phase[i] + phaseOffset + globalPhase, 1.f);
@@ -185,14 +185,14 @@ struct RaMothershipModule : Module {
             float square = (p < 0.5f) ? 1.f : -1.f;
             float wave = sawUp + (square - sawUp) * shape;
 
-            if (params[oscParam(i, OSC_INVERT)].getValue() > 0.5f)
+            if (params[oscParam(i, RaMothershipModule::OSC_INVERT)].getValue() > 0.5f)
                 wave = -wave;
 
             wave *= 5.f;
 
-            float cutoffNorm = params[oscParam(i, OSC_FILTER)].getValue();
-            if (inputs[oscInput(i, OSC_FILTER_CV)].isConnected())
-                cutoffNorm *= clamp(inputs[oscInput(i, OSC_FILTER_CV)].getVoltage() / 5.f, 0.f, 1.f);
+            float cutoffNorm = params[oscParam(i, RaMothershipModule::OSC_FILTER)].getValue();
+            if (inputs[oscInput(i, RaMothershipModule::OSC_FILTER_CV)].isConnected())
+                cutoffNorm *= clamp(inputs[oscInput(i, RaMothershipModule::OSC_FILTER_CV)].getVoltage() / 5.f, 0.f, 1.f);
             cutoffNorm = clamp(cutoffNorm, 0.f, 1.f);
 
             float filterFreq = 20.f * powf(10000.f, cutoffNorm);
@@ -239,31 +239,29 @@ struct RaMothershipWidget : ModuleWidget {
 
         for (int i = 0; i < 8; i++) {
             float y = rowY[i];
-            int p = 5 + i * 6;  // param base
-            int c = 4 + i * 5;  // input base
 
             // Shape
-            addParam(createParamCentered<RaKnobSmall>(Vec(20, y), module, p + 0));
-            addInput(createInputCentered<RaPort>(Vec(50, y), module, c + 0));
+            addParam(createParamCentered<RaKnobSmall>(Vec(20, y), module, RaMothershipModule::oscParam(i, RaMothershipModule::OSC_SHAPE)));
+            addInput(createInputCentered<RaPort>(Vec(50, y), module, RaMothershipModule::oscInput(i, RaMothershipModule::OSC_SHAPE_CV)));
 
             // Phase
-            addParam(createParamCentered<RaKnobSmall>(Vec(80, y), module, p + 1));
-            addInput(createInputCentered<RaPort>(Vec(110, y), module, c + 1));
+            addParam(createParamCentered<RaKnobSmall>(Vec(80, y), module, RaMothershipModule::oscParam(i, RaMothershipModule::OSC_PHASE)));
+            addInput(createInputCentered<RaPort>(Vec(110, y), module, RaMothershipModule::oscInput(i, RaMothershipModule::OSC_PHASE_CV)));
 
             // Invert
-            addParam(createParamCentered<RaSwitch2>(Vec(140, y), module, p + 4));
+            addParam(createParamCentered<RaSwitch2>(Vec(140, y), module, RaMothershipModule::oscParam(i, RaMothershipModule::OSC_INVERT)));
 
             // Filter
-            addParam(createParamCentered<RaKnobSmall>(Vec(170, y), module, p + 2));
-            addInput(createInputCentered<RaPort>(Vec(200, y), module, c + 2));
+            addParam(createParamCentered<RaKnobSmall>(Vec(170, y), module, RaMothershipModule::oscParam(i, RaMothershipModule::OSC_FILTER)));
+            addInput(createInputCentered<RaPort>(Vec(200, y), module, RaMothershipModule::oscInput(i, RaMothershipModule::OSC_FILTER_CV)));
 
             // FM
-            addParam(createParamCentered<RaKnobSmall>(Vec(230, y), module, p + 3));
-            addInput(createInputCentered<RaPort>(Vec(260, y), module, c + 3));
+            addParam(createParamCentered<RaKnobSmall>(Vec(230, y), module, RaMothershipModule::oscParam(i, RaMothershipModule::OSC_FM)));
+            addInput(createInputCentered<RaPort>(Vec(260, y), module, RaMothershipModule::oscInput(i, RaMothershipModule::OSC_FM_CV)));
 
             // Detune
-            addParam(createParamCentered<RaKnobSmall>(Vec(290, y), module, p + 5));
-            addInput(createInputCentered<RaPort>(Vec(320, y), module, c + 4));
+            addParam(createParamCentered<RaKnobSmall>(Vec(290, y), module, RaMothershipModule::oscParam(i, RaMothershipModule::OSC_DETUNE)));
+            addInput(createInputCentered<RaPort>(Vec(320, y), module, RaMothershipModule::oscInput(i, RaMothershipModule::OSC_DETUNE_CV)));
 
             // Output
             addOutput(createOutputCentered<RaPort>(Vec(350, y), module, i));
