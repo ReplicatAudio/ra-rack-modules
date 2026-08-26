@@ -49,7 +49,7 @@ struct RaThinkModule : Module {
 
     RaThinkModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam<RaThinkFreqQuantity>(FREQ_PARAM, 0.f, 1.f, 0.588f, "Frequency", " Hz");
+        configParam<RaThinkFreqQuantity>(FREQ_PARAM, 0.f, 1.f, 0.5876f, "Frequency", " Hz");
         configParam(FINE_PARAM, 0.f, 1.f, 0.5f, "Fine tune", " st", 0.f, 2.f, -1.f);
         configParam(SHAPE_PARAM, 0.f, 1.f, 0.5f, "Shape", "%", 0.f, 100.f);
         configParam(WIDTH_PARAM, 0.f, 1.f, 0.5f, "Pulse width", "%", 0.f, 100.f);

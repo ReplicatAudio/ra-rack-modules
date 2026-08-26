@@ -12,6 +12,13 @@ static constexpr float MIN_FREQ = 20.f;
 static constexpr float MAX_FREQ = 4000.f;
 static constexpr float REF_FREQ = 65.406f; // C2 at 0 V
 
+struct RaKarplusFreqQuantity : ParamQuantity {
+    float getDisplayValue() override {
+        float v = getValue();
+        return 20.f * powf(200.f, v);
+    }
+};
+
 struct RaKarplusStrongModule : Module {
     enum ParamIds {
         FREQ_PARAM,
@@ -113,7 +120,7 @@ struct RaKarplusStrongModule : Module {
 
     RaKarplusStrongModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "Frequency", " Hz", 200.f, 20.f);
+        configParam<RaKarplusFreqQuantity>(FREQ_PARAM, 0.f, 1.f, 0.4853f, "Frequency", " Hz");
         configParam(FM_ATTN_PARAM, 0.f, 1.f, 0.f, "FM attenuation", "%", 0.f, 100.f);
         configParam(DAMP_PARAM, 0.f, 1.f, 0.3f, "Damping", "%", 0.f, 100.f);
         configParam(FEEDBACK_PARAM, 0.f, 2.f, 0.85f, "Feedback", "%", 0.f, 100.f);
