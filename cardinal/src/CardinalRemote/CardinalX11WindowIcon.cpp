@@ -1,1 +1,0 @@
-../CardinalX11WindowIcon.cpp
