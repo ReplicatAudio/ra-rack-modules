@@ -78,6 +78,8 @@ struct RaKarplusStrongModule : Module {
     // Per-voice stiffness allpass state
     float stiffXPrev[NUM_VOICES] = {};
     float stiffYPrev[NUM_VOICES] = {};
+    float stiffXPrev2[NUM_VOICES] = {};
+    float stiffYPrev2[NUM_VOICES] = {};
 
     // Per-voice DC blocker state (feedback path, 2 cascaded poles)
     float dcXPrev[NUM_VOICES] = {};
@@ -155,6 +157,8 @@ struct RaKarplusStrongModule : Module {
             prevDelayOut[v] = 0.f;
             stiffXPrev[v] = 0.f;
             stiffYPrev[v] = 0.f;
+            stiffXPrev2[v] = 0.f;
+            stiffYPrev2[v] = 0.f;
             dcXPrev[v] = 0.f;
             dcYPrev[v] = 0.f;
             dc2XPrev[v] = 0.f;
@@ -253,9 +257,11 @@ struct RaKarplusStrongModule : Module {
         // damping = 0 -> bright, damping = 1 -> very damped
         float dampCoeff = 0.1f + 0.9f * (1.f - damping); // higher damping = lower cutoff
 
-        // Stiffness allpass coefficient (shared)
-        // Higher stiffness = more inharmonicity (like a stiff string)
-        float stiffCoeff = stiffness * 0.4f;
+        // Stiffness allpass pole (shared)
+        // Two cascaded first-order allpasses with pole near DC give real
+        // inharmonic stretch (f_k ~ k*sqrt(1+B k^2)); a single allpass with
+        // this sign convention produced ~0 cents at string partials.
+        float stiffP = stiffness * 0.85f;
 
         // DC blocker coefficient (~8 Hz highpass)
         float dcRCoeff = 1.f - 2.f * M_PI * 8.f / args.sampleRate;
@@ -287,7 +293,11 @@ struct RaKarplusStrongModule : Module {
 
             // Calculate delay line length from frequency
             // Account for filter group delay: ~0.5 samples for the averaging filter
-            float idealDelay = args.sampleRate / freq;
+            // Subtract the stiffness allpasses' excess DC group delay
+            // (2*(1+p)/(1-p)) so the fundamental stays in tune; the delay
+            // line plus allpass phase then gives monotonic upward stretch.
+            float idealDelay = args.sampleRate / freq
+                - 2.f * (1.f + stiffP) / (1.f - stiffP);
             delayLen[c] = std::max(2, std::min(MAX_DELAY - 1, (int)std::round(idealDelay)));
 
             // Pick position comb filter delay (0 = no comb, full = center of string)
@@ -308,6 +318,8 @@ struct RaKarplusStrongModule : Module {
                 prevDelayOut[c] = 0.f;
                 stiffXPrev[c] = 0.f;
                 stiffYPrev[c] = 0.f;
+                stiffXPrev2[c] = 0.f;
+                stiffYPrev2[c] = 0.f;
                 dcXPrev[c] = 0.f;
                 dcYPrev[c] = 0.f;
                 dc2XPrev[c] = 0.f;
@@ -329,14 +341,25 @@ struct RaKarplusStrongModule : Module {
             // --- Per-sample processing ---
             float out = 0.f;
 
-            // Read from delay line (linear interpolation for fractional delay)
+            // Read from delay line with fractional-delay interpolation.
+            // Integer rounding alone quantizes pitch (up to half a sample,
+            // ~0.7 semitones at the top of the range, breaking 1V/oct
+            // tracking). Fractional part blends toward the neighboring tap;
+            // at frac == 0 the read is identical to before.
             float readPos = (float)writePos[c] - (float)delayLen[c];
             if (readPos < 0.f) readPos += (float)delayLen[c];
             int idx0 = (int)readPos;
-            int idx1 = idx0 + 1;
-            if (idx1 >= delayLen[c]) idx1 -= delayLen[c];
-            float frac = readPos - (float)idx0;
-            float delayOut = delayBuf[c][idx0] * (1.f - frac) + delayBuf[c][idx1] * frac;
+            float frac = idealDelay - (float)delayLen[c];  // in [-0.5, 0.5)
+            float delayOut;
+            if (frac >= 0.f) {
+                int idxB = idx0 - 1;
+                if (idxB < 0) idxB += delayLen[c];
+                delayOut = delayBuf[c][idx0] * (1.f - frac) + delayBuf[c][idxB] * frac;
+            } else {
+                int idxB = idx0 + 1;
+                if (idxB >= delayLen[c]) idxB -= delayLen[c];
+                delayOut = delayBuf[c][idx0] * (1.f + frac) + delayBuf[c][idxB] * (-frac);
+            }
 
             // --- Damping filter (simple 1-pole lowpass) ---
             // More damping: single-pole lowpass with variable cutoff
@@ -359,13 +382,19 @@ struct RaKarplusStrongModule : Module {
             combWritePos[c]++;
             if (combWritePos[c] >= delayLen[c]) combWritePos[c] = 0;
 
-            // --- Stiffness allpass ---
-            // First-order allpass y = a*x + x[n-1] - a*y[n-1]
-            // Adds inharmonic stretch of upper partials (stiff string behavior)
-            if (stiffCoeff > 0.001f) {
-                float apOut = stiffCoeff * filtered + stiffXPrev[c] - stiffCoeff * stiffYPrev[c];
+            // --- Stiffness allpass (2 cascaded stages) ---
+            // y = -p*x + x[n-1] + p*y[n-1], pole at +p bends phase near DC
+            // so group delay decreases across the partial range: upper
+            // partials stretch upward monotonically (stiff-string behavior).
+            if (stiffP > 0.001f) {
+                float apOut = -stiffP * filtered + stiffXPrev[c] + stiffP * stiffYPrev[c];
                 stiffXPrev[c] = filtered;
                 stiffYPrev[c] = apOut;
+                filtered = apOut;
+
+                apOut = -stiffP * filtered + stiffXPrev2[c] + stiffP * stiffYPrev2[c];
+                stiffXPrev2[c] = filtered;
+                stiffYPrev2[c] = apOut;
                 filtered = apOut;
             }
 
