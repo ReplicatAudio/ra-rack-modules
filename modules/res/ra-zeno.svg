@@ -120,7 +120,7 @@
     <circle cx="14.90" cy="24.38" r="1.40" fill="#996dd2" opacity="0.5"/>
     <rect x="7.79" y="34.44" width="4.74" height="6.99" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
     <line x1="10.16" y1="39.68" x2="10.16" y2="36.18" stroke="#888" stroke-width="1.7" opacity="0.6"/>
-    <circle cx="5.42" cy="83.99" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="5.42" cy="83.99" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="2.40" opacity="0.6"/>
     <circle cx="5.42" cy="83.99" r="1.26" fill="#333" opacity="0.5"/>
     <circle cx="14.90" cy="83.99" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
     <circle cx="14.90" cy="83.99" r="1.40" fill="#996dd2" opacity="0.5"/>

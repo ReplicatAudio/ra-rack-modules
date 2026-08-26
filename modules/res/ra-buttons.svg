@@ -113,25 +113,25 @@
     <circle cx="38.10" cy="125.96" r="0.8" fill="#444"/>
     <rect x="4.49" y="13.83" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
     <line x1="6.77" y1="21.03" x2="6.77" y2="16.23" stroke="#888" stroke-width="1.7" opacity="0.6"/>
-    <circle cx="20.32" cy="18.63" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="20.32" cy="18.63" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="2.40" opacity="0.6"/>
     <circle cx="20.32" cy="18.63" r="1.26" fill="#333" opacity="0.5"/>
     <rect x="29.05" y="13.81" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="33.87" cy="18.63" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="4.49" y="45.32" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
     <line x1="6.77" y1="52.52" x2="6.77" y2="47.72" stroke="#888" stroke-width="1.7" opacity="0.6"/>
-    <circle cx="20.32" cy="50.12" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="20.32" cy="50.12" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="2.40" opacity="0.6"/>
     <circle cx="20.32" cy="50.12" r="1.26" fill="#333" opacity="0.5"/>
     <rect x="29.05" y="45.31" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="33.87" cy="50.12" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="4.49" y="76.82" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
     <line x1="6.77" y1="84.02" x2="6.77" y2="79.22" stroke="#888" stroke-width="1.7" opacity="0.6"/>
-    <circle cx="20.32" cy="81.62" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="20.32" cy="81.62" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="2.40" opacity="0.6"/>
     <circle cx="20.32" cy="81.62" r="1.26" fill="#333" opacity="0.5"/>
     <rect x="29.05" y="76.81" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="33.87" cy="81.62" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="4.49" y="108.32" width="4.56" height="9.60" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
     <line x1="6.77" y1="115.51" x2="6.77" y2="110.72" stroke="#888" stroke-width="1.7" opacity="0.6"/>
-    <circle cx="20.32" cy="113.11" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="20.32" cy="113.11" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="2.40" opacity="0.6"/>
     <circle cx="20.32" cy="113.11" r="1.26" fill="#333" opacity="0.5"/>
     <rect x="29.05" y="108.30" width="9.63" height="9.63" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="33.87" cy="113.11" r="2.61" fill="#111" opacity="0.5"/>

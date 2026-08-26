@@ -78,6 +78,7 @@ const WIDGET_INFO = {
   VCVLightBezel: { kind: 'bezel', rad: 10.65 },
   RaRGBLight: { kind: 'bezel', rad: 9 },
   MediumLight: { kind: 'bezel', rad: 9 },
+  SmallLight: { kind: 'bezel', rad: 3 },
   TinyLight: { kind: 'bezel', rad: 4 },
   VCVLightSlider: { kind: 'slider', hw: 7.5, hh: 20 },
   RaScrew: { kind: 'screw', rad: 7.5 },
@@ -817,7 +818,13 @@ function generateSVG(info) {
       }
       case 'bezel': {
         const r = ru2mm(w.rad);
-        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#1a1a1a" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.6"/>\n`;
+        // Ring thickness scales with the LED size, referenced at the SmallLight
+        // VU-LED size (rad 3): the SmallLight ring keeps the full 1.6mm look we
+        // had before scaling, and larger lights scale up but only to a sane
+        // cap (2.4mm) so big bezel buttons don't get absurdly fat rings.
+        const base = CFG.strokeWidth + 0.1;
+        const ringW = Math.min(base * (w.rad / 3), base * 1.5);
+        svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#1a1a1a" stroke="${color}" stroke-width="${ringW.toFixed(2)}" opacity="0.6"/>\n`;
         svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="#333" opacity="0.5"/>\n`;
         break;
       }
@@ -858,6 +865,9 @@ function generateSVG(info) {
 
   // Draw widget labels
   for (const w of widgets) {
+    // Lights (LEDs, indicator lamps) carry no panel labels — only
+    // params, jacks, and light-bezel buttons do.
+    if (w.role === 'light') continue;
     const mx = ru2mm(w.x);
     const my = ru2mm(w.y);
 

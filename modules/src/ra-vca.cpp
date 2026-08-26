@@ -141,8 +141,8 @@ struct RaVcaWidget : ModuleWidget {
         addOutput(createOutputCentered<RaPort>(Vec(cx, 326), module, RaVcaModule::AUDIO2_OUTPUT));
 
         for (int i = 0; i < 8; i++) {
-            addChild(createLightCentered<TinyLight<RedGreenBlueLight>>(Vec(50, 56 + i * 15), module, RaVcaModule::VU1_BASE + i * 3));
-            addChild(createLightCentered<TinyLight<RedGreenBlueLight>>(Vec(50, 226 + i * 15), module, RaVcaModule::VU2_BASE + i * 3));
+            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(50, 56 + i * 15), module, RaVcaModule::VU1_BASE + i * 3));
+            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(50, 226 + i * 15), module, RaVcaModule::VU2_BASE + i * 3));
         }
     }
 };

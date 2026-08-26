@@ -125,9 +125,9 @@
     <line x1="78.23" y1="58.25" x2="81.35" y2="58.25" stroke="#666" stroke-width="0.5" opacity="0.6"/>
     <circle cx="8.47" cy="77.89" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
     <circle cx="8.47" cy="77.89" r="1.40" fill="#996dd2" opacity="0.5"/>
-    <circle cx="23.37" cy="77.89" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="23.37" cy="77.89" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="2.40" opacity="0.6"/>
     <circle cx="23.37" cy="77.89" r="1.26" fill="#333" opacity="0.5"/>
-    <circle cx="38.27" cy="77.89" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="1.6" opacity="0.6"/>
+    <circle cx="38.27" cy="77.89" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="2.40" opacity="0.6"/>
     <circle cx="38.27" cy="77.89" r="1.26" fill="#333" opacity="0.5"/>
     <circle cx="53.17" cy="77.89" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
     <circle cx="53.17" cy="77.89" r="1.40" fill="#996dd2" opacity="0.5"/>
