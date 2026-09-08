@@ -18,6 +18,7 @@ SOURCES = \
 	src/ra-ranger.cpp \
 	src/ra-magus.cpp \
 	src/ra-mothership.cpp \
+	src/ra-noyz.cpp \
 	src/ra-seer-mini.cpp \
 	src/ra-shapes.cpp \
 	src/ra-ulfo.cpp \

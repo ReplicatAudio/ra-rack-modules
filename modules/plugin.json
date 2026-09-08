@@ -393,6 +393,15 @@
         "Distortion",
         "Polyphonic"
       ]
+    },
+    {
+      "slug": "ra-noyz",
+      "name": "ra-noyz",
+      "description": "Noise source \u2014 white, pink, red, violet, blue, gray, or black noise through resonant lowpass/highpass filters, with amplitude and gate",
+      "tags": [
+        "Sound source",
+        "Noise"
+      ]
     }
   ]
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="7mm" height="4.5mm" viewBox="0 0 7 4.5">
+	<!-- Fader cap: dark body with top highlight and grip line, matching knob style -->
+	<rect x="0" y="0" width="7" height="4.5" rx="1.1" fill="#1E1D1E" stroke="#3c3c3c" stroke-width="0.2"/>
+	<rect x="0" y="0" width="7" height="0.85" rx="0.42" fill="#ffffff" opacity="0.22"/>
+	<rect x="3.05" y="1.3" width="0.9" height="1.9" rx="0.45" fill="#EDEDED"/>
+	<rect x="0" y="4.2" width="7" height="0.3" fill="#000000" opacity="0.4"/>
+</svg>
