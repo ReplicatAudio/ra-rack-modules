@@ -429,6 +429,16 @@
         "Sound source",
         "Noise"
       ]
+    },
+    {
+      "slug": "ra-lsystem",
+      "name": "ra-lsystem",
+      "description": "L-system drum/trigger module \u2014 color-coded L-system with an edit\u00adable axiom row and 6 rewrite rules, an 8\u00d78 output matrix with live sequencer position, and a trigger/gate output per colored symbol",
+      "tags": [
+        "Sequencer",
+        "Drum",
+        "Utility"
+      ]
     }
   ]
 }

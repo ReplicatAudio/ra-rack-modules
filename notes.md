@@ -48,3 +48,32 @@ ra-seer -> ra-seer-mini
 ra-dscope -> ra-seer
 
 ra-freeverb -> ra-freeberd
+
+# lsys
+L-system drum/trigger module. 
+
+Similar to ra-vash
+
+Variables/constants are represented by 8 colors:
+off/black
+red
+green
+blue
+yellow
+cyan
+magenta
+white
+
+Variables/constants are represented by colored LEDs and can be clicked to change their color/value. 
+
+At the top, there is an axiom row which is a row of 8 led buttons that can be used to define the axiom. 
+
+Below that there are 6 rules rows which have 1 target cell and 6 result cells.
+
+To the right there is an 8x8 non-editable matrix that shows the l-system output using the same color conventions. This will truncate the output as nessary. This is also used to show the current sequencer position like ra-vash.   
+
+To the right of that there are 7 outputs for each variable constant. 
+
+This also needs a step button/cv input that steps the sequencer forward. 
+
+

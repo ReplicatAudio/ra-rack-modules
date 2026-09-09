@@ -48,7 +48,8 @@ SOURCES = \
 	src/ra-vash.cpp \
 	src/ra-vnote.cpp \
 	src/ra-karplus-strong.cpp \
-	src/ra-krush.cpp
+	src/ra-krush.cpp \
+	src/ra-lsystem.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)
