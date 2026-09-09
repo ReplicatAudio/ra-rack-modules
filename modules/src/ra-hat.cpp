@@ -1,3 +1,32 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: TRIG_INPUT "Trigger"
+// fname: PITCH_PARAM "1V/Oct"
+// fname: PITCH_CV_INPUT "1V/Oct"
+// fname: FM_ATTN_PARAM "FM attn"
+// fname: FM_INPUT "FM"
+// fname: TONE_PARAM "Tone"
+// fname: METALLIC_PARAM "Metallic"
+// fname: BODY_PARAM "Body"
+// fname: TONE_CV_INPUT "Tone CV"
+// fname: METALLIC_CV_INPUT "Metallic"
+// fname: BODY_CV_INPUT "Body CV"
+// fname: DECAY_PARAM "Decay"
+// fname: SNAP_PARAM "Snap"
+// fname: ACCENT_PARAM "Accent"
+// fname: DECAY_CV_INPUT "Decay CV"
+// fname: SNAP_CV_INPUT "Snap CV"
+// fname: ACCENT_INPUT "Accent"
+// fname: BRIGHT_PARAM "Bright"
+// fname: DRIVE_PARAM "Drive"
+// fname: LEVEL_PARAM "Level"
+// fname: BRIGHT_CV_INPUT "Bright C"
+// fname: DRIVE_CV_INPUT "Drive CV"
+// fname: LEVEL_CV_INPUT "Level CV"
+// fname: AUDIO_OUTPUT "Audio"
 #include "ra-components.hpp"
 
 using namespace rack;

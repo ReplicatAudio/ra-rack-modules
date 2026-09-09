@@ -1,3 +1,18 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: TIME_PARAM "Time"
+// fname: FEEDBACK_PARAM "Feedback"
+// fname: TIME_CV_PARAM "Time CV"
+// fname: FEEDBACK_CV_PARAM "Feedback"
+// fname: TIME_INPUT "Time"
+// fname: FEEDBACK_INPUT "Feedback"
+// fname: IN_INPUT "CV / Tri"
+// fname: CLOCK_INPUT "Clock"
+// fname: WET_OUTPUT "Wet"
+// fname: ECHO_OUTPUT "Echo"
 #include "ra-components.hpp"
 
 using namespace rack;

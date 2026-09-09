@@ -1,3 +1,24 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: CH1_PARAM "CH1"
+// fname: CH2_PARAM "CH2"
+// fname: CH3_PARAM "CH3"
+// fname: CH4_PARAM "CH4"
+// fname: STEP_DOWN_PARAM "Step dow"
+// fname: STEP_UP_PARAM "Step up"
+// fname: SEQ_PREV_PARAM "Sequence"
+// fname: SEQ_NEXT_PARAM "Sequence"
+// fname: STEP_DOWN_TRIG "STEP DOW"
+// fname: STEP_UP_TRIG "STEP UP "
+// fname: SEQ_PREV_TRIG "SEQ PREV"
+// fname: SEQ_NEXT_TRIG "SEQ NEXT"
+// fname: WRITE_PARAM "Write"
+// fname: CLEAR_PARAM "Clear"
+// fname: WRITE_TRIG "WRITE TR"
+// fname: CLEAR_TRIG "CLEAR TR"
 #include "ra-components.hpp"
 using namespace rack;
 extern Plugin *pluginInstance;

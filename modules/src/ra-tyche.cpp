@@ -1,3 +1,19 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: BIAS_PARAM "Bias"
+// fname: BIAS_CV_INPUT "Bias CV"
+// fname: TRIG_INPUT "Trigger"
+// fname: OUT_1_2 "1/2"
+// fname: OUT_1_4 "1/4"
+// fname: OUT_1_8 "1/8"
+// fname: OUT_1_16 "1/16"
+// fname: OUT_1_32 "1/32"
+// fname: OUT_1_64 "1/64"
+// fname: OUT_1_128 "1/128"
+// fname: OUT_1_256 "1/256"
 #include "ra-components.hpp"
 
 using namespace rack;

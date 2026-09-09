@@ -1,3 +1,21 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: GATE_INPUT "Gate"
+// fname: COLOR_PARAM "Color"
+// fname: LP_CUT_PARAM "LP cut"
+// fname: LP_CUT_CV_INPUT "LP cut C"
+// fname: LP_RES_PARAM "LP res"
+// fname: LP_RES_CV_INPUT "LP res C"
+// fname: HP_CUT_PARAM "HP cut"
+// fname: HP_CUT_CV_INPUT "HP cut C"
+// fname: HP_RES_PARAM "HP res"
+// fname: HP_RES_CV_INPUT "HP res C"
+// fname: AMP_PARAM "Amplitud"
+// fname: AMP_CV_INPUT "Amplitud"
+// fname: AUDIO_OUTPUT "Audio"
 #include "ra-components.hpp"
 #include <cmath>
 #include <cstring>

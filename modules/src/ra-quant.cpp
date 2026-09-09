@@ -1,3 +1,13 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: OFFSET_PARAM "Pre-offs"
+// fname: QUANTIZE_OFFSET_PARAM "Quantize"
+// fname: OFFSET_CV_INPUT "Offset C"
+// fname: IN1_INPUT "IN1"
+// fname: OUT1_OUTPUT "OUT1"
 #include "ra-components.hpp"
 #include <algorithm>
 #include <cstring>

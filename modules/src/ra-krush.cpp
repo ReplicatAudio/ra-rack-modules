@@ -1,3 +1,24 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: IN_INPUT "Audio"
+// fname: CRUSH_PARAM "Krush"
+// fname: ALGO_PARAM "Krush al"
+// fname: CRUSH_CV_INPUT "Krush CV"
+// fname: SLEW_PARAM "Slew"
+// fname: CUT_PARAM "Split cu"
+// fname: RES_PARAM "Split re"
+// fname: CUT_CV_INPUT "Split cu"
+// fname: SLEW_CV_INPUT "Slew CV"
+// fname: SPLIT_PARAM "Split mo"
+// fname: FILTER_PARAM "Post-cru"
+// fname: ANTIALIAS_PARAM "Anti-ali"
+// fname: QUANTIZE_PARAM "Quantize"
+// fname: LOW_OUTPUT "Crushed "
+// fname: HIGH_OUTPUT "Clean hi"
+// fname: OUT_OUTPUT "Audio"
 #include "ra-components.hpp"
 #include <cmath>
 #include <cstring>

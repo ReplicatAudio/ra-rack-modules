@@ -1,3 +1,19 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: ORIGIN_PARAM "Origin"
+// fname: ORIGIN_INPUT "Origin C"
+// fname: WRITE_PARAM "Write"
+// fname: WRITE_INPUT "Write tr"
+// fname: DELTA_PARAM "Delta"
+// fname: DELTA_INPUT "Delta CV"
+// fname: RESET_PARAM "Reset"
+// fname: RESET_INPUT "Reset tr"
+// fname: SLEW_PARAM "Slew"
+// fname: SLEW_INPUT "Slew CV"
+// fname: CV_OUTPUT "CV"
 #include "ra-components.hpp"
 #include <atomic>
 

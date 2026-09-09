@@ -1,3 +1,30 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: V_OCT_INPUT "v/oct"
+// fname: BPM_PARAM "BPM"
+// fname: SWING_INPUT "Swing CV"
+// fname: SWING_PARAM "Swing"
+// fname: RUN_INPUT "Run"
+// fname: RUN_PARAM "Run"
+// fname: RESET_PARAM "Reset"
+// fname: RESET_INPUT "Reset"
+// fname: RST_OUTPUT "RST"
+// fname: CLK_OUTPUT "CLK"
+// fname: OUT1_PARAM "OUT1"
+// fname: OUT1_OUTPUT "OUT1"
+// fname: OUT2_PARAM "OUT2"
+// fname: OUT2_OUTPUT "OUT2"
+// fname: OUT3_PARAM "OUT3"
+// fname: OUT3_OUTPUT "OUT3"
+// fname: OUT4_PARAM "OUT4"
+// fname: OUT4_OUTPUT "OUT4"
+// fname: OUT5_PARAM "OUT5"
+// fname: OUT5_OUTPUT "OUT5"
+// fname: OUT6_PARAM "OUT6"
+// fname: OUT6_OUTPUT "OUT6"
 #include "ra-components.hpp"
 #include <atomic>
 

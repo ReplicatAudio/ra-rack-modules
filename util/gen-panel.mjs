@@ -7,6 +7,10 @@
 // positions (knobs, jacks, switches, lights, etc.), and emits
 // a panel SVG ready for use in Rack.
 //
+// Panel label text is taken from top-of-file metadata comment
+// lines (// fname: ENUM "Label"), falling back to the module's
+// configParam/Input/Output names when present.
+//
 // Usage:
 //   Single module (writes res/ra-foo.svg):
 //     node util/gen-panel.mjs ra-foo
@@ -221,6 +225,7 @@ class ExprContext {
 //   - panel SVG path
 //   - module name (from createModel slug)
 //   - configParam/Input/Output display labels
+//   - fname panel-label metadata (top-of-file // fname: lines)
 //   - HP width (from SVG viewBox or estimated from layout)
 //   - widget positions inside the Widget constructor
 // ============================================================
@@ -260,6 +265,18 @@ function parseModule(filePath) {
     }
     key = key.replace(/.*::/, '');
     configNames[key] = label[1];
+  }
+
+  // ---- Extract fname panel-label metadata ----
+  // Comment lines at the top of the file define the friendly name
+  // (fname) rendered as the label text on the panel SVG for each
+  // widget, overriding the configParam/Input/Output names:
+  //   // fname: GAIN1_PARAM "Gain 1"
+  const fnames = {};
+  const fnameRe = /\/\/\s*fname:\s*(\w+)\s+"([^"]+)"/g;
+  let fm;
+  while ((fm = fnameRe.exec(src)) !== null) {
+    fnames[fm[1]] = fm[2];
   }
 
   // ---- Determine HP width & existing height ----
@@ -341,6 +358,7 @@ function parseModule(filePath) {
     existingHeight,
     components,
     configNames,
+    fnames,
   };
 }
 
@@ -690,10 +708,11 @@ function parseComponentLine(line, ctx) {
 //   - Display rectangles
 //   - Jacks, knobs, switches, buttons, bezels, lights, sliders
 //     each drawn with appropriate shapes and colors
-//   - Labels from configParam/Input/Output names
+//   - Labels from fname metadata, falling back to configParam/
+//     Input/Output names
 // ============================================================
 function generateSVG(info) {
-  const { moduleName, HP, components, configNames } = info;
+  const { moduleName, HP, components, configNames, fnames } = info;
   const W = HP * 5.08; // panel width in mm
   const H = CFG.height; // panel height in mm
   const cx = W / 2;    // horizontal centre in mm
@@ -874,12 +893,14 @@ function generateSVG(info) {
     // All panel text is pure white
     const color = '#ffffff';
 
-    // Determine label from config name or prettified enum
+    // Determine label from fname metadata, config name, or prettified enum
     let label = '';
     if (w.enum) {
       // Strip module prefix and any + i suffix
       let enumKey = w.enum.replace(/.*::/, '').replace(/\s*\+.*$/, '');
-      if (configNames[enumKey]) {
+      if (fnames?.[enumKey]) {
+        label = fnames[enumKey];
+      } else if (configNames[enumKey]) {
         label = configNames[enumKey];
       } else {
         // Prettify enum name: remove trailing _INPUT/_OUTPUT/_PARAM, replace _ with space

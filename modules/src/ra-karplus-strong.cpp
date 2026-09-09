@@ -1,3 +1,36 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: TRIG_INPUT "Trigger"
+// fname: FREQ_PARAM "Frequenc"
+// fname: PITCH_INPUT "1V/Oct"
+// fname: FM_ATTN_PARAM "FM atten"
+// fname: FM_INPUT "FM"
+// fname: DAMP_PARAM "Damping"
+// fname: DAMP_CV_INPUT "Damping "
+// fname: LIMIT_PARAM "Loop lim"
+// fname: LIMIT_CV_INPUT "Loop lim"
+// fname: BRIGHTNESS_PARAM "Brightne"
+// fname: PICK_POS_PARAM "Pick pos"
+// fname: STIFFNESS_PARAM "Stiffnes"
+// fname: BRIGHTNESS_CV_INPUT "Brightne"
+// fname: PICK_POS_CV_INPUT "Pick pos"
+// fname: STIFFNESS_CV_INPUT "Stiffnes"
+// fname: FEEDBACK_PARAM "Feedback"
+// fname: FEEDBACK_CV_INPUT "Feedback"
+// fname: LEVEL_PARAM "Level"
+// fname: LEVEL_CV_INPUT "Level CV"
+// fname: SYMP_LEVEL_PARAM "Sympathe"
+// fname: SYMP_LEVEL_CV_INPUT "Sympathe"
+// fname: SYMP_COUNT_PARAM "Sympathe"
+// fname: SYMP_COUNT_CV_INPUT "Sympathe"
+// fname: SYMP_DETUNE_PARAM "Sympathe"
+// fname: SYMP_DETUNE_CV_INPUT "Sympathe"
+// fname: EXCITE_MODE_PARAM "Excitati"
+// fname: EXCITE_MODE_CV_INPUT "Excitati"
+// fname: AUDIO_OUTPUT "Audio"
 #include "ra-components.hpp"
 #include <vector>
 #include <cmath>

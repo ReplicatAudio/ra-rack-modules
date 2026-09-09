@@ -1,3 +1,14 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: MACRO_PARAM "Macro"
+// fname: MACRO_CV_INPUT "Macro CV"
+// fname: RANGE_PARAM "Range"
+// fname: ATTN1_PARAM "ATTN1"
+// fname: OFFSET1_PARAM "OFFSET1"
+// fname: OUTPUT1 "OUTPUT1"
 #include "ra-components.hpp"
 
 using namespace rack;

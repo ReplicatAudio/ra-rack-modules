@@ -1,3 +1,17 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: L_INPUT "Left"
+// fname: R_INPUT "Right"
+// fname: ROOM_PARAM "Room siz"
+// fname: DAMP_PARAM "Damping"
+// fname: DRYWET_PARAM "Dry/wet"
+// fname: ROOM_CV_INPUT "Room siz"
+// fname: DAMP_CV_INPUT "Damping "
+// fname: L_OUTPUT "Left"
+// fname: R_OUTPUT "Right"
 #include "ra-components.hpp"
 #include <array>
 

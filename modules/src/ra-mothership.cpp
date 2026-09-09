@@ -1,3 +1,29 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: MODE_PARAM "Mode"
+// fname: FREQ_PARAM "Frequenc"
+// fname: FREQ_CV_INPUT "Frequenc"
+// fname: FREQ_ATTN_PARAM "Frequenc"
+// fname: FREQ_ATTN_CV_INPUT "Frequenc"
+// fname: FM_ATTN_PARAM "FM atten"
+// fname: FM_INPUT "FM"
+// fname: PHASE_PARAM "Global p"
+// fname: PHASE_CV_INPUT "Phase CV"
+// fname: OSC_SHAPE "Shape"
+// fname: OSC_SHAPE_CV "Shape CV"
+// fname: OSC_PHASE "Phase of"
+// fname: OSC_PHASE_CV "Phase CV"
+// fname: OSC_INVERT "Invert"
+// fname: OSC_FILTER "Filter c"
+// fname: OSC_FILTER_CV "Filter C"
+// fname: OSC_FM "FM atten"
+// fname: OSC_FM_CV "FM CV"
+// fname: OSC_DETUNE "Detune"
+// fname: OSC_DETUNE_CV "Detune C"
+// fname: i "Oscillat"
 #include "ra-components.hpp"
 
 using namespace rack;

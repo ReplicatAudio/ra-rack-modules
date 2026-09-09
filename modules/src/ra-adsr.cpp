@@ -1,3 +1,27 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: ATTACK_PARAM "Attack"
+// fname: DECAY_PARAM "Decay"
+// fname: SUSTAIN_PARAM "Sustain"
+// fname: RELEASE_PARAM "Release"
+// fname: ATTACK_CV_PARAM "Attack C"
+// fname: DECAY_CV_PARAM "Decay CV"
+// fname: SUSTAIN_CV_PARAM "Sustain "
+// fname: RELEASE_CV_PARAM "Release "
+// fname: PUSH_PARAM "Push"
+// fname: ATTACK_INPUT "Attack"
+// fname: DECAY_INPUT "Decay"
+// fname: SUSTAIN_INPUT "Sustain"
+// fname: RELEASE_INPUT "Release"
+// fname: GATE_INPUT "Gate"
+// fname: RETRIG_INPUT "Retrigge"
+// fname: TRIGGER_INPUT "Trigger"
+// fname: POSITION_INPUT "Position"
+// fname: ENVELOPE_OUTPUT "Envelope"
+// fname: EOC_OUTPUT "End of c"
 #include "ra-components.hpp"
 
 using namespace rack;

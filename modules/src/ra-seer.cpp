@@ -1,3 +1,20 @@
+// ============================================================
+// fname metadata — friendly panel label names
+// Read by util/gen-panel.mjs for the rendered SVG label text.
+// Overrides the configParam/Input/Output tooltip names.
+// ============================================================
+// fname: MODE_PARAM "Cycle mo"
+// fname: THRESH_PARAM "Trigger "
+// fname: TRIG_INPUT "External"
+// fname: TIME_PARAM "Time"
+// fname: X_INPUT "Ch 1"
+// fname: Y_INPUT "Ch 2"
+// fname: X_SCALE_PARAM "Gain 1"
+// fname: Y_SCALE_PARAM "Gain 2"
+// fname: X_POS_PARAM "Offset 1"
+// fname: Y_POS_PARAM "Offset 2"
+// fname: X_OUTPUT "Ch 1"
+// fname: Y_OUTPUT "Ch 2"
 #include "ra-components.hpp"
 #include <string.h>
 #include <cmath>
