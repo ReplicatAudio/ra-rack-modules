@@ -116,7 +116,7 @@ const LABEL_MAX_LEN = 8;     // truncate labels longer than this
 
 // Resolve the panel font relative to this script: util/ -> repo root ./font
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-let FONT_PATH = path.resolve(scriptDir, '../font/FragmentMono-Regular.ttf');
+let FONT_PATH = path.resolve(scriptDir, '../font/Asimovian-Regular.ttf');
 let font = null;
 
 function loadPanelFont(p) {
