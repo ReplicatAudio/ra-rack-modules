@@ -347,6 +347,15 @@
       ]
     },
     {
+      "slug": "ra-mix4",
+      "name": "ra-mix4",
+      "description": "Simple 4-channel stereo mixer \u2014 gain slider + CV per channel, pan knob + CV per channel, master gain and pan, stereo output",
+      "tags": [
+        "Mixer",
+        "Utility"
+      ]
+    },
+    {
       "slug": "ra-tuner",
       "name": "ra-tuner",
       "description": "Tuner \u2014 shows the frequency and western note of the input, in 1 V/oct CV or audio mode",

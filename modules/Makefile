@@ -43,6 +43,7 @@ SOURCES = \
 	src/ra-cymbal.cpp \
 	src/ra-ride.cpp \
 	src/ra-meteor.cpp \
+	src/ra-mix4.cpp \
 	src/ra-tuner.cpp \
 	src/ra-vash.cpp \
 	src/ra-vnote.cpp \

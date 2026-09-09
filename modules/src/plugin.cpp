@@ -41,6 +41,7 @@ extern Model *modelRaHat;
 extern Model *modelRaCymbal;
 extern Model *modelRaRide;
 extern Model *modelRaMeteor;
+extern Model *modelRaMix4;
 extern Model *modelRaTuner;
 extern Model *modelRaVash;
 extern Model *modelRaVnote;
@@ -89,6 +90,7 @@ void init(Plugin *p) {
 	p->addModel(modelRaCymbal);
 	p->addModel(modelRaRide);
 	p->addModel(modelRaMeteor);
+	p->addModel(modelRaMix4);
 	p->addModel(modelRaTuner);
 	p->addModel(modelRaVash);
 	p->addModel(modelRaVnote);

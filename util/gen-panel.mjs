@@ -85,6 +85,7 @@ const WIDGET_INFO = {
   SmallLight: { kind: 'bezel', rad: 3 },
   TinyLight: { kind: 'bezel', rad: 4 },
   VCVLightSlider: { kind: 'slider', hw: 7.5, hh: 20 },
+  VCVSlider: { kind: 'slider', hw: 7.5, hh: 20 },
   RaScrew: { kind: 'screw', rad: 7.5 },
 };
 
