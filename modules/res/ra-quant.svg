@@ -117,38 +117,38 @@
     <line x1="7.62" y1="98.89" x2="10.74" y2="98.89" stroke="#666" stroke-width="0.5" opacity="0.6"/>
     <rect x="5.25" y="104.88" width="4.74" height="6.99" rx="1" fill="none" stroke="#888" stroke-width="1.4" opacity="0.5"/>
     <line x1="7.62" y1="110.12" x2="7.62" y2="106.63" stroke="#888" stroke-width="1.7" opacity="0.6"/>
-    <circle cx="7.62" cy="116.50" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="7.62" cy="116.50" r="1.40" fill="#996dd2" opacity="0.5"/>
-    <circle cx="20.32" cy="33.87" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="20.32" cy="33.87" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <path d="M4.31 122.50 A1.50 1.50 0 0 1 2.81 121.00 L2.81 115.70 A4.01 4.01 0 0 1 6.82 111.69 L8.42 111.69 A4.01 4.01 0 0 1 12.43 115.70 L12.43 121.00 A1.50 1.50 0 0 1 10.93 122.50 L4.31 122.50 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="7.62" cy="116.50" r="2.61" fill="#111" opacity="0.5"/>
+    <path d="M17.01 39.87 A1.50 1.50 0 0 1 15.51 38.37 L15.51 33.07 A4.01 4.01 0 0 1 19.52 29.05 L21.12 29.05 A4.01 4.01 0 0 1 25.13 33.07 L25.13 38.37 A1.50 1.50 0 0 1 23.63 39.87 L17.01 39.87 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="20.32" cy="33.87" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="25.67" y="29.05" width="9.63" height="10.81" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="30.48" cy="33.87" r="2.61" fill="#111" opacity="0.5"/>
-    <circle cx="20.32" cy="41.99" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="20.32" cy="41.99" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <path d="M17.01 47.99 A1.50 1.50 0 0 1 15.51 46.49 L15.51 41.19 A4.01 4.01 0 0 1 19.52 37.18 L21.12 37.18 A4.01 4.01 0 0 1 25.13 41.19 L25.13 46.49 A1.50 1.50 0 0 1 23.63 47.99 L17.01 47.99 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="20.32" cy="41.99" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="25.67" y="37.18" width="9.63" height="10.81" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="30.48" cy="41.99" r="2.61" fill="#111" opacity="0.5"/>
-    <circle cx="20.32" cy="50.12" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="20.32" cy="50.12" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <path d="M17.01 56.12 A1.50 1.50 0 0 1 15.51 54.62 L15.51 49.32 A4.01 4.01 0 0 1 19.52 45.31 L21.12 45.31 A4.01 4.01 0 0 1 25.13 49.32 L25.13 54.62 A1.50 1.50 0 0 1 23.63 56.12 L17.01 56.12 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="20.32" cy="50.12" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="25.67" y="45.31" width="9.63" height="10.81" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="30.48" cy="50.12" r="2.61" fill="#111" opacity="0.5"/>
-    <circle cx="20.32" cy="58.25" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="20.32" cy="58.25" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <path d="M17.01 64.25 A1.50 1.50 0 0 1 15.51 62.75 L15.51 57.45 A4.01 4.01 0 0 1 19.52 53.44 L21.12 53.44 A4.01 4.01 0 0 1 25.13 57.45 L25.13 62.75 A1.50 1.50 0 0 1 23.63 64.25 L17.01 64.25 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="20.32" cy="58.25" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="25.67" y="53.44" width="9.63" height="10.81" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="30.48" cy="58.25" r="2.61" fill="#111" opacity="0.5"/>
-    <circle cx="20.32" cy="66.38" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="20.32" cy="66.38" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <path d="M17.01 72.38 A1.50 1.50 0 0 1 15.51 70.88 L15.51 65.58 A4.01 4.01 0 0 1 19.52 61.57 L21.12 61.57 A4.01 4.01 0 0 1 25.13 65.58 L25.13 70.88 A1.50 1.50 0 0 1 23.63 72.38 L17.01 72.38 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="20.32" cy="66.38" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="25.67" y="61.57" width="9.63" height="10.81" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="30.48" cy="66.38" r="2.61" fill="#111" opacity="0.5"/>
-    <circle cx="20.32" cy="74.51" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="20.32" cy="74.51" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <path d="M17.01 80.51 A1.50 1.50 0 0 1 15.51 79.01 L15.51 73.71 A4.01 4.01 0 0 1 19.52 69.69 L21.12 69.69 A4.01 4.01 0 0 1 25.13 73.71 L25.13 79.01 A1.50 1.50 0 0 1 23.63 80.51 L17.01 80.51 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="20.32" cy="74.51" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="25.67" y="69.69" width="9.63" height="10.81" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="30.48" cy="74.51" r="2.61" fill="#111" opacity="0.5"/>
-    <circle cx="20.32" cy="82.63" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="20.32" cy="82.63" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <path d="M17.01 88.63 A1.50 1.50 0 0 1 15.51 87.13 L15.51 81.83 A4.01 4.01 0 0 1 19.52 77.82 L21.12 77.82 A4.01 4.01 0 0 1 25.13 81.83 L25.13 87.13 A1.50 1.50 0 0 1 23.63 88.63 L17.01 88.63 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="20.32" cy="82.63" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="25.67" y="77.82" width="9.63" height="10.81" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="30.48" cy="82.63" r="2.61" fill="#111" opacity="0.5"/>
-    <circle cx="20.32" cy="90.76" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="20.32" cy="90.76" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <path d="M17.01 96.76 A1.50 1.50 0 0 1 15.51 95.26 L15.51 89.96 A4.01 4.01 0 0 1 19.52 85.95 L21.12 85.95 A4.01 4.01 0 0 1 25.13 89.96 L25.13 95.26 A1.50 1.50 0 0 1 23.63 96.76 L17.01 96.76 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="20.32" cy="90.76" r="2.61" fill="#111" opacity="0.5"/>
     <rect x="25.67" y="85.95" width="9.63" height="10.81" rx="1.5" fill="#c8b7c7" opacity="0.7"/>
     <circle cx="30.48" cy="90.76" r="2.61" fill="#111" opacity="0.5"/>
   </g>

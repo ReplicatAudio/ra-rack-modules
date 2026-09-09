@@ -818,8 +818,31 @@ function generateSVG(info) {
           svg += `    <rect x="${(mx - r - sw / 2).toFixed(2)}" y="${topY.toFixed(2)}" width="${d.toFixed(2)}" height="${(botY - topY).toFixed(2)}" rx="1.5" fill="${color}" opacity="0.7"/>\n`;
           svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.65).toFixed(2)}" fill="#111" opacity="0.5"/>\n`;
         } else {
-          svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#111" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.7"/>\n`;
-          svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.35).toFixed(2)}" fill="${color}" opacity="0.5"/>\n`;
+          const sw = CFG.strokeWidth + 0.1;
+          const d = r * 2 + sw;
+          const x0 = mx - r - sw / 2;
+          const x1 = mx + r + sw / 2;
+          // Inputs keep a rounded top matching the jack circle (rx ≈ r), but gain
+          // an extended flat bottom whose corners use rx = 1.5 — the exact same
+          // bottom geometry as the output blocks. Drawn as one path because SVG's
+          // <rect> applies a single rx to all four corners.
+          const topY = my - r - sw / 2;   // rect top edge
+          const botY = my + LABEL_V_OFFSET + 0.5;
+          const br = 1.5;                  // bottom corner radius (matches output)
+          // Clockwise outline: bottom-left round, up left side, top-left round, top
+          // straight, top-right round, down right side, bottom-right round, bottom.
+          const dPath =
+            `M${(x0 + br).toFixed(2)} ${botY.toFixed(2)} ` +
+            `A${br.toFixed(2)} ${br.toFixed(2)} 0 0 1 ${x0.toFixed(2)} ${(botY - br).toFixed(2)} ` +
+            `L${x0.toFixed(2)} ${(topY + r).toFixed(2)} ` +
+            `A${r.toFixed(2)} ${r.toFixed(2)} 0 0 1 ${(x0 + r).toFixed(2)} ${topY.toFixed(2)} ` +
+            `L${(x1 - r).toFixed(2)} ${topY.toFixed(2)} ` +
+            `A${r.toFixed(2)} ${r.toFixed(2)} 0 0 1 ${x1.toFixed(2)} ${(topY + r).toFixed(2)} ` +
+            `L${x1.toFixed(2)} ${(botY - br).toFixed(2)} ` +
+            `A${br.toFixed(2)} ${br.toFixed(2)} 0 0 1 ${(x1 - br).toFixed(2)} ${botY.toFixed(2)} ` +
+            `L${(x0 + br).toFixed(2)} ${botY.toFixed(2)} Z`;
+          svg += `    <path d="${dPath}" fill="${color}" opacity="0.7"/>\n`;
+          svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.65).toFixed(2)}" fill="#111" opacity="0.5"/>\n`;
         }
         break;
       }

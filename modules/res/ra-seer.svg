@@ -117,15 +117,15 @@
     <circle cx="10.16" cy="40.64" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
     <circle cx="10.16" cy="40.64" r="1.68" fill="#333" opacity="0.4"/>
     <line x1="10.16" y1="40.64" x2="13.28" y2="40.64" stroke="#666" stroke-width="0.5" opacity="0.6"/>
-    <circle cx="10.16" cy="56.90" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="10.16" cy="56.90" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <path d="M6.85 62.90 A1.50 1.50 0 0 1 5.35 61.40 L5.35 56.10 A4.01 4.01 0 0 1 9.36 52.08 L10.96 52.08 A4.01 4.01 0 0 1 14.97 56.10 L14.97 61.40 A1.50 1.50 0 0 1 13.47 62.90 L6.85 62.90 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="10.16" cy="56.90" r="2.61" fill="#111" opacity="0.5"/>
     <circle cx="10.16" cy="73.15" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
     <circle cx="10.16" cy="73.15" r="1.68" fill="#333" opacity="0.4"/>
     <line x1="10.16" y1="73.15" x2="13.28" y2="73.15" stroke="#666" stroke-width="0.5" opacity="0.6"/>
-    <circle cx="10.16" cy="89.41" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="10.16" cy="89.41" r="1.40" fill="#996dd2" opacity="0.5"/>
-    <circle cx="10.16" cy="105.66" r="4.01" fill="#111" stroke="#996dd2" stroke-width="1.6" opacity="0.7"/>
-    <circle cx="10.16" cy="105.66" r="1.40" fill="#996dd2" opacity="0.5"/>
+    <path d="M6.85 95.41 A1.50 1.50 0 0 1 5.35 93.91 L5.35 88.61 A4.01 4.01 0 0 1 9.36 84.59 L10.96 84.59 A4.01 4.01 0 0 1 14.97 88.61 L14.97 93.91 A1.50 1.50 0 0 1 13.47 95.41 L6.85 95.41 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="10.16" cy="89.41" r="2.61" fill="#111" opacity="0.5"/>
+    <path d="M6.85 111.66 A1.50 1.50 0 0 1 5.35 110.16 L5.35 104.86 A4.01 4.01 0 0 1 9.36 100.85 L10.96 100.85 A4.01 4.01 0 0 1 14.97 104.86 L14.97 110.16 A1.50 1.50 0 0 1 13.47 111.66 L6.85 111.66 Z" fill="#996dd2" opacity="0.7"/>
+    <circle cx="10.16" cy="105.66" r="2.61" fill="#111" opacity="0.5"/>
     <circle cx="162.56" cy="8.13" r="4.80" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
     <circle cx="162.56" cy="8.13" r="1.68" fill="#333" opacity="0.4"/>
     <line x1="162.56" y1="8.13" x2="165.68" y2="8.13" stroke="#666" stroke-width="0.5" opacity="0.6"/>
