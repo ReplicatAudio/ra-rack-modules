@@ -77,7 +77,9 @@ struct RaMix4Module : Module {
         VU2_BASE = VU1_BASE + VU_SEGMENTS * 3,
         VU3_BASE = VU2_BASE + VU_SEGMENTS * 3,
         VU4_BASE = VU3_BASE + VU_SEGMENTS * 3,
-        NUM_LIGHTS = VU4_BASE + VU_SEGMENTS * 3
+        VU_OUT_L_BASE,
+        VU_OUT_R_BASE = VU_OUT_L_BASE + VU_SEGMENTS * 3,
+        NUM_LIGHTS = VU_OUT_R_BASE + VU_SEGMENTS * 3
     };
 
     RaMix4Module() {
@@ -115,6 +117,14 @@ struct RaMix4Module : Module {
                 configLight(vuBase + i * 3 + 1, "In " + std::to_string(c + 1) + " VU LED " + std::to_string(i + 1));
                 configLight(vuBase + i * 3 + 2, "In " + std::to_string(c + 1) + " VU LED " + std::to_string(i + 1));
             }
+        }
+        for (int i = 0; i < VU_SEGMENTS; i++) {
+            configLight(VU_OUT_L_BASE + i * 3, "L VU LED " + std::to_string(i + 1));
+            configLight(VU_OUT_L_BASE + i * 3 + 1, "L VU LED " + std::to_string(i + 1));
+            configLight(VU_OUT_L_BASE + i * 3 + 2, "L VU LED " + std::to_string(i + 1));
+            configLight(VU_OUT_R_BASE + i * 3, "R VU LED " + std::to_string(i + 1));
+            configLight(VU_OUT_R_BASE + i * 3 + 1, "R VU LED " + std::to_string(i + 1));
+            configLight(VU_OUT_R_BASE + i * 3 + 2, "R VU LED " + std::to_string(i + 1));
         }
     }
 
@@ -170,12 +180,19 @@ struct RaMix4Module : Module {
         float ma = cosf((masterPan + 1.f) * M_PI / 4.f);
         float mb = sinf((masterPan + 1.f) * M_PI / 4.f);
 
+        float outL, outR;
         if (outputs[OUT_L].isConnected() && !outputs[OUT_R].isConnected()) {
-            outputs[OUT_L].setVoltage(clamp(mono * masterGain, -10.f, 10.f));
+            outL = clamp(mono * masterGain, -10.f, 10.f);
+            outR = 0.f;
         } else {
-            outputs[OUT_L].setVoltage(clamp((left * ma + right * mb) * masterGain, -10.f, 10.f));
-            outputs[OUT_R].setVoltage(clamp((left * mb + right * ma) * masterGain, -10.f, 10.f));
+            outL = clamp((left * ma + right * mb) * masterGain, -10.f, 10.f);
+            outR = clamp((left * mb + right * ma) * masterGain, -10.f, 10.f);
         }
+        outputs[OUT_L].setVoltage(outL);
+        outputs[OUT_R].setVoltage(outR);
+
+        processVu(clamp(fabsf(outL) / 10.f, 0.f, 1.f), VU_OUT_L_BASE);
+        processVu(clamp(fabsf(outR) / 10.f, 0.f, 1.f), VU_OUT_R_BASE);
     }
 };
 
@@ -229,6 +246,12 @@ struct RaMix4Widget : ModuleWidget {
             addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(75, 371 - i * 10), module, RaMix4Module::VU2_BASE + i * 3));
             addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(105, 371 - i * 10), module, RaMix4Module::VU3_BASE + i * 3));
             addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(135, 371 - i * 10), module, RaMix4Module::VU4_BASE + i * 3));
+        }
+
+        // Master output VU meters — L on the left edge, R on the right edge
+        for (int i = 0; i < 10; i++) {
+            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(20, 228 - i * 12), module, RaMix4Module::VU_OUT_L_BASE + i * 3));
+            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(190, 228 - i * 12), module, RaMix4Module::VU_OUT_R_BASE + i * 3));
         }
 
         addOutput(createOutputCentered<RaPort>(Vec(165, 255), module, RaMix4Module::OUT_L));
