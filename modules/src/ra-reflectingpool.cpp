@@ -352,6 +352,7 @@ struct RaReflectingPoolModule : Module {
             resetExtTrigger.process(inputs[RESET_TRIG_INPUT].getVoltage())) {
             for (int i = 0; i < NUM_TRACKS; i++) {
                 currentPos[i] = 0;
+                trigPulse[i].trigger(1e-3f);
                 endPulse[i].trigger(1e-3f);
             }
         }
