@@ -71,9 +71,17 @@ struct RaMix4Module : Module {
         OUT_R,
         NUM_OUTPUTS
     };
+    static constexpr int VU_SEGMENTS = 10;
+    enum LightIds {
+        VU1_BASE,
+        VU2_BASE = VU1_BASE + VU_SEGMENTS * 3,
+        VU3_BASE = VU2_BASE + VU_SEGMENTS * 3,
+        VU4_BASE = VU3_BASE + VU_SEGMENTS * 3,
+        NUM_LIGHTS = VU4_BASE + VU_SEGMENTS * 3
+    };
 
     RaMix4Module() {
-        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS);
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(GAIN1_PARAM, 0.f, 1.5f, 1.f, "Gain 1");
         configParam(GAIN2_PARAM, 0.f, 1.5f, 1.f, "Gain 2");
         configParam(GAIN3_PARAM, 0.f, 1.5f, 1.f, "Gain 3");
@@ -100,6 +108,33 @@ struct RaMix4Module : Module {
         configInput(CV_PAN_MASTER_INPUT, "CV PM");
         configOutput(OUT_L, "Left");
         configOutput(OUT_R, "Right");
+        for (int c = 0; c < 4; c++) {
+            int vuBase = VU1_BASE + c * VU_SEGMENTS * 3;
+            for (int i = 0; i < VU_SEGMENTS; i++) {
+                configLight(vuBase + i * 3, "In " + std::to_string(c + 1) + " VU LED " + std::to_string(i + 1));
+                configLight(vuBase + i * 3 + 1, "In " + std::to_string(c + 1) + " VU LED " + std::to_string(i + 1));
+                configLight(vuBase + i * 3 + 2, "In " + std::to_string(c + 1) + " VU LED " + std::to_string(i + 1));
+            }
+        }
+    }
+
+    void processVu(float level, int base) {
+        // level is linear full-scale (0..1, 1 = 10 V). Convert to a VU-style
+        // dB scale — 0 dB = full scale, meter dead below -40 dB — so typical
+        // ±5 V program material lights most of the bar instead of the bottom
+        // tenth. (-40 dB ≈ 0.1 V, -20 dB ≈ 1 V, -12 dB ≈ 2.5 V, -6 dB ≈ 5 V)
+        float db = level > 0.f ? 20.f * std::log10(level) : -60.f;
+        float norm = clamp((db + 40.f) / 40.f, 0.f, 1.f);
+        for (int i = 0; i < VU_SEGMENTS; i++) {
+            float brightness = clamp((norm - (float)i / VU_SEGMENTS) * VU_SEGMENTS, 0.f, 1.f);
+            float t = (float)i / (VU_SEGMENTS - 1);
+            float r = brightness * (0.3f + 0.7f * t);
+            float g = brightness * (0.4f * t);
+            float b = brightness * (0.3f + 0.5f * t);
+            lights[base + i * 3].setBrightness(r);
+            lights[base + i * 3 + 1].setBrightness(g);
+            lights[base + i * 3 + 2].setBrightness(b);
+        }
     }
 
     void process(const ProcessArgs &args) override {
@@ -109,8 +144,15 @@ struct RaMix4Module : Module {
 
         for (int c = 0; c < 4; c++) {
             float in = inputs[CH1_INPUT + c].getVoltage();
-            float gain = clamp(params[GAIN1_PARAM + c].getValue() + inputs[CV_GAIN1_INPUT + c].getVoltage(), 0.f, 1.5f);
+            float cvGain = inputs[CV_GAIN1_INPUT + c].getVoltage();
+            float gain;
+            if (inputs[CV_GAIN1_INPUT + c].isConnected())
+                // With CV in, the slider acts as a 0-100% attenuator of the CV gain.
+                gain = clamp(params[GAIN1_PARAM + c].getValue() * cvGain / 10.f, 0.f, 1.5f);
+            else
+                gain = clamp(params[GAIN1_PARAM + c].getValue(), 0.f, 1.5f);
             float pan = clamp(params[PAN1_PARAM + c].getValue() + inputs[CV_PAN1_INPUT + c].getVoltage(), -1.f, 1.f);
+            processVu(clamp(fabsf(in * gain) / 10.f, 0.f, 1.f), VU1_BASE + c * VU_SEGMENTS * 3);
             mono += in * gain;
             float a = cosf((pan + 1.f) * M_PI / 4.f);
             float b = sinf((pan + 1.f) * M_PI / 4.f);
@@ -118,7 +160,12 @@ struct RaMix4Module : Module {
             right += in * gain * b;
         }
 
-        float masterGain = clamp(params[MASTER_PARAM].getValue() + inputs[CV_GAIN_MASTER_INPUT].getVoltage(), 0.f, 1.f);
+        float masterGain;
+        if (inputs[CV_GAIN_MASTER_INPUT].isConnected())
+            // With CV in, the slider acts as a 0-100% attenuator of the CV gain.
+            masterGain = clamp(params[MASTER_PARAM].getValue() * inputs[CV_GAIN_MASTER_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+        else
+            masterGain = clamp(params[MASTER_PARAM].getValue(), 0.f, 1.f);
         float masterPan = clamp(params[MASTER_PAN_PARAM].getValue() + inputs[CV_PAN_MASTER_INPUT].getVoltage(), -1.f, 1.f);
         float ma = cosf((masterPan + 1.f) * M_PI / 4.f);
         float mb = sinf((masterPan + 1.f) * M_PI / 4.f);
@@ -175,6 +222,15 @@ struct RaMix4Widget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(75, 255), module, RaMix4Module::CH2_INPUT));
         addInput(createInputCentered<RaPort>(Vec(105, 255), module, RaMix4Module::CH3_INPUT));
         addInput(createInputCentered<RaPort>(Vec(135, 255), module, RaMix4Module::CH4_INPUT));
+
+        // Channel input VU meters (below each channel input jack)
+        for (int i = 0; i < 10; i++) {
+            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(45, 371 - i * 10), module, RaMix4Module::VU1_BASE + i * 3));
+            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(75, 371 - i * 10), module, RaMix4Module::VU2_BASE + i * 3));
+            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(105, 371 - i * 10), module, RaMix4Module::VU3_BASE + i * 3));
+            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(135, 371 - i * 10), module, RaMix4Module::VU4_BASE + i * 3));
+        }
+
         addOutput(createOutputCentered<RaPort>(Vec(165, 255), module, RaMix4Module::OUT_L));
         addOutput(createOutputCentered<RaPort>(Vec(165, 300), module, RaMix4Module::OUT_R));
     }

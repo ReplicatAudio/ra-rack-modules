@@ -75,8 +75,8 @@ struct RaShapesModule : Module {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam<RaShapesFreqQuantity>(FREQ_PARAM, 0.f, 1.f, 0.5876f, "Frequency", " Hz");
         configSwitch(SLOW_PARAM, 0.f, 1.f, 0.f, "Slow mode", {"Normal", "/8"});
-        configParam(FM1_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 1 attenuation", "%", 0.f, 100.f);
-        configParam(FM2_ATTN_PARAM, 0.f, 1.f, 0.f, "FM 2 attenuation", "%", 0.f, 100.f);
+        configParam(FM1_ATTN_PARAM, -1.f, 1.f, 0.f, "FM 1 attenuverter", "%", 0, 100);
+        configParam(FM2_ATTN_PARAM, -1.f, 1.f, 0.f, "FM 2 attenuverter", "%", 0, 100);
         configParam(PHASE_PARAM, 0.f, 1.f, 0.f, "Phase offset", "%", 0.f, 100.f);
         configInput(PITCH_INPUT, "1V/Oct");
         configInput(FM1_INPUT, "FM 1");

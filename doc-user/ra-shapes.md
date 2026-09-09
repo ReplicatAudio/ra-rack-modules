@@ -5,7 +5,7 @@ VCO producing five simultaneous waveforms.
 ## Controls
 - **Frequency**: coarse pitch control.
 - **Slow mode**: divides the frequency by 8.
-- **FM 1 / FM 2 attenuation**: amount of FM applied per FM input.
+- **FM 1 / FM 2 attenuverter**: bipolar scaling of the corresponding FM input.
 - **Phase**: phase offset (0–100%).
 
 ## Inputs
