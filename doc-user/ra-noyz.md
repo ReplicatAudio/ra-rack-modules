@@ -22,7 +22,7 @@ The seven noise colors are the same sources as the stock VCV Rack "Noise" module
 
 ## Inputs
 - **Gate**: when patched, sound only comes out while the gate is high (≥ 1 V); when unpatched, sound always comes out.
-- **LP cut / LP res / HP cut / HP res / Amplitude CV**: bipolar CV (±10 V = full range) added to the matching knob. Cutoff CVs are 1 V/oct on the logarithmic frequency.
+- **LP cut / LP res / HP cut / HP res / Amplitude CV**: when connected, the matching knob acts as a unipolar attenuator (0–100%) scaling the CV. Cutoff CVs are 1 V/oct around a ~632 Hz center; res and amplitude scale as knob × CV (±10 V = full range when the knob is at 100%). Knob at 0 = no CV effect.
 
 ## Outputs
 - **Audio**: filtered noise output.

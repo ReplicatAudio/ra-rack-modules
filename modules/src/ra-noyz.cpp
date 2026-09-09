@@ -159,6 +159,8 @@ struct RaNoyzModule : Module {
 
     static constexpr float MIN_FILTER_FREQ = 20.f;
     static constexpr float MAX_FILTER_FREQ = 20000.f;
+    // Fixed center frequency for 1V/Oct cutoff CVs (log mid-point of the range)
+    static constexpr float CENTER_FREQ = 632.4555f;
 
     PinkNoiseGenerator<8> pinkNoiseGenerator;
     dsp::IIRFilter<2, 2> redFilter;
@@ -247,19 +249,28 @@ struct RaNoyzModule : Module {
             }
         }
 
-        // Lowpass: 1V/Oct CV on the log cutoff
-        float lpCutNorm = params[LP_CUT_PARAM].getValue();
-        float lpCutHz = MIN_FILTER_FREQ * powf(MAX_FILTER_FREQ / MIN_FILTER_FREQ, lpCutNorm)
-            * powf(2.f, inputs[LP_CUT_CV_INPUT].getVoltage());
-        float lpRes = clamp(params[LP_RES_PARAM].getValue()
-            + inputs[LP_RES_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+        // Lowpass cutoff: when the CV is connected the knob becomes a unipolar
+        // attenuator (0-100%) scaling the 1V/Oct CV around the fixed center
+        float lpKnob = params[LP_CUT_PARAM].getValue();
+        float lpCutHz;
+        if (inputs[LP_CUT_CV_INPUT].isConnected())
+            lpCutHz = CENTER_FREQ * powf(2.f, inputs[LP_CUT_CV_INPUT].getVoltage() * lpKnob);
+        else
+            lpCutHz = MIN_FILTER_FREQ * powf(MAX_FILTER_FREQ / MIN_FILTER_FREQ, lpKnob);
+        float lpRes = params[LP_RES_PARAM].getValue();
+        if (inputs[LP_RES_CV_INPUT].isConnected())
+            lpRes = clamp(lpRes * inputs[LP_RES_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
 
-        // Highpass: 1V/Oct CV on the log cutoff
-        float hpCutNorm = params[HP_CUT_PARAM].getValue();
-        float hpCutHz = MIN_FILTER_FREQ * powf(MAX_FILTER_FREQ / MIN_FILTER_FREQ, hpCutNorm)
-            * powf(2.f, inputs[HP_CUT_CV_INPUT].getVoltage());
-        float hpRes = clamp(params[HP_RES_PARAM].getValue()
-            + inputs[HP_RES_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+        // Highpass cutoff: same attenuator behavior for the 1V/Oct CV
+        float hpKnob = params[HP_CUT_PARAM].getValue();
+        float hpCutHz;
+        if (inputs[HP_CUT_CV_INPUT].isConnected())
+            hpCutHz = CENTER_FREQ * powf(2.f, inputs[HP_CUT_CV_INPUT].getVoltage() * hpKnob);
+        else
+            hpCutHz = MIN_FILTER_FREQ * powf(MAX_FILTER_FREQ / MIN_FILTER_FREQ, hpKnob);
+        float hpRes = params[HP_RES_PARAM].getValue();
+        if (inputs[HP_RES_CV_INPUT].isConnected())
+            hpRes = clamp(hpRes * inputs[HP_RES_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
 
         // Resonance knob 0..1 -> Q 0.5 (flat) .. 20 (near self-oscillation)
         lpFilter.update(args.sampleRate, lpCutHz, 0.5f * powf(40.f, lpRes));
@@ -268,8 +279,9 @@ struct RaNoyzModule : Module {
         float out = lpFilter.lowpass(noise);
         out = hpFilter.highpass(out);
 
-        float amp = clamp(params[AMP_PARAM].getValue()
-            + inputs[AMP_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+        float amp = params[AMP_PARAM].getValue();
+        if (inputs[AMP_CV_INPUT].isConnected())
+            amp = clamp(amp * inputs[AMP_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
 
         // Gate: when patched, only sound while the gate is high; otherwise always on
         float gate = 1.f;
