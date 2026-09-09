@@ -10,6 +10,10 @@
 // fname: STEP_TRIG_INPUT "Step"
 // fname: STEP_BACK_TRIG_INPUT "Step ba"
 // fname: POSITION_INPUT "Position"
+// fname: START_PARAM "Start"
+// fname: END_PARAM "End"
+// fname: START_CV_INPUT "Start"
+// fname: END_CV_INPUT "End"
 // fname: RESET_PARAM "Reset po"
 // fname: RESET_TRIG_INPUT "Reset tr"
 // fname: OUT1_OUTPUT "Red"
@@ -52,12 +56,20 @@ static const int LSYSTEM_NUM_RULES = 8;   // number of rewrite rules
 static const int LSYSTEM_RULE_BODY = 6;   // result cells per rule
 static const int LSYSTEM_AXIOM = 8;       // axiom symbol cells
 
-// Shared cell renderer. `current` draws a bright halo for the live sequencer position.
-static void drawCell(NVGcontext* vg, Rect r, int color, bool current) {
+// Shared cell renderer. `current` draws a bright halo for the live sequencer
+// position; `dim` darkens cells outside the knob-selected start/end window.
+static void drawCell(NVGcontext* vg, Rect r, int color, bool current, bool dim) {
     nvgBeginPath(vg);
     nvgRoundedRect(vg, RECT_ARGS(r), 1.5f);
     nvgFillColor(vg, lsysColor(color));
     nvgFill(vg);
+
+    if (dim) {
+        nvgBeginPath(vg);
+        nvgRoundedRect(vg, RECT_ARGS(r), 1.5f);
+        nvgFillColor(vg, nvgRGBA(0x0a, 0x0a, 0x0a, 150));
+        nvgFill(vg);
+    }
 
     if (color == 0) {
         nvgBeginPath(vg);
@@ -83,6 +95,8 @@ struct RaLsysModule : Module {
         STEP_BACK_PARAM,// Step back button
         CLEAR_PARAM,    // Clear button
         RESET_PARAM,    // Reset position button
+        START_PARAM,    // Start position knob
+        END_PARAM,      // End position knob
         NUM_PARAMS
     };
     enum InputIds {
@@ -90,6 +104,8 @@ struct RaLsysModule : Module {
         STEP_BACK_TRIG_INPUT,
         POSITION_INPUT,
         RESET_TRIG_INPUT,
+        START_CV_INPUT,
+        END_CV_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -145,11 +161,15 @@ struct RaLsysModule : Module {
         configButton(STEP_BACK_PARAM, "Step back");
         configButton(CLEAR_PARAM, "Clear");
         configButton(RESET_PARAM, "Reset position");
+        configParam(START_PARAM, 0.f, 1.f, 0.f, "Start position");
+        configParam(END_PARAM, 0.f, 1.f, 1.f, "End position");
 
         configInput(STEP_TRIG_INPUT, "Step forward");
         configInput(STEP_BACK_TRIG_INPUT, "Step back");
         configInput(POSITION_INPUT, "Position");
         configInput(RESET_TRIG_INPUT, "Reset trigger");
+        configInput(START_CV_INPUT, "Start CV");
+        configInput(END_CV_INPUT, "End CV");
 
         configOutput(OUT1_OUTPUT, "Red");
         configOutput(OUT2_OUTPUT, "Green");
@@ -164,8 +184,47 @@ struct RaLsysModule : Module {
         fireStep();
     }
 
+    // Effective start/end fractions of the sequence length. A connected CV
+    // makes the knob act as an attenuator (0-10 V maps over the knob's
+    // value); otherwise the knob sets the position directly.
+    float startFraction() {
+            float v = clamp(params[START_PARAM].getValue(), 0.f, 1.f);
+            if (inputs[START_CV_INPUT].isConnected())
+                v *= clamp(inputs[START_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+            return v;
+        }
+
+    float endFraction() {
+            float v = clamp(params[END_PARAM].getValue(), 0.f, 1.f);
+            if (inputs[END_CV_INPUT].isConnected())
+                v *= clamp(inputs[END_CV_INPUT].getVoltage() / 10.f, 0.f, 1.f);
+            return v;
+        }
+
+    // Enabled window into the output string, set by the start/end knobs.
+    // Both knobs are normalized 0..1 fractions of the sequence length and
+    // resolve to cell indices, clamping so the window is never empty.
+    int seqStart() {
+        if (outputLen <= 1) return 0;
+        return (int)std::lround(clamp(startFraction(), 0.f, 1.f) * (float)(outputLen - 1));
+    }
+
+    int seqEnd() {
+        if (outputLen <= 1) return 0;
+        int e = (int)std::lround(clamp(endFraction(), 0.f, 1.f) * (float)(outputLen - 1));
+        return std::max(e, seqStart());
+    }
+
+    // Is matrix cell `idx` inside the knob-selected window?
+    bool positionEnabled(int idx) {
+        return idx >= seqStart() && idx <= seqEnd();
+    }
+
     int curIdx() {
-        return outputLen > 0 ? (int)(stepIndex % (unsigned long)outputLen) : 0;
+        if (outputLen <= 0) return 0;
+        int s = seqStart();
+        int len = seqEnd() - s + 1;
+        return s + (int)(stepIndex % (unsigned long)len);
     }
 
     // Expand the L-system one generation: every non-black symbol is replaced by
@@ -262,17 +321,22 @@ struct RaLsysModule : Module {
             if (stepBackButtonTrigger.process(params[STEP_BACK_PARAM].getValue())
                 || stepBackTrigTrigger.process(inputs[STEP_BACK_TRIG_INPUT].getVoltage())) {
                 if (outputLen > 0) {
-                    stepIndex = (curIdx() == 0) ? (unsigned long)outputLen - 1 : (unsigned long)curIdx() - 1;
+                    int s = seqStart();
+                    int c = curIdx();
+                    stepIndex = (c == s) ? (unsigned long)(seqEnd() - s) : (unsigned long)(c - 1 - s);
                     fireStep();
                 }
             }
         }
         else {
             if (outputLen > 0) {
+                int s = seqStart();
+                int e = seqEnd();
+                int len = e - s + 1;
                 float norm = clamp(posVoltage / 10.f, 0.f, 1.f);
-                int newPos = (outputLen > 1) ? (int)roundf(norm * (outputLen - 1)) : 0;
+                int newPos = (len > 1) ? s + (int)roundf(norm * (float)(len - 1)) : s;
                 if ((int)curIdx() != newPos) {
-                    stepIndex = (unsigned long)newPos;
+                    stepIndex = (unsigned long)(newPos - s);
                     fireStep();
                 }
             }
@@ -356,7 +420,7 @@ struct ColorCell : OpaqueWidget {
     int* value;
 
     void draw(const DrawArgs& args) override {
-        drawCell(args.vg, box.zeroPos(), value ? *value : 0, false);
+        drawCell(args.vg, box.zeroPos(), value ? *value : 0, false, false);
     }
 
     void onDragStart(const event::DragStart& e) override {
@@ -380,7 +444,8 @@ struct MatrixCell : OpaqueWidget {
     void draw(const DrawArgs& args) override {
         int color = (module && index < module->outputLen) ? module->output[index] : 0;
         bool current = module && module->outputLen > 0 && module->curIdx() == index;
-        drawCell(args.vg, box.zeroPos(), color, current);
+        bool dim = module && index < module->outputLen && !module->positionEnabled(index);
+        drawCell(args.vg, box.zeroPos(), color, current, dim);
     }
 };
 
@@ -544,38 +609,51 @@ struct RaLsysWidget : ModuleWidget {
         addChild(axiom);
 
         RulesDisplay* rules = new RulesDisplay;
-        rules->box.pos = Vec(4, 54);
+        rules->box.pos = Vec(4, 57);
         rules->box.size = Vec(160, 250);
         rules->setModule(module);
         addChild(rules);
 
+        // Above the matrix: start/end knobs (with their CV inputs, in the
+        // mothership style of knob-then-port pairs) select the enabled window.
+        // The start knob's left edge is aligned with the matrix's left edge.
+        addParam(createParamCentered<RaKnobSmall>(Vec(191.34, 31), module, RaLsysModule::START_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(226.34, 31), module, RaLsysModule::START_CV_INPUT));
+        addParam(createParamCentered<RaKnobSmall>(Vec(261.34, 31), module, RaLsysModule::END_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(296.34, 31), module, RaLsysModule::END_CV_INPUT));
+
         // Right: the non-editable 8x24 output matrix, same height as the rules screen
         MatrixDisplay* matrix = new MatrixDisplay;
-        matrix->box.pos = Vec(180, 54);
+        matrix->box.pos = Vec(180, 57);
         matrix->box.size = Vec(96, 250);
         matrix->setModule(module);
         addChild(matrix);
 
-        // Right of the matrix: one output per active color (7 total)
-        addOutput(createOutputCentered<RaPort>(Vec(305, 50), module, RaLsysModule::OUT1_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(305, 92), module, RaLsysModule::OUT2_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(305, 134), module, RaLsysModule::OUT3_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(305, 176), module, RaLsysModule::OUT4_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(305, 218), module, RaLsysModule::OUT5_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(305, 260), module, RaLsysModule::OUT6_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(305, 302), module, RaLsysModule::OUT7_OUTPUT));
+        // Right of the matrix: one output per active color (7 total). The top
+        // (outer) edge of red is aligned with the top edge of the output screen;
+        // the rest follow at a constant 39u pitch so the column fits within the
+        // screen height and clears the bottom row of controls.
+        addOutput(createOutputCentered<RaPort>(Vec(305, 68.85), module, RaLsysModule::OUT1_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 107.85), module, RaLsysModule::OUT2_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 146.85), module, RaLsysModule::OUT3_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 185.85), module, RaLsysModule::OUT4_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 224.85), module, RaLsysModule::OUT5_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 263.85), module, RaLsysModule::OUT6_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 302.85), module, RaLsysModule::OUT7_OUTPUT));
 
         // Bottom row: step back (cv+btn), step forward (cv+btn), position CV,
-        // clear, output mode switch. CV inputs precede their buttons.
-        addInput(createInputCentered<RaPort>(Vec(22, 330), module, RaLsysModule::STEP_BACK_TRIG_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(50, 330), module, RaLsysModule::STEP_BACK_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(78, 330), module, RaLsysModule::STEP_TRIG_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(106, 330), module, RaLsysModule::STEP_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(134, 330), module, RaLsysModule::POSITION_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(168, 330), module, RaLsysModule::CLEAR_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(200, 330), module, RaLsysModule::OUT_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(228, 330), module, RaLsysModule::RESET_TRIG_INPUT));
-        addParam(createParamCentered<RaButton>(Vec(256, 330), module, RaLsysModule::RESET_PARAM));
+        // Bottom row: step back, step forward, position CV, clear, reset, and
+        // the output mode switch, evenly spaced along the x axis. CV inputs
+        // precede their buttons.
+        addInput(createInputCentered<RaPort>(Vec(33, 346), module, RaLsysModule::STEP_BACK_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(66, 346), module, RaLsysModule::STEP_BACK_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(99, 346), module, RaLsysModule::STEP_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(132, 346), module, RaLsysModule::STEP_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(165, 346), module, RaLsysModule::POSITION_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(198, 346), module, RaLsysModule::CLEAR_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(231, 346), module, RaLsysModule::RESET_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(264, 346), module, RaLsysModule::RESET_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(297, 346), module, RaLsysModule::OUT_PARAM));
     }
 };
 
