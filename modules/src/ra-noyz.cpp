@@ -140,6 +140,39 @@ struct TptSvf {
     }
 };
 
+// Flat RGB LED. The stock MediumLight LED washes colors out two ways: its
+// MediumLight.svg paints white glass glare over the color, and the SDK's
+// screen blending of the three base colors pushes mixed colors (violet, pink)
+// up toward white. This widget skips the glare overlay and mixes the RGB
+// channels linearly, and skips the sqrt nonlinearity, so the brightness values
+// set from process() are the LED color directly.
+struct RaRgbLed : app::ModuleLightWidget {
+    RaRgbLed() {
+        addBaseColor(nvgRGB(0xff, 0x00, 0x00));
+        addBaseColor(nvgRGB(0x00, 0xff, 0x00));
+        addBaseColor(nvgRGB(0x00, 0x00, 0xff));
+        box.size = mm2px(math::Vec(3, 3));
+    }
+
+    void step() override {
+        std::vector<float> b(3, 1.f); // all on in editor preview (module == NULL)
+        if (module) {
+            if (module->isBypassed()
+                || !(0 <= firstLightId && firstLightId + 3 <= (int)module->lights.size())) {
+                b[0] = b[1] = b[2] = 0.f;
+            }
+            else {
+                for (int i = 0; i < 3; i++) {
+                    float v = module->lights[firstLightId + i].getBrightness();
+                    b[i] = std::isfinite(v) ? math::clamp(v, 0.f, 1.f) : 0.f;
+                }
+            }
+        }
+        color = nvgRGBAf(b[0], b[1], b[2], 1.f);
+        MultiLightWidget::step();
+    }
+};
+
 struct RaNoyzModule : Module {
     enum ParamIds {
         COLOR_PARAM,
@@ -164,6 +197,9 @@ struct RaNoyzModule : Module {
         NUM_OUTPUTS
     };
     enum LightIds {
+        COLOR_LED_R,
+        COLOR_LED_G,
+        COLOR_LED_B,
         NUM_LIGHTS
     };
 
@@ -177,8 +213,6 @@ struct RaNoyzModule : Module {
 
     static constexpr float MIN_FILTER_FREQ = 20.f;
     static constexpr float MAX_FILTER_FREQ = 20000.f;
-    // Fixed center frequency for 1V/Oct cutoff CVs (log mid-point of the range)
-    static constexpr float CENTER_FREQ = 632.4555f;
 
     PinkNoiseGenerator<8> pinkNoiseGenerator;
     dsp::IIRFilter<2, 2> redFilter;
@@ -191,6 +225,9 @@ struct RaNoyzModule : Module {
 
     RaNoyzModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+        configLight(COLOR_LED_R, "Color");
+        configLight(COLOR_LED_G, "Color");
+        configLight(COLOR_LED_B, "Color");
         configSwitch(COLOR_PARAM, 0.f, 6.f, 0.f, "Color", {"White", "Pink", "Brown/Red", "Violet", "Blue", "Gray", "Black"});
         configParam<RaNoyzFreqQuantity>(LP_CUT_PARAM, 0.f, 1.f, 1.f, "LP cut", " Hz");
         configParam(LP_RES_PARAM, 0.f, 1.f, 0.f, "LP res", "%", 0.f, 100.f);
@@ -267,12 +304,53 @@ struct RaNoyzModule : Module {
             }
         }
 
+        // RGB LED showing the selected noise color
+        switch ((int)params[COLOR_PARAM].getValue()) {
+            case COLOR_PINK:
+                lights[COLOR_LED_R].setBrightness(1.f);
+                lights[COLOR_LED_G].setBrightness(0.55f);
+                lights[COLOR_LED_B].setBrightness(0.7f);
+                break;
+            case COLOR_RED:
+                lights[COLOR_LED_R].setBrightness(0.85f);
+                lights[COLOR_LED_G].setBrightness(0.1f);
+                lights[COLOR_LED_B].setBrightness(0.1f);
+                break;
+            case COLOR_VIOLET:
+                lights[COLOR_LED_R].setBrightness(0.6f);
+                lights[COLOR_LED_G].setBrightness(0.15f);
+                lights[COLOR_LED_B].setBrightness(1.f);
+                break;
+            case COLOR_BLUE:
+                lights[COLOR_LED_R].setBrightness(0.1f);
+                lights[COLOR_LED_G].setBrightness(0.3f);
+                lights[COLOR_LED_B].setBrightness(1.f);
+                break;
+            case COLOR_GRAY:
+                lights[COLOR_LED_R].setBrightness(0.5f);
+                lights[COLOR_LED_G].setBrightness(0.5f);
+                lights[COLOR_LED_B].setBrightness(0.5f);
+                break;
+            case COLOR_BLACK:
+                lights[COLOR_LED_R].setBrightness(0.f);
+                lights[COLOR_LED_G].setBrightness(0.f);
+                lights[COLOR_LED_B].setBrightness(0.f);
+                break;
+            case COLOR_WHITE:
+            default:
+                lights[COLOR_LED_R].setBrightness(1.f);
+                lights[COLOR_LED_G].setBrightness(1.f);
+                lights[COLOR_LED_B].setBrightness(1.f);
+                break;
+        }
+
         // Lowpass cutoff: when the CV is connected the knob becomes a unipolar
-        // attenuator (0-100%) scaling the 1V/Oct CV around the fixed center
+        // attenuator (0-100%) scaling the 1V/Oct CV above the 20 Hz minimum
+        // (0 V = 20 Hz; +10 V = ~20 kHz at full knob)
         float lpKnob = params[LP_CUT_PARAM].getValue();
         float lpCutHz;
         if (inputs[LP_CUT_CV_INPUT].isConnected())
-            lpCutHz = CENTER_FREQ * powf(2.f, inputs[LP_CUT_CV_INPUT].getVoltage() * lpKnob);
+            lpCutHz = MIN_FILTER_FREQ * powf(2.f, inputs[LP_CUT_CV_INPUT].getVoltage() * lpKnob);
         else
             lpCutHz = MIN_FILTER_FREQ * powf(MAX_FILTER_FREQ / MIN_FILTER_FREQ, lpKnob);
         float lpRes = params[LP_RES_PARAM].getValue();
@@ -283,7 +361,7 @@ struct RaNoyzModule : Module {
         float hpKnob = params[HP_CUT_PARAM].getValue();
         float hpCutHz;
         if (inputs[HP_CUT_CV_INPUT].isConnected())
-            hpCutHz = CENTER_FREQ * powf(2.f, inputs[HP_CUT_CV_INPUT].getVoltage() * hpKnob);
+            hpCutHz = MIN_FILTER_FREQ * powf(2.f, inputs[HP_CUT_CV_INPUT].getVoltage() * hpKnob);
         else
             hpCutHz = MIN_FILTER_FREQ * powf(MAX_FILTER_FREQ / MIN_FILTER_FREQ, hpKnob);
         float hpRes = params[HP_RES_PARAM].getValue();
@@ -322,6 +400,7 @@ struct RaNoyzWidget : ModuleWidget {
 
         addInput(createInputCentered<RaPort>(Vec(30, 24), module, RaNoyzModule::GATE_INPUT));
         addParam(createParamCentered<RaKnobSmall>(Vec(30, 64), module, RaNoyzModule::COLOR_PARAM));
+        addChild(createLightCentered<RaRgbLed>(Vec(30, 295), module, RaNoyzModule::COLOR_LED_R));
 
         addParam(createParamCentered<RaKnobSmall>(Vec(14, 104), module, RaNoyzModule::LP_CUT_PARAM));
         addInput(createInputCentered<RaPort>(Vec(46, 104), module, RaNoyzModule::LP_CUT_CV_INPUT));

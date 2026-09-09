@@ -76,4 +76,7 @@ To the right of that there are 7 outputs for each variable constant.
 
 This also needs a step button/cv input that steps the sequencer forward. 
 
-
+# logic gate
+- 2 inputs
+- mode button
+- 

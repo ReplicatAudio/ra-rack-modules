@@ -4,8 +4,14 @@
 // Overrides the configParam/Input/Output tooltip names.
 // ============================================================
 // fname: STEP_PARAM "Step"
+// fname: STEP_BACK_PARAM "Step ba"
+// fname: CLEAR_PARAM "Clear"
 // fname: OUT_PARAM "Out"
 // fname: STEP_TRIG_INPUT "Step"
+// fname: STEP_BACK_TRIG_INPUT "Step ba"
+// fname: POSITION_INPUT "Position"
+// fname: RESET_PARAM "Reset po"
+// fname: RESET_TRIG_INPUT "Reset tr"
 // fname: OUT1_OUTPUT "Red"
 // fname: OUT2_OUTPUT "Green"
 // fname: OUT3_OUTPUT "Blue"
@@ -39,7 +45,12 @@ static NVGcolor lsysColor(int c) {
 static const NVGcolor LSYSTEM_BG = nvgRGB(0x0a, 0x0a, 0x0a);
 static const NVGcolor LSYSTEM_BORDER = nvgRGB(0x4a, 0x40, 0x66);
 
-static const int LSYSTEM_MAX_CELLS = 64; // 8x8 output matrix
+static const int LSYSTEM_MAX_COLS = 8;
+static const int LSYSTEM_MAX_ROWS = 24;
+static const int LSYSTEM_MAX_CELLS = LSYSTEM_MAX_COLS * LSYSTEM_MAX_ROWS; // 8x24 output matrix
+static const int LSYSTEM_NUM_RULES = 8;   // number of rewrite rules
+static const int LSYSTEM_RULE_BODY = 6;   // result cells per rule
+static const int LSYSTEM_AXIOM = 8;       // axiom symbol cells
 
 // Shared cell renderer. `current` draws a bright halo for the live sequencer position.
 static void drawCell(NVGcontext* vg, Rect r, int color, bool current) {
@@ -67,12 +78,18 @@ static void drawCell(NVGcontext* vg, Rect r, int color, bool current) {
 
 struct RaLsysModule : Module {
     enum ParamIds {
-        OUT_PARAM,   // Output: Gate / Trig
-        STEP_PARAM,  // Step button
+        OUT_PARAM,      // Output: Gate / Trig
+        STEP_PARAM,     // Step forward button
+        STEP_BACK_PARAM,// Step back button
+        CLEAR_PARAM,    // Clear button
+        RESET_PARAM,    // Reset position button
         NUM_PARAMS
     };
     enum InputIds {
         STEP_TRIG_INPUT,
+        STEP_BACK_TRIG_INPUT,
+        POSITION_INPUT,
+        RESET_TRIG_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -85,26 +102,54 @@ struct RaLsysModule : Module {
     };
 
     // Editable L-system definition (persisted)
-    int axiom[8] = {1, 2, 3, 0, 0, 0, 0, 0};
-    int ruleTarget[6] = {};
-    int ruleResult[6][6] = {};
+    int axiom[LSYSTEM_AXIOM] = {1, 2, 3, 0, 0, 0, 0, 0};
+    int ruleTarget[LSYSTEM_NUM_RULES] = {};
+    int ruleResult[LSYSTEM_NUM_RULES][LSYSTEM_RULE_BODY] = {};
 
-    // Generated output string (row-major fill of the 8x8 matrix)
+    // Generated output string (row-major fill of the 8x16 matrix)
     int output[LSYSTEM_MAX_CELLS] = {};
     int outputLen = 0;
 
     unsigned long stepIndex = 0;
-    float pulse[7] = {};
+    bool hit[7] = {};   // gate-mode outputs held for the current position
+    float pulse[7] = {}; // trig-mode decay timers
+
+    // Arm the current position's outputs. Only called when the sequencer
+    // advances (or the position otherwise changes) so trig pulses fire once
+    // per step rather than every sample.
+    void fireStep() {
+        memset(hit, 0, sizeof(hit));
+        if (outputLen > 0 && curIdx() < outputLen) {
+            int sym = output[curIdx()];
+            if (sym >= 1 && sym <= 7) {
+                int o = sym - 1;
+                hit[o] = true;
+                if (params[OUT_PARAM].getValue() > 0.5f)
+                    pulse[o] = 0.01f;
+            }
+        }
+    }
 
     dsp::SchmittTrigger stepButtonTrigger;
     dsp::SchmittTrigger stepTrigTrigger;
+    dsp::SchmittTrigger stepBackButtonTrigger;
+    dsp::SchmittTrigger stepBackTrigTrigger;
+    dsp::SchmittTrigger clearButtonTrigger;
+    dsp::SchmittTrigger resetButtonTrigger;
+    dsp::SchmittTrigger resetTrigTrigger;
 
     RaLsysModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configSwitch(OUT_PARAM, 0.f, 1.f, 0.f, "Output", {"Gate", "Trig"});
-        configButton(STEP_PARAM, "Step");
+        configButton(STEP_PARAM, "Step forward");
+        configButton(STEP_BACK_PARAM, "Step back");
+        configButton(CLEAR_PARAM, "Clear");
+        configButton(RESET_PARAM, "Reset position");
 
-        configInput(STEP_TRIG_INPUT, "Step");
+        configInput(STEP_TRIG_INPUT, "Step forward");
+        configInput(STEP_BACK_TRIG_INPUT, "Step back");
+        configInput(POSITION_INPUT, "Position");
+        configInput(RESET_TRIG_INPUT, "Reset trigger");
 
         configOutput(OUT1_OUTPUT, "Red");
         configOutput(OUT2_OUTPUT, "Green");
@@ -113,6 +158,10 @@ struct RaLsysModule : Module {
         configOutput(OUT5_OUTPUT, "Cyan");
         configOutput(OUT6_OUTPUT, "Magenta");
         configOutput(OUT7_OUTPUT, "White");
+
+        // Build the initial output from the default axiom (rules are empty)
+        regenerate();
+        fireStep();
     }
 
     int curIdx() {
@@ -129,14 +178,14 @@ struct RaLsysModule : Module {
             int sym = src[i];
             if (sym == 0) continue; // empty
             int ri = -1;
-            for (int r = 0; r < 6; r++) {
+            for (int r = 0; r < LSYSTEM_NUM_RULES; r++) {
                 if (ruleTarget[r] == sym) { ri = r; break; }
             }
             if (ri < 0) {
                 dst[dlen++] = sym;
                 continue;
             }
-            for (int j = 0; j < 6 && dlen < LSYSTEM_MAX_CELLS; j++) {
+            for (int j = 0; j < LSYSTEM_RULE_BODY && dlen < LSYSTEM_MAX_CELLS; j++) {
                 int c = ruleResult[ri][j];
                 if (c != 0) dst[dlen++] = c;
             }
@@ -144,14 +193,14 @@ struct RaLsysModule : Module {
     }
 
     // Recompute the output string from the current axiom + rules. Iterates the
-    // rewrite rules until the string fills the 8x8 matrix (or a generous cap to
+    // rewrite rules until the string fills the 8x24 matrix (or a generous cap to
     // guarantee termination for pathological/stagnant systems), then truncates.
     void regenerate() {
         int bufA[LSYSTEM_MAX_CELLS];
         int bufB[LSYSTEM_MAX_CELLS];
         int* src = bufA;
         int slen = 0;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < LSYSTEM_AXIOM; i++) {
             if (axiom[i] != 0 && slen < LSYSTEM_MAX_CELLS)
                 src[slen++] = axiom[i];
         }
@@ -171,27 +220,61 @@ struct RaLsysModule : Module {
 
     void onReset() override {
         stepIndex = 0;
+        memset(hit, 0, sizeof(hit));
         memset(pulse, 0, sizeof(pulse));
+        fireStep();
     }
 
     void process(const ProcessArgs& args) override {
-        regenerate();
-
         bool trigMode = params[OUT_PARAM].getValue() > 0.5f;
 
-        // Step forward on the button or the CV trigger
-        if (stepButtonTrigger.process(params[STEP_PARAM].getValue())
-            || stepTrigTrigger.process(inputs[STEP_TRIG_INPUT].getVoltage()))
-            stepIndex++;
+        // Clear: reset the axiom and all rules to off/black, emptying the L-system
+        if (clearButtonTrigger.process(params[CLEAR_PARAM].getValue())) {
+            memset(axiom, 0, sizeof(axiom));
+            memset(ruleTarget, 0, sizeof(ruleTarget));
+            memset(ruleResult, 0, sizeof(ruleResult));
+            memset(hit, 0, sizeof(hit));
+            memset(pulse, 0, sizeof(pulse));
+            regenerate();
+        }
 
-        // Fire the current symbol's color output
-        bool hit[7] = {};
-        if (outputLen > 0) {
-            int sym = output[curIdx()];
-            if (sym >= 1 && sym <= 7) {
-                int o = sym - 1;
-                hit[o] = true;
-                if (trigMode) pulse[o] = 0.01f;
+        // Reset: return the playhead to the start of the sequence
+        if (resetButtonTrigger.process(params[RESET_PARAM].getValue())
+            || resetTrigTrigger.process(inputs[RESET_TRIG_INPUT].getVoltage())) {
+            stepIndex = 0;
+            fireStep();
+        }
+
+        // Position CV drives the playhead directly (0-10 V maps to an absolute
+        // position across the sequence). While active it takes over from the
+        // step buttons / triggers, mirroring ra-reflectingpool.
+        float posVoltage = inputs[POSITION_INPUT].getVoltage();
+        bool posActive = inputs[POSITION_INPUT].isConnected() && fabsf(posVoltage) >= 0.001f;
+
+        if (!posActive) {
+            // Step forward
+            if (stepButtonTrigger.process(params[STEP_PARAM].getValue())
+                || stepTrigTrigger.process(inputs[STEP_TRIG_INPUT].getVoltage())) {
+                stepIndex++;
+                fireStep();
+            }
+            // Step back
+            if (stepBackButtonTrigger.process(params[STEP_BACK_PARAM].getValue())
+                || stepBackTrigTrigger.process(inputs[STEP_BACK_TRIG_INPUT].getVoltage())) {
+                if (outputLen > 0) {
+                    stepIndex = (curIdx() == 0) ? (unsigned long)outputLen - 1 : (unsigned long)curIdx() - 1;
+                    fireStep();
+                }
+            }
+        }
+        else {
+            if (outputLen > 0) {
+                float norm = clamp(posVoltage / 10.f, 0.f, 1.f);
+                int newPos = (outputLen > 1) ? (int)roundf(norm * (outputLen - 1)) : 0;
+                if ((int)curIdx() != newPos) {
+                    stepIndex = (unsigned long)newPos;
+                    fireStep();
+                }
             }
         }
 
@@ -213,19 +296,19 @@ struct RaLsysModule : Module {
     json_t* dataToJson() override {
         json_t* rootJ = json_object();
         json_t* axiJ = json_array();
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < LSYSTEM_AXIOM; i++)
             json_array_append_new(axiJ, json_integer(axiom[i]));
         json_object_set_new(rootJ, "axiom", axiJ);
 
         json_t* tgtJ = json_array();
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < LSYSTEM_NUM_RULES; i++)
             json_array_append_new(tgtJ, json_integer(ruleTarget[i]));
         json_object_set_new(rootJ, "targets", tgtJ);
 
         json_t* resJ = json_array();
-        for (int r = 0; r < 6; r++) {
+        for (int r = 0; r < LSYSTEM_NUM_RULES; r++) {
             json_t* rowJ = json_array();
-            for (int j = 0; j < 6; j++)
+            for (int j = 0; j < LSYSTEM_RULE_BODY; j++)
                 json_array_append_new(rowJ, json_integer(ruleResult[r][j]));
             json_array_append_new(resJ, rowJ);
         }
@@ -236,29 +319,34 @@ struct RaLsysModule : Module {
     void dataFromJson(json_t* rootJ) override {
         json_t* axiJ = json_object_get(rootJ, "axiom");
         if (axiJ) {
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < LSYSTEM_AXIOM; i++) {
                 json_t* v = json_array_get(axiJ, i);
                 if (v) axiom[i] = clamp(json_integer_value(v), 0, 7);
             }
         }
         json_t* tgtJ = json_object_get(rootJ, "targets");
         if (tgtJ) {
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < LSYSTEM_NUM_RULES; i++) {
                 json_t* v = json_array_get(tgtJ, i);
                 if (v) ruleTarget[i] = clamp(json_integer_value(v), 0, 7);
             }
         }
         json_t* resJ = json_object_get(rootJ, "results");
-        if (resJ && json_array_size(resJ) == 6) {
-            for (int r = 0; r < 6; r++) {
+        if (resJ) {
+            for (int r = 0; r < LSYSTEM_NUM_RULES; r++) {
                 json_t* rowJ = json_array_get(resJ, r);
                 if (!rowJ) continue;
-                for (int j = 0; j < 6; j++) {
+                for (int j = 0; j < LSYSTEM_RULE_BODY; j++) {
                     json_t* v = json_array_get(rowJ, j);
                     if (v) ruleResult[r][j] = clamp(json_integer_value(v), 0, 7);
                 }
             }
         }
+
+        // Rebuild the output string from the loaded axiom/rules and re-arm
+        // the current position's outputs
+        regenerate();
+        fireStep();
     }
 };
 
@@ -274,7 +362,10 @@ struct ColorCell : OpaqueWidget {
     void onDragStart(const event::DragStart& e) override {
         if (e.button == GLFW_MOUSE_BUTTON_LEFT && value) {
             *value = (*value + 1) % 8;
-            if (module) module->regenerate();
+            if (module) {
+                module->regenerate();
+                module->fireStep();
+            }
         }
         OpaqueWidget::onDragStart(e);
     }
@@ -329,31 +420,36 @@ struct AxiomDisplay : LedDisplay {
     }
 };
 
-// Below the axiom: 6 rule rows. Each row has 1 target cell (left) and
-// 6 result cells.
+// Below the axiom: the rule rows. Each row has 1 target cell (left) and
+// LSYSTEM_RULE_BODY result cells.
 struct RulesDisplay : LedDisplay {
     RaLsysModule* module;
 
     void setModule(RaLsysModule* m) {
         module = m;
         const float cell = 12.f;
-        const float targetX = 8.f;
-        const float resX[6] = {30.f, 45.f, 60.f, 75.f, 90.f, 105.f};
-        const float rowY[6] = {10.f, 50.f, 90.f, 130.f, 170.f, 210.f};
+        // Match the axiom row layout: same pitch/startX so the rule buttons line
+        // up with the axiom buttons. Target sits on axiom column 0; the 6 result
+        // cells sit on axiom columns 2..7 (column 1 is left for the arrow).
+        const float pitch = 16.f;   // horizontal column pitch, matches the axiom
+        const float startX = 8.f;
+        const float rowPitch = 30.f; // vertical spacing of rule rows
         const float half = cell / 2.f;
-        for (int r = 0; r < 6; r++) {
+        for (int r = 0; r < LSYSTEM_NUM_RULES; r++) {
+            float y = 10.f + r * rowPitch;
             ColorCell* t = new ColorCell;
             t->module = module;
             t->value = (module) ? &module->ruleTarget[r] : NULL;
-            t->box.pos = Vec(targetX - half, rowY[r] - half);
+            t->box.pos = Vec(startX - half, y - half);
             t->box.size = Vec(cell, cell);
             addChild(t);
 
-            for (int j = 0; j < 6; j++) {
+            for (int j = 0; j < LSYSTEM_RULE_BODY; j++) {
+                float x = startX + (j + 2) * pitch;
                 ColorCell* c = new ColorCell;
                 c->module = module;
                 c->value = (module) ? &module->ruleResult[r][j] : NULL;
-                c->box.pos = Vec(resX[j] - half, rowY[r] - half);
+                c->box.pos = Vec(x - half, y - half);
                 c->box.size = Vec(cell, cell);
                 addChild(c);
             }
@@ -362,27 +458,63 @@ struct RulesDisplay : LedDisplay {
 
     void draw(const DrawArgs& args) override {
         paintBackdrop(args.vg, box);
+        // Arrow from each target cell (left) toward its result cells (right),
+        // spanning the width of axiom column 1 so it matches the button width.
+        const float cell = 12.f;
+        const float startX = 8.f;
+        const float colPitch = 16.f;
+        const float rowPitch = 30.f;
+        const float x1 = startX + cell / 2.f;          // target cell right edge
+        const float x2 = startX + 2.f * colPitch - cell / 2.f; // first result left edge
+        // Draw the arrow narrower than its cell, padded inward from both edges
+        const float pad = 4.f;
+        const float ax1 = x1 + pad;   // arrow tail (left)
+        const float ax2 = x2 - pad;   // arrow tip (right)
+        nvgStrokeWidth(args.vg, 1.5f);
+        nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 90));
+        for (int r = 0; r < LSYSTEM_NUM_RULES; r++) {
+            float y = 10.f + r * rowPitch;
+            nvgBeginPath(args.vg);
+            nvgMoveTo(args.vg, ax1, y);
+            nvgLineTo(args.vg, ax2, y);
+            nvgStroke(args.vg);
+            // arrowhead
+            float hx = ax2;
+            nvgBeginPath(args.vg);
+            nvgMoveTo(args.vg, hx, y);
+            nvgLineTo(args.vg, hx - 2.5f, y - 2.f);
+            nvgMoveTo(args.vg, hx, y);
+            nvgLineTo(args.vg, hx - 2.5f, y + 2.f);
+            nvgStroke(args.vg);
+        }
         Widget::draw(args);
     }
 };
 
-// Right: the non-editable 8x8 output matrix.
+// Right: the non-editable 8x24 output matrix.
 struct MatrixDisplay : LedDisplay {
     RaLsysModule* module;
 
     void setModule(RaLsysModule* m) {
         module = m;
-        const float cell = 9.f;
-        const float pitch = 11.f;
-        const float startX = 4.f;
-        const float startY = 4.f;
-        for (int i = 0; i < 64; i++) {
+        // Fill the whole display box: pitch the cells to spread across the
+        // full width/height, so both 8 columns and all rows are centered.
+        const float margin = 3.f;
+        const float gap = 2.f;
+        const int cols = LSYSTEM_MAX_COLS;
+        const int rows = LSYSTEM_MAX_ROWS;
+        float pitchX = (box.size.x - 2.f * margin) / cols;
+        float pitchY = (box.size.y - 2.f * margin) / rows;
+        float cell = std::min(pitchX, pitchY) - gap;
+        float startX = (box.size.x - (cols - 1) * pitchX - cell) / 2.f;
+        float startY = (box.size.y - (rows - 1) * pitchY - cell) / 2.f;
+        for (int i = 0; i < LSYSTEM_MAX_CELLS; i++) {
             MatrixCell* c = new MatrixCell;
             c->module = module;
             c->index = i;
-            int row = i / 8;
-            int col = i % 8;
-            c->box.pos = Vec(startX + col * pitch, startY + row * pitch);
+            int row = i / cols;
+            int col = i % cols;
+            c->box.pos = Vec(startX + col * pitchX, startY + row * pitchY);
             c->box.size = Vec(cell, cell);
             addChild(c);
         }
@@ -417,26 +549,33 @@ struct RaLsysWidget : ModuleWidget {
         rules->setModule(module);
         addChild(rules);
 
-        // Right: the non-editable 8x8 output matrix
+        // Right: the non-editable 8x24 output matrix, same height as the rules screen
         MatrixDisplay* matrix = new MatrixDisplay;
-        matrix->box.pos = Vec(180, 50);
-        matrix->box.size = Vec(96, 96);
+        matrix->box.pos = Vec(180, 54);
+        matrix->box.size = Vec(96, 250);
         matrix->setModule(module);
         addChild(matrix);
 
         // Right of the matrix: one output per active color (7 total)
-        addOutput(createOutputCentered<RaPort>(Vec(292, 50), module, RaLsysModule::OUT1_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(292, 92), module, RaLsysModule::OUT2_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(292, 134), module, RaLsysModule::OUT3_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(292, 176), module, RaLsysModule::OUT4_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(292, 218), module, RaLsysModule::OUT5_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(292, 260), module, RaLsysModule::OUT6_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(292, 302), module, RaLsysModule::OUT7_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 50), module, RaLsysModule::OUT1_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 92), module, RaLsysModule::OUT2_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 134), module, RaLsysModule::OUT3_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 176), module, RaLsysModule::OUT4_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 218), module, RaLsysModule::OUT5_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 260), module, RaLsysModule::OUT6_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(305, 302), module, RaLsysModule::OUT7_OUTPUT));
 
-        // Bottom-left: step button, output mode switch, step CV input
-        addParam(createParamCentered<RaButton>(Vec(20, 330), module, RaLsysModule::STEP_PARAM));
-        addParam(createParamCentered<RaSwitch2>(Vec(52, 330), module, RaLsysModule::OUT_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(84, 330), module, RaLsysModule::STEP_TRIG_INPUT));
+        // Bottom row: step back (cv+btn), step forward (cv+btn), position CV,
+        // clear, output mode switch. CV inputs precede their buttons.
+        addInput(createInputCentered<RaPort>(Vec(22, 330), module, RaLsysModule::STEP_BACK_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(50, 330), module, RaLsysModule::STEP_BACK_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(78, 330), module, RaLsysModule::STEP_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(106, 330), module, RaLsysModule::STEP_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(134, 330), module, RaLsysModule::POSITION_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(168, 330), module, RaLsysModule::CLEAR_PARAM));
+        addParam(createParamCentered<RaSwitch2>(Vec(200, 330), module, RaLsysModule::OUT_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(228, 330), module, RaLsysModule::RESET_TRIG_INPUT));
+        addParam(createParamCentered<RaButton>(Vec(256, 330), module, RaLsysModule::RESET_PARAM));
     }
 };
 
