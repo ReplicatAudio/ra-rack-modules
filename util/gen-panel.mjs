@@ -113,6 +113,11 @@ const ru2mm = (ru) => ru * 5.08 / 15;
 const FONT_SIZE_NAME = 2.6;   // module name, mm
 const FONT_SIZE_LABEL = 1.9;  // control/port labels, mm
 const LABEL_MAX_LEN = 8;     // truncate labels longer than this
+// Fixed vertical gap (mm) from a widget's centre to its label baseline. Using a
+// constant offset (rather than per-widget edge+radius) keeps every label in a
+// given row on the same baseline, so labels of knobs, jacks, buttons, switches,
+// bezels and sliders all line up horizontally.
+const LABEL_V_OFFSET = 5.5;
 
 // Resolve the panel font relative to this script: util/ -> repo root ./font
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -806,7 +811,11 @@ function generateSVG(info) {
         if (w.role === 'output') {
           const sw = CFG.strokeWidth + 0.1;
           const d = r * 2 + sw;
-          svg += `    <rect x="${(mx - r - sw / 2).toFixed(2)}" y="${(my - r - sw / 2).toFixed(2)}" width="${d.toFixed(2)}" height="${d.toFixed(2)}" rx="1.5" fill="${color}" opacity="0.7"/>\n`;
+          // Keep the block top anchored at the jack, but extend the bottom down
+          // so it fully encompasses the label (baseline at my + LABEL_V_OFFSET).
+          const topY = my - r - sw / 2;
+          const botY = my + LABEL_V_OFFSET + 0.5;
+          svg += `    <rect x="${(mx - r - sw / 2).toFixed(2)}" y="${topY.toFixed(2)}" width="${d.toFixed(2)}" height="${(botY - topY).toFixed(2)}" rx="1.5" fill="${color}" opacity="0.7"/>\n`;
           svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${(r * 0.65).toFixed(2)}" fill="#111" opacity="0.5"/>\n`;
         } else {
           svg += `    <circle cx="${mx.toFixed(2)}" cy="${my.toFixed(2)}" r="${r.toFixed(2)}" fill="#111" stroke="${color}" stroke-width="${CFG.strokeWidth + 0.1}" opacity="0.7"/>\n`;
@@ -913,41 +922,9 @@ function generateSVG(info) {
     if (label.length > LABEL_MAX_LEN) label = label.slice(0, LABEL_MAX_LEN);
     if (!label) continue;
 
-    let ly;
-    switch (w.kind) {
-      case 'slider': {
-        const sh = ru2mm(w.hh || 15);
-        ly = my + sh + 2.0;
-        break;
-      }
-      case 'jack': {
-        const r = ru2mm(w.rad);
-        ly = my + r + 3.0;
-        break;
-      }
-      case 'knob': {
-        const r = ru2mm(w.rad);
-        ly = my + r + 3.0;
-        break;
-      }
-      case 'switch': {
-        const hh = ru2mm(w.hh || 10.32);
-        ly = my + hh + 2.0;
-        break;
-      }
-      case 'button': {
-        const r = ru2mm(w.rad);
-        ly = my + r + 2.0;
-        break;
-      }
-      case 'bezel': {
-        const r = ru2mm(w.rad);
-        ly = my + r + 2.0;
-        break;
-      }
-      default:
-        continue;
-    }
+    // Fixed offset from the widget centre (not from each widget's own edge), so
+    // all labels in a row share the same baseline.
+    const ly = my + LABEL_V_OFFSET;
 
     svg += `    ${textToPath(label, mx, ly, FONT_SIZE_LABEL, color)}\n`;
   }
