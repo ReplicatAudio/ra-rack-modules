@@ -5,6 +5,7 @@ SOURCES = \
 	src/plugin.cpp \
 	src/ra-vipberus.cpp \
 	src/ra-adsr.cpp \
+	src/ra-adsr3.cpp \
 	src/ra-blank.cpp \
 	src/ra-buttons.cpp \
 	src/ra-tyche.cpp \
@@ -27,6 +28,7 @@ SOURCES = \
 	src/ra-think.cpp \
 	src/ra-quant.cpp \
 	src/ra-accumulator.cpp \
+	src/ra-ar.cpp \
 	src/ra-glitch.cpp \
 	src/ra-seer.cpp \
 	src/ra-zeno.cpp \

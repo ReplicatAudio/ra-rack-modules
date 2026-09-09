@@ -117,6 +117,15 @@
       ]
     },
     {
+      "slug": "ra-adsr3",
+      "name": "ra-adsr3",
+      "description": "3hp ADSR envelope generator \u2014 attack, decay, sustain, and release knobs with gate, retrigger, and trigger inputs",
+      "tags": [
+        "Envelope generator",
+        "Utility"
+      ]
+    },
+    {
       "slug": "ra-glitch",
       "name": "ra-glitch",
       "description": "Random glitch processor \u2014 freeze, swap, or drop audio with CV-controllable frequency and length",
@@ -189,6 +198,15 @@
         "Utility",
         "CV source",
         "Sequencer"
+      ]
+    },
+    {
+      "slug": "ra-ar",
+      "name": "ra-ar",
+      "description": "3hp dual attack/release envelope \u2014 2 trigger inputs, 2 envelope outputs, and per-channel attack/release knob sets",
+      "tags": [
+        "Envelope generator",
+        "Utility"
       ]
     },
     {
