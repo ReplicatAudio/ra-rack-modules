@@ -50,7 +50,8 @@ SOURCES = \
 	src/ra-karplus-strong.cpp \
 	src/ra-krush.cpp \
 	src/ra-lsystem.cpp \
-	src/ra-rec.cpp
+	src/ra-rec.cpp \
+	src/ra-logic.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)

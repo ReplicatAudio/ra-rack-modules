@@ -448,6 +448,15 @@
         "Recorder",
         "Utility"
       ]
+    },
+    {
+      "slug": "ra-logic",
+      "name": "ra-logic",
+      "description": "8 configurable logic gates \u2014 AND, OR, XOR, NAND, NOR, XNOR, NOT A, NOT B with per-gate mode buttons and code screens",
+      "tags": [
+        "Utility",
+        "Logic"
+      ]
     }
   ]
 }

@@ -51,6 +51,7 @@ extern Model *modelRaDelayCv;
 extern Model *modelRaKrush;
 extern Model *modelRaLsys;
 extern Model *modelRaRec;
+extern Model *modelRaLogic;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -102,4 +103,5 @@ void init(Plugin *p) {
 	p->addModel(modelRaKrush);
 	p->addModel(modelRaLsys);
 	p->addModel(modelRaRec);
+	p->addModel(modelRaLogic);
 }
