@@ -439,6 +439,15 @@
         "Drum",
         "Utility"
       ]
+    },
+    {
+      "slug": "ra-rec",
+      "name": "ra-rec",
+      "description": "4-channel CV/audio recorder \u2014 record and playback with rate and position control",
+      "tags": [
+        "Recorder",
+        "Utility"
+      ]
     }
   ]
 }
