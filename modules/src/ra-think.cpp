@@ -76,7 +76,7 @@ struct RaThinkModule : Module {
         configParam(CUTOFF_PARAM, 0.f, 1.f, 0.8f, "Cutoff", "%", 0.f, 100.f);
         configParam(RES_PARAM, 0.f, 1.f, 0.f, "Resonance", "%", 0.f, 100.f);
         configSwitch(DC_CORRECT_PARAM, 0.f, 1.f, 1.f, "DC correction", {"Off", "On"});
-        configParam(GAIN_PARAM, -5.f, 5.f, 1.f, "Gain");
+        configParam(GAIN_PARAM, 0.f, 1.f, 1.f, "Gain", "%", 0.f, 100.f);
         configInput(GAIN_CV_INPUT, "Gain CV");
         configInput(PITCH_INPUT, "1V/Oct");
         configInput(SHAPE_CV_INPUT, "Shape CV");
@@ -104,10 +104,16 @@ struct RaThinkModule : Module {
             return clamp(knob, 0.f, 1.f);
         };
 
+        auto attenuatedCV = [](float knob, float cv, bool connected) {
+            if (connected)
+                return clamp(knob * clamp(cv / 10.f, 0.f, 1.f), 0.f, 1.f);
+            return clamp(knob, 0.f, 1.f);
+        };
+
         float shape = applyCV(params[SHAPE_PARAM].getValue(), inputs[SHAPE_CV_INPUT].getVoltage(), inputs[SHAPE_CV_INPUT].isConnected());
         float width = applyCV(params[WIDTH_PARAM].getValue(), inputs[WIDTH_CV_INPUT].getVoltage(), inputs[WIDTH_CV_INPUT].isConnected());
-        float cutoffNorm = applyCV(params[CUTOFF_PARAM].getValue(), inputs[CUTOFF_CV_INPUT].getVoltage(), inputs[CUTOFF_CV_INPUT].isConnected());
-        float resNorm = applyCV(params[RES_PARAM].getValue(), inputs[RES_CV_INPUT].getVoltage(), inputs[RES_CV_INPUT].isConnected());
+        float cutoffNorm = attenuatedCV(params[CUTOFF_PARAM].getValue(), inputs[CUTOFF_CV_INPUT].getVoltage(), inputs[CUTOFF_CV_INPUT].isConnected());
+        float resNorm = attenuatedCV(params[RES_PARAM].getValue(), inputs[RES_CV_INPUT].getVoltage(), inputs[RES_CV_INPUT].isConnected());
 
         float sawDown = 1.f - 2.f * phase;
         float sawUp = 2.f * phase - 1.f;
@@ -138,11 +144,8 @@ struct RaThinkModule : Module {
         band += g * hp;
         low += g * band;
 
-        float gain = params[GAIN_PARAM].getValue();
-        if (inputs[GAIN_CV_INPUT].isConnected())
-            gain += inputs[GAIN_CV_INPUT].getVoltage() * (gain / 5.f);
-        gain = clamp(gain, -5.f, 5.f);
-        float out = 5.f * tanh(low * gain);
+        float gainNorm = attenuatedCV(params[GAIN_PARAM].getValue(), inputs[GAIN_CV_INPUT].getVoltage(), inputs[GAIN_CV_INPUT].isConnected());
+        float out = 5.f * tanh(low * gainNorm);
         outputs[AUDIO_OUTPUT].setVoltage(out);
     }
 };
