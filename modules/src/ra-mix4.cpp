@@ -77,7 +77,7 @@ struct RaMix4Module : Module {
         VU2_BASE = VU1_BASE + VU_SEGMENTS * 3,
         VU3_BASE = VU2_BASE + VU_SEGMENTS * 3,
         VU4_BASE = VU3_BASE + VU_SEGMENTS * 3,
-        VU_OUT_L_BASE,
+        VU_OUT_L_BASE = VU4_BASE + VU_SEGMENTS * 3,
         VU_OUT_R_BASE = VU_OUT_L_BASE + VU_SEGMENTS * 3,
         NUM_LIGHTS = VU_OUT_R_BASE + VU_SEGMENTS * 3
     };
