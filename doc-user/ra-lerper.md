@@ -20,6 +20,8 @@ Lerps the CV output toward one of four target values (A, B, C, D) at a rate set 
   - **±5V**: internal ±10 V mapped onto −5…+5 V.
   - **0–1V**: internal ±10 V mapped onto 0–1 V.
 
+The A/B/C/D knob hover tooltips show their value scaled to the currently selected output mode, matching the CV output.
+
 ## Screen
 - The square screen has a point at each corner representing the four targets (A top-left, B top-right, C bottom-left, D bottom-right).
 - A dot shows the current output position, gliding toward the active target at rate T.

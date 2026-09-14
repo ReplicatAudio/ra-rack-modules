@@ -5,6 +5,7 @@ the running count by one; when the count reaches the `Count` target, the output
 fires.
 
 ## Controls
+- **Screen**: shows the current running count.
 - **Count**: target number of increments (0–256, quantized). The output fires
   once the running count reaches this value.
 - **Inc**: button to add one to the running count.
