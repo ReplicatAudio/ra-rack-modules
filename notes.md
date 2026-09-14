@@ -82,3 +82,7 @@ This also needs a step button/cv input that steps the sequencer forward.
 
 # Auto trigger
 - triggers when cv changes past delta 
+
+# lerper
+- 2 knobs
+- when triggered, lerp from a->b

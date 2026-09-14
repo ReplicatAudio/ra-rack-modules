@@ -33,17 +33,59 @@ extern Plugin *pluginInstance;
 // The 8 symbols represented by colors:
 //   0 = off/black (empty — skipped in the string)
 //   1 = red, 2 = green, 3 = blue, 4 = yellow, 5 = cyan, 6 = magenta, 7 = white
+// Desaturate and brighten the original color, keeping its hue intact.
+static NVGcolor lsysTint(NVGcolor col, float lBoost = 1.f) {
+    float r = col.r, g = col.g, b = col.b;
+    float max = fmaxf(r, fmaxf(g, b));
+    float min = fminf(r, fminf(g, b));
+    float l = (max + min) / 2.f;
+    float h = 0.f, s = 0.f;
+    if (max != min) {
+        float d = max - min;
+        s = (l > 0.5f) ? d / (2.f - max - min) : d / (max + min);
+        if (max == r) h = (g - b) / d + (g < b ? 6.f : 0.f);
+        else if (max == g) h = (b - r) / d + 2.f;
+        else h = (r - g) / d + 4.f;
+        h /= 6.f;
+    }
+    s *= 0.75f;
+    l = fmin(l * 1.15f * lBoost, 1.f);
+    // Nudge hue ~50% of the way toward purple.
+    const float PURPLE_HUE = 0.72f;
+    float diff = PURPLE_HUE - h;
+    if (diff > 0.5f) diff -= 1.f;
+    else if (diff < -0.5f) diff += 1.f;
+    h += diff * 0.5f;
+    if (h < 0.f) h += 1.f;
+    else if (h > 1.f) h -= 1.f;
+
+    // Rebuild RGB from HSL.
+    float q = (l < 0.5f) ? l * (1.f + s) : l + s - l * s;
+    float p = 2.f * l - q;
+    auto hue2rgb = [&](float t) {
+        if (t < 0.f) t += 1.f;
+        if (t > 1.f) t -= 1.f;
+        if (t < 1.f/6.f) return p + (q - p) * 6.f * t;
+        if (t < 1.f/2.f) return q;
+        if (t < 2.f/3.f) return p + (q - p) * (2.f/3.f - t) * 6.f;
+        return p;
+    };
+    return nvgRGBAf(hue2rgb(h + 1.f/3.f), hue2rgb(h), hue2rgb(h - 1.f/3.f), 1.f);
+}
+
 static NVGcolor lsysColor(int c) {
+    NVGcolor base;
     switch (c) {
-        case 1:  return componentlibrary::SCHEME_RED;
-        case 2:  return componentlibrary::SCHEME_GREEN;
-        case 3:  return componentlibrary::SCHEME_BLUE;
-        case 4:  return componentlibrary::SCHEME_YELLOW;
-        case 5:  return componentlibrary::SCHEME_CYAN;
-        case 6:  return nvgRGB(0xd0, 0x2a, 0xe0); // magenta
-        case 7:  return componentlibrary::SCHEME_WHITE;
+        case 1:  base = componentlibrary::SCHEME_RED; break;
+        case 2:  base = componentlibrary::SCHEME_GREEN; break;
+        case 3:  base = componentlibrary::SCHEME_BLUE; break;
+        case 4:  base = componentlibrary::SCHEME_YELLOW; break;
+        case 5:  base = componentlibrary::SCHEME_CYAN; break; // brighter
+        case 6:  base = nvgRGB(0xd0, 0x2a, 0xe0); break; // magenta
+        case 7:  base = componentlibrary::SCHEME_WHITE; break;
         default: return nvgRGB(0x12, 0x12, 0x12); // off/black cell (visible on the panel)
     }
+    return lsysTint(base, (c == 5) ? 1.25f : 1.f);
 }
 
 static const NVGcolor LSYSTEM_BG = nvgRGB(0x0a, 0x0a, 0x0a);
