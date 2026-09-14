@@ -17,6 +17,7 @@ SOURCES = \
 	src/ra-freeberd.cpp \
 	src/ra-delay-cv.cpp \
 	src/ra-ranger.cpp \
+	src/ra-ranger2.cpp \
 	src/ra-magus.cpp \
 	src/ra-mothership.cpp \
 	src/ra-noyz.cpp \

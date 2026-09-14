@@ -61,6 +61,14 @@
       ]
     },
     {
+      "slug": "ra-ranger2",
+      "name": "ra-ranger2",
+      "description": "CV range rescaler — maps an input range (floor to ceil) onto an output range (floor to ceil)",
+      "tags": [
+        "Utility"
+      ]
+    },
+    {
       "slug": "ra-reflectingpool",
       "name": "ra-reflectingpool",
       "description": "OP-1 style endless sequencer \u2014 record and play back sequences of CV notes/rests",
