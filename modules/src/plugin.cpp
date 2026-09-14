@@ -53,6 +53,7 @@ extern Model *modelRaLsys;
 extern Model *modelRaRec;
 extern Model *modelRaLogic;
 extern Model *modelRaTrigcv;
+extern Model *modelRaLfo;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -106,4 +107,5 @@ void init(Plugin *p) {
 	p->addModel(modelRaRec);
 	p->addModel(modelRaLogic);
 	p->addModel(modelRaTrigcv);
+	p->addModel(modelRaLfo);
 }

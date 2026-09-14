@@ -80,6 +80,8 @@ const WIDGET_INFO = {
   RaSwitch3: { kind: 'switch', hw: 6.73, hh: 14.17 },
   RaButton: { kind: 'button', rad: 9 },
   VCVLightBezel: { kind: 'bezel', rad: 10.65 },
+  VCVLightLatch: { kind: 'bezel', rad: 10.65 },
+  VCVLightBezelLatch: { kind: 'bezel', rad: 10.65 },
   RaRGBLight: { kind: 'bezel', rad: 9 },
   MediumLight: { kind: 'bezel', rad: 9 },
   SmallLight: { kind: 'bezel', rad: 3 },

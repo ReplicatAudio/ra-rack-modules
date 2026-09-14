@@ -52,7 +52,8 @@ SOURCES = \
 	src/ra-lsystem.cpp \
 	src/ra-rec.cpp \
 	src/ra-logic.cpp \
-	src/ra-trigcv.cpp
+	src/ra-trigcv.cpp \
+	src/ra-lfo.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)

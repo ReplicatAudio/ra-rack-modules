@@ -466,6 +466,15 @@
         "Utility",
         "Logic"
       ]
+    },
+    {
+      "slug": "ra-lfo",
+      "name": "ra-lfo",
+      "description": "Voltage-controlled LFO \u2014 clock-syncable sine, triangle, sawtooth, and square outputs with pulse width modulation, and gated/button-controlled offset and invert",
+      "tags": [
+        "LFO",
+        "Oscillator"
+      ]
     }
   ]
 }
