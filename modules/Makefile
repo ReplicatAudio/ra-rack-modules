@@ -55,7 +55,8 @@ SOURCES = \
 	src/ra-logic.cpp \
 	src/ra-trigcv.cpp \
 	src/ra-lfo.cpp \
-	src/ra-lerper.cpp
+	src/ra-lerper.cpp \
+	src/ra-countdown.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)

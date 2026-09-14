@@ -56,6 +56,7 @@ extern Model *modelRaLogic;
 extern Model *modelRaTrigcv;
 extern Model *modelRaLfo;
 extern Model *modelRaLerper;
+extern Model *modelRaCountdown;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -112,4 +113,5 @@ void init(Plugin *p) {
 	p->addModel(modelRaTrigcv);
 	p->addModel(modelRaLfo);
 	p->addModel(modelRaLerper);
+	p->addModel(modelRaCountdown);
 }

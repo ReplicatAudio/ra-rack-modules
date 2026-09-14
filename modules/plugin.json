@@ -493,6 +493,16 @@
         "CV source",
         "Sequencer"
       ]
+    },
+    {
+      "slug": "ra-countdown",
+      "name": "ra-countdown",
+      "description": "Trigger countdown \u2014 counts N triggers then fires a trigger or gate, with increment/decrement, reset, and auto-reset",
+      "tags": [
+        "Utility",
+        "Sequencer",
+        "Logic"
+      ]
     }
   ]
 }
