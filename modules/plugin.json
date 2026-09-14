@@ -483,6 +483,16 @@
         "LFO",
         "Oscillator"
       ]
+    },
+    {
+      "slug": "ra-lerper",
+      "name": "ra-lerper",
+      "description": "Lerper \u2014 lerp toward A/B/C/D targets at rate T with a square screen showing the output position between the four corner targets",
+      "tags": [
+        "Utility",
+        "CV source",
+        "Sequencer"
+      ]
     }
   ]
 }
