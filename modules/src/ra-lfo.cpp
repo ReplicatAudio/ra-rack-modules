@@ -57,7 +57,6 @@ struct RaLfoModule : Module {
 		NUM_OUTPUTS
 	};
 	enum LightIds {
-		ENUMS(PHASE_LIGHT, 3),
 		INVERT_LIGHT,
 		OFFSET_LIGHT,
 		NUM_LIGHTS
@@ -72,6 +71,8 @@ struct RaLfoModule : Module {
 	dsp::TSchmittTrigger<float_4> resetTriggers[4];
 	dsp::SchmittTrigger clockTrigger;
 	float clockFreq = 1.f;
+	float phaseRef = -1.f;
+	float outRef = -1.f;
 	dsp::Timer clockTimer;
 	dsp::ClockDivider lightDivider;
 
@@ -99,8 +100,6 @@ struct RaLfoModule : Module {
 		configOutput(TRI_OUTPUT, "Triangle");
 		configOutput(SAW_OUTPUT, "Sawtooth");
 		configOutput(SQR_OUTPUT, "Square");
-
-		configLight(PHASE_LIGHT, "Phase");
 
 		lightDivider.setDivision(16);
 		onReset();
@@ -230,26 +229,104 @@ struct RaLfoModule : Module {
 		outputs[SAW_OUTPUT].setChannels(channels);
 		outputs[SQR_OUTPUT].setChannels(channels);
 
-		// Phase light
+		// Phase/output reference for the on-panel screen (shifted + wrapped, 0–1)
+		if (channels == 1) {
+			float p = phases[0][0] + phaseOffset;
+			p -= std::floor(p);
+			phaseRef = p;
+			// Normalized version of the output (representative = sine), 0–1
+			float v = std::sin(2.f * M_PI * (phases[0][0] + phaseOffset));
+			if (invert)
+				v *= -1.f;
+			outRef = (v + 1.f) / 2.f;
+		}
+		else {
+			phaseRef = -1.f;
+			outRef = -1.f;
+		}
+
+		// Toggle LEDs
 		if (lightDivider.process()) {
-			if (channels == 1) {
-				float p = phases[0][0] + phaseOffset;
-				p -= std::floor(p);
-				float b = 1.f - p;
-				// Purple: red and blue channels driven together
-				lights[PHASE_LIGHT + 0].setSmoothBrightness(b, args.sampleTime * lightDivider.getDivision());
-				lights[PHASE_LIGHT + 1].setBrightness(0.f);
-				lights[PHASE_LIGHT + 2].setSmoothBrightness(b, args.sampleTime * lightDivider.getDivision());
-			}
-			else {
-				// Poly: purple (red+blue) at full brightness
-				lights[PHASE_LIGHT + 0].setBrightness(1.f);
-				lights[PHASE_LIGHT + 1].setBrightness(0.f);
-				lights[PHASE_LIGHT + 2].setBrightness(1.f);
-			}
 			lights[OFFSET_LIGHT].setBrightness(offset);
 			lights[INVERT_LIGHT].setBrightness(invert);
 		}
+	}
+};
+
+
+// Repo accent purple — matches the other modules' envelope/filter accents
+static const NVGcolor LFO_PURPLE = nvgRGB(0x99, 0x6d, 0xd2);
+
+struct RaLfoDisplay : LedDisplay {
+	RaLfoModule* module;
+
+	void drawLayer(const DrawArgs& args, int layer) override {
+		if (layer == 1) {
+			// Screen backdrop — painted slightly larger than the box to cover the
+			// SVG bezel outline, recolored with a muted purple border to match the accent
+			nvgBeginPath(args.vg);
+			nvgRoundedRect(args.vg, -3, -3, box.size.x + 6, box.size.y + 6, 4);
+			nvgFillColor(args.vg, nvgRGB(0x0a, 0x0a, 0x0a));
+			nvgFill(args.vg);
+			nvgStrokeWidth(args.vg, 1.5f);
+			nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
+			nvgStroke(args.vg);
+
+			nvgScissor(args.vg, RECT_ARGS(args.clipBox));
+
+			Rect r = getBox().zeroPos();
+			float inset = 4.f;
+			r.pos.x += inset;
+			r.size.x -= 2 * inset;
+			float cy = r.pos.y + r.size.y * 0.5f;
+
+			// Horizontal track line
+			nvgStrokeWidth(args.vg, 1.0);
+			nvgStrokeColor(args.vg, nvgRGBAf(1, 1, 1, 0.15));
+			nvgBeginPath(args.vg);
+			Vec p = Vec(r.pos.x, cy);
+			nvgMoveTo(args.vg, VEC_ARGS(p));
+			p = Vec(r.pos.x + r.size.x, cy);
+			nvgLineTo(args.vg, VEC_ARGS(p));
+			nvgStroke(args.vg);
+
+			// Phase dot on the center track
+			float phase = module ? module->phaseRef : -1.f;
+			if (phase >= 0.f) {
+				float x = r.pos.x + r.size.x * phase;
+				nvgBeginPath(args.vg);
+				nvgCircle(args.vg, x, cy, 2.5);
+				nvgFillColor(args.vg, LFO_PURPLE);
+				nvgFill(args.vg);
+			}
+
+			// Output dot — horizontal position follows the output value (0–1
+			// across the screen); its y position stays fixed below the track.
+			float out = module ? module->outRef : -1.f;
+			if (out >= 0.f) {
+				float yd = r.pos.y + r.size.y * 0.85f;
+				float x = r.pos.x + r.size.x * out;
+				nvgBeginPath(args.vg);
+				nvgCircle(args.vg, x, yd, 2.5);
+				nvgFillColor(args.vg, nvgRGB(0xc9, 0xb8, 0xf0));
+				nvgFill(args.vg);
+			}
+
+			// Waveform dot — horizontal position follows phase, vertical follows
+			// the normalized output (bottom→top), tracing the waveform shape.
+			if (out >= 0.f && phase >= 0.f) {
+				float yd = r.pos.y + r.size.y * 0.12f + r.size.y * 0.76f * (1.f - out);
+				float x = r.pos.x + r.size.x * phase;
+				nvgBeginPath(args.vg);
+				nvgCircle(args.vg, x, yd, 2.5);
+				nvgFillColor(args.vg, nvgRGB(0x6a, 0x4a, 0xa8));
+				nvgFill(args.vg);
+			}
+
+			nvgResetScissor(args.vg);
+		}
+
+		LedDisplay::drawLayer(args, layer);
 	}
 };
 
@@ -286,7 +363,10 @@ struct RaLfoWidget : ModuleWidget {
 		addOutput(createOutputCentered<RaPort>(mm2px(Vec(28.279, 119.5)), module, RaLfoModule::SAW_OUTPUT));
 		addOutput(createOutputCentered<RaPort>(mm2px(Vec(39.116, 119.5)), module, RaLfoModule::SQR_OUTPUT));
 
-		addChild(createLightCentered<RaRGBLight>(mm2px(Vec(31.085, 16.428)), module, RaLfoModule::PHASE_LIGHT));
+		RaLfoDisplay* display = createWidget<RaLfoDisplay>(mm2px(Vec(0.0, 12.0)));
+		display->box.size = mm2px(Vec(45.72, 8.0));
+		display->module = module;
+		addChild(display);
 	}
 };
 

@@ -22,3 +22,5 @@ Low-frequency oscillator producing sine, triangle, sawtooth, and square outputs 
 
 ## Outputs
 - **Sine**, **Tri**, **Saw**, **Sqr**: the four waveforms, ±5 V bipolar or 0–10 V unipolar depending on the Offset button.
+
+A screen at the top of the panel shows the current phase position as a small purple dot.</｜DSML｜parameter
