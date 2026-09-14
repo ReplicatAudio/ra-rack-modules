@@ -72,8 +72,8 @@ let CFG = {
 // ============================================================
 const WIDGET_INFO = {
   RaPort: { kind: 'jack', rad: 11.85 },
-  RaKnob: { kind: 'knob', rad: 14.17 },
-  RaKnobLarge: { kind: 'knob', rad: 18 },
+  RaKnob: { kind: 'knob', rad: 18 },
+  RaKnobLarge: { kind: 'knob', rad: 27 },
   RaKnobSmall: { kind: 'knob', rad: 11.34 },
   RaKnobTrim: { kind: 'knob', rad: 8.93 },
   RaSwitch2: { kind: 'switch', hw: 7, hh: 10.32 },
@@ -949,11 +949,18 @@ function generateSVG(info) {
 
     // Fixed offset from the widget centre (not from each widget's own edge), so
     // all labels in a row share the same baseline.
-    // Sliders are tall (well over the label offset), so their labels sit at the
-    // bottom of the slider element instead of just below the centre.
+    // Widgets that extend further below their centre than the fixed label offset
+    // (tall sliders, and larger knobs/buttons/bezzels) would hide the text behind
+    // their own body, so for those we place the label at the bottom edge instead.
     let ly;
-    if (w.kind === 'slider') {
-      ly = my + ru2mm(w.hh || 0) + 1.0; // bottom edge of slider + small gap
+    let bottomExtent = LABEL_V_OFFSET; // default: labels align at the fixed offset
+    if (w.kind === 'slider' || w.hh !== undefined) {
+      bottomExtent = ru2mm(w.hh || 0);
+    } else if (w.rad !== undefined) {
+      bottomExtent = ru2mm(w.rad);
+    }
+    if (bottomExtent > LABEL_V_OFFSET) {
+      ly = my + bottomExtent + 1.0; // below the widget's bottom edge + small gap
     } else {
       ly = my + LABEL_V_OFFSET;
     }
