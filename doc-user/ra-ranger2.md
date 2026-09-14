@@ -14,4 +14,4 @@ Rescales a CV input from an input range (floor to ceil) onto an output range (fl
 - **Output floor CV / Output ceil CV**: CV inputs that override the output range knobs when connected.
 
 ## Outputs
-- **Output**: the input signal rescaled from the input range to the output range.
+- **Output**: the input signal rescaled from the input range to the output range, clamped so it stays within the output floor/ceil even when the input goes outside the input range.
