@@ -15,6 +15,15 @@
       ]
     },
     {
+      "slug": "ra-trigcv",
+      "name": "ra-trigcv",
+      "description": "8 trigger-to-CV mapper — triggers select a channel, knob or CV sets the value, 3-way output range",
+      "tags": [
+        "Utility",
+        "CV source"
+      ]
+    },
+    {
       "slug": "ra-gnawbz",
       "name": "ra-gnawbz",
       "description": "3-channel control voltage source",

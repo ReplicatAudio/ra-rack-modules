@@ -79,4 +79,6 @@ This also needs a step button/cv input that steps the sequencer forward.
 # logic gate
 - 2 inputs
 - mode button
-- 
+
+# Auto trigger
+- triggers when cv changes past delta 

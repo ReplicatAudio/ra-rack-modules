@@ -186,9 +186,9 @@ struct QuantizerButton : OpaqueWidget {
         nvgBeginPath(args.vg);
         nvgRect(args.vg, RECT_ARGS(r));
         if (module ? module->playingNotes[note] : (note == 0)) {
-            nvgFillColor(args.vg, componentlibrary::SCHEME_YELLOW);
+            nvgFillColor(args.vg, nvgRGB(0xa8, 0x96, 0xff));
         } else if (module ? module->enabledNotes[note] : true) {
-            nvgFillColor(args.vg, nvgRGB(0x7f, 0x6b, 0x0a));
+            nvgFillColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
         } else {
             nvgFillColor(args.vg, nvgRGB(0x40, 0x40, 0x40));
         }
