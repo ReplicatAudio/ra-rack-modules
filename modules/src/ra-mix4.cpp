@@ -3,32 +3,32 @@
 // Read by util/gen-panel.mjs for the rendered SVG label text.
 // Overrides the configParam/Input/Output tooltip names.
 // ============================================================
-// fname: GAIN1_PARAM "Gain 1"
-// fname: GAIN2_PARAM "Gain 2"
-// fname: GAIN3_PARAM "Gain 3"
-// fname: GAIN4_PARAM "Gain 4"
-// fname: MASTER_PARAM "Master"
-// fname: PAN1_PARAM "Pan 1"
-// fname: PAN2_PARAM "Pan 2"
-// fname: PAN3_PARAM "Pan 3"
-// fname: PAN4_PARAM "Pan 4"
-// fname: MASTER_PAN_PARAM "Pan"
-// fname: CV_GAIN1_INPUT "CV G1"
-// fname: CV_GAIN2_INPUT "CV G2"
-// fname: CV_GAIN3_INPUT "CV G3"
-// fname: CV_GAIN4_INPUT "CV G4"
-// fname: CV_GAIN_MASTER_INPUT "CV GM"
-// fname: CV_PAN1_INPUT "CV P1"
-// fname: CV_PAN2_INPUT "CV P2"
-// fname: CV_PAN3_INPUT "CV P3"
-// fname: CV_PAN4_INPUT "CV P4"
-// fname: CV_PAN_MASTER_INPUT "CV PM"
-// fname: CH1_INPUT "In 1"
-// fname: CH2_INPUT "In 2"
-// fname: CH3_INPUT "In 3"
-// fname: CH4_INPUT "In 4"
-// fname: OUT_L "Left"
-// fname: OUT_R "Right"
+// fname: GAIN1_PARAM " "
+// fname: GAIN2_PARAM " "
+// fname: GAIN3_PARAM " "
+// fname: GAIN4_PARAM " "
+// fname: MASTER_PARAM " "
+// fname: PAN1_PARAM "Pan"
+// fname: PAN2_PARAM " "
+// fname: PAN3_PARAM " "
+// fname: PAN4_PARAM " "
+// fname: MASTER_PAN_PARAM " "
+// fname: CV_GAIN1_INPUT "GAIN"
+// fname: CV_GAIN2_INPUT " "
+// fname: CV_GAIN3_INPUT " "
+// fname: CV_GAIN4_INPUT " "
+// fname: CV_GAIN_MASTER_INPUT " "
+// fname: CV_PAN1_INPUT "PAN"
+// fname: CV_PAN2_INPUT " "
+// fname: CV_PAN3_INPUT " "
+// fname: CV_PAN4_INPUT " "
+// fname: CV_PAN_MASTER_INPUT " "
+// fname: CH1_INPUT "1"
+// fname: CH2_INPUT "2"
+// fname: CH3_INPUT "3"
+// fname: CH4_INPUT "4"
+// fname: OUT_L "L"
+// fname: OUT_R "R"
 #include "ra-components.hpp"
 
 using namespace rack;
@@ -191,8 +191,15 @@ struct RaMix4Module : Module {
         outputs[OUT_L].setVoltage(outL);
         outputs[OUT_R].setVoltage(outR);
 
-        processVu(clamp(fabsf(outL) / 10.f, 0.f, 1.f), VU_OUT_L_BASE);
-        processVu(clamp(fabsf(outR) / 10.f, 0.f, 1.f), VU_OUT_R_BASE);
+        if (outputs[OUT_L].isConnected() && !outputs[OUT_R].isConnected()) {
+            // Mono into the left output: light both meters with the mono level.
+            float level = clamp(fabsf(outL) / 10.f, 0.f, 1.f);
+            processVu(level, VU_OUT_L_BASE);
+            processVu(level, VU_OUT_R_BASE);
+        } else {
+            processVu(clamp(fabsf(outL) / 10.f, 0.f, 1.f), VU_OUT_L_BASE);
+            processVu(clamp(fabsf(outR) / 10.f, 0.f, 1.f), VU_OUT_R_BASE);
+        }
     }
 };
 
@@ -248,10 +255,11 @@ struct RaMix4Widget : ModuleWidget {
             addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(135, 371 - i * 10), module, RaMix4Module::VU4_BASE + i * 3));
         }
 
-        // Master output VU meters — L on the left edge, R on the right edge
+        // Master output VU meters — L on the left edge, R on the right edge,
+        // just above the bottom-corner screws
         for (int i = 0; i < 10; i++) {
-            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(20, 228 - i * 12), module, RaMix4Module::VU_OUT_L_BASE + i * 3));
-            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(190, 228 - i * 12), module, RaMix4Module::VU_OUT_R_BASE + i * 3));
+            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(20, 358 - i * 12), module, RaMix4Module::VU_OUT_L_BASE + i * 3));
+            addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(Vec(190, 358 - i * 12), module, RaMix4Module::VU_OUT_R_BASE + i * 3));
         }
 
         addOutput(createOutputCentered<RaPort>(Vec(165, 255), module, RaMix4Module::OUT_L));
