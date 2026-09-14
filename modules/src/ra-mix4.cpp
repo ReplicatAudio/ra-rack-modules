@@ -82,6 +82,19 @@ struct RaMix4Module : Module {
         NUM_LIGHTS = VU_OUT_R_BASE + VU_SEGMENTS * 3
     };
 
+    // VU metering state — windowed RMS with a slow one-pole smoother to
+    // approximate standard mixer VU ballistics (integration ~ 300 ms).
+    static constexpr float VU_BLOCK_TIME = 0.01f; // 10 ms RMS accumulation window
+    static constexpr float VU_TC = 0.3f;          // 300 ms VU time constant
+    struct VuMeter {
+        float sumSq = 0.f;
+        int count = 0;
+        float level = 0.f;
+        void reset() { sumSq = 0.f; count = 0; }
+    };
+    VuMeter vuMeters[6]; // 0-3: inputs, 4: out L, 5: out R
+    float vuTime = 0.f;
+
     RaMix4Module() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configParam(GAIN1_PARAM, 0.f, 1.5f, 1.f, "Gain 1");
@@ -129,10 +142,11 @@ struct RaMix4Module : Module {
     }
 
     void processVu(float level, int base) {
-        // level is linear full-scale (0..1, 1 = 10 V). Convert to a VU-style
-        // dB scale — 0 dB = full scale, meter dead below -40 dB — so typical
-        // ±5 V program material lights most of the bar instead of the bottom
-        // tenth. (-40 dB ≈ 0.1 V, -20 dB ≈ 1 V, -12 dB ≈ 2.5 V, -6 dB ≈ 5 V)
+        // level is a normalized (0..1, 1 = 10 V) RMS level already smoothed by
+        // VU ballistics. Convert to a VU-style dB scale — 0 dB = full scale,
+        // meter dead below -40 dB — so typical ±5 V program material lights
+        // most of the bar instead of the bottom tenth.
+        // (-40 dB ≈ 0.1 V, -20 dB ≈ 1 V, -12 dB ≈ 2.5 V, -6 dB ≈ 5 V)
         float db = level > 0.f ? 20.f * std::log10(level) : -60.f;
         float norm = clamp((db + 40.f) / 40.f, 0.f, 1.f);
         for (int i = 0; i < VU_SEGMENTS; i++) {
@@ -145,6 +159,31 @@ struct RaMix4Module : Module {
             lights[base + i * 3 + 1].setBrightness(g);
             lights[base + i * 3 + 2].setBrightness(b);
         }
+    }
+
+    void accumulateVu(int meter, float sampleLevel) {
+        VuMeter& vu = vuMeters[meter];
+        vu.sumSq += sampleLevel * sampleLevel;
+        vu.count++;
+    }
+
+    void updateVus() {
+        // Compute the RMS of each meter's accumulation window and run it
+        // through a one-pole smoother (VU ballistic time constant).
+        float phi = 1.f - std::exp(-VU_BLOCK_TIME / VU_TC);
+        for (int m = 0; m < 6; m++) {
+            VuMeter& vu = vuMeters[m];
+            float rms = (vu.count > 0) ? std::sqrt(vu.sumSq / (float)vu.count) : 0.f;
+            vu.level += (rms - vu.level) * phi;
+            vu.reset();
+        }
+        // Mirror indices to light bases: inputs 0-3, out L (4), out R (5).
+        processVu(vuMeters[0].level, VU1_BASE);
+        processVu(vuMeters[1].level, VU2_BASE);
+        processVu(vuMeters[2].level, VU3_BASE);
+        processVu(vuMeters[3].level, VU4_BASE);
+        processVu(vuMeters[4].level, VU_OUT_L_BASE);
+        processVu(vuMeters[5].level, VU_OUT_R_BASE);
     }
 
     void process(const ProcessArgs &args) override {
@@ -162,7 +201,7 @@ struct RaMix4Module : Module {
             else
                 gain = clamp(params[GAIN1_PARAM + c].getValue(), 0.f, 1.5f);
             float pan = clamp(params[PAN1_PARAM + c].getValue() + inputs[CV_PAN1_INPUT + c].getVoltage(), -1.f, 1.f);
-            processVu(clamp(fabsf(in * gain) / 10.f, 0.f, 1.f), VU1_BASE + c * VU_SEGMENTS * 3);
+            accumulateVu(c, clamp(fabsf(in * gain) / 10.f, 0.f, 1.f));
             mono += in * gain;
             float a = cosf((pan + 1.f) * M_PI / 4.f);
             float b = sinf((pan + 1.f) * M_PI / 4.f);
@@ -192,13 +231,20 @@ struct RaMix4Module : Module {
         outputs[OUT_R].setVoltage(outR);
 
         if (outputs[OUT_L].isConnected() && !outputs[OUT_R].isConnected()) {
-            // Mono into the left output: light both meters with the mono level.
+            // Mono into the left output: feed both meters with the mono level.
             float level = clamp(fabsf(outL) / 10.f, 0.f, 1.f);
-            processVu(level, VU_OUT_L_BASE);
-            processVu(level, VU_OUT_R_BASE);
+            accumulateVu(4, level);
+            accumulateVu(5, level);
         } else {
-            processVu(clamp(fabsf(outL) / 10.f, 0.f, 1.f), VU_OUT_L_BASE);
-            processVu(clamp(fabsf(outR) / 10.f, 0.f, 1.f), VU_OUT_R_BASE);
+            accumulateVu(4, clamp(fabsf(outL) / 10.f, 0.f, 1.f));
+            accumulateVu(5, clamp(fabsf(outR) / 10.f, 0.f, 1.f));
+        }
+
+        // Flush the meters periodically to apply the VU smoother.
+        vuTime += args.sampleTime;
+        if (vuTime >= VU_BLOCK_TIME) {
+            vuTime = 0.f;
+            updateVus();
         }
     }
 };
