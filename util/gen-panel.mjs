@@ -86,8 +86,8 @@ const WIDGET_INFO = {
   MediumLight: { kind: 'bezel', rad: 9 },
   SmallLight: { kind: 'bezel', rad: 3 },
   TinyLight: { kind: 'bezel', rad: 4 },
-  VCVLightSlider: { kind: 'slider', hw: 7.5, hh: 20 },
-  VCVSlider: { kind: 'slider', hw: 7.5, hh: 20 },
+  VCVLightSlider: { kind: 'slider', hw: 9.92129, hh: 38.26758 },
+  VCVSlider: { kind: 'slider', hw: 9.92129, hh: 38.26758 },
   RaScrew: { kind: 'screw', rad: 7.5 },
 };
 
@@ -949,7 +949,14 @@ function generateSVG(info) {
 
     // Fixed offset from the widget centre (not from each widget's own edge), so
     // all labels in a row share the same baseline.
-    const ly = my + LABEL_V_OFFSET;
+    // Sliders are tall (well over the label offset), so their labels sit at the
+    // bottom of the slider element instead of just below the centre.
+    let ly;
+    if (w.kind === 'slider') {
+      ly = my + ru2mm(w.hh || 0) + 1.0; // bottom edge of slider + small gap
+    } else {
+      ly = my + LABEL_V_OFFSET;
+    }
 
     svg += `    ${textToPath(label, mx, ly, FONT_SIZE_LABEL, color)}\n`;
   }
