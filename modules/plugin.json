@@ -503,6 +503,15 @@
         "Sequencer",
         "Logic"
       ]
+    },
+    {
+      "slug": "ra-control",
+      "name": "ra-control",
+      "description": "Animated cables \u2014 redraws every cable in the patch with the signal travelling along it, plus an on-hover oscilloscope of a cable's waveform",
+      "tags": [
+        "Visual",
+        "Utility"
+      ]
     }
   ]
 }
