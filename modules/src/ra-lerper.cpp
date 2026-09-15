@@ -20,6 +20,7 @@
 // fname: C_TRIG "C tr"
 // fname: D_TRIG "D tr"
 // fname: OUTPUT_MODE "OUT"
+// fname: LERP_MODE "MODE"
 // fname: CV_OUTPUT "CV"
 #include "ra-components.hpp"
 #include <atomic>
@@ -64,6 +65,7 @@ struct RaLerperModule : Module {
 		C_TRIG,
 		D_TRIG,
 		OUTPUT_MODE,
+		LERP_MODE,
 		NUM_PARAMS
 	};
 	enum InputIds {
@@ -138,6 +140,7 @@ struct RaLerperModule : Module {
 		configInput(D_TRIG_IN, "D trigger");
 
 		configSwitch(OUTPUT_MODE, 0.f, 2.f, 0.f, "Output mode", {"0–10V", "±5V", "0–1V"});
+		configSwitch(LERP_MODE, 0.f, 1.f, 0.f, "Lerp mode", {"target", "mix"});
 
 		configOutput(CV_OUTPUT, "CV");
 	}
@@ -192,31 +195,53 @@ struct RaLerperModule : Module {
 			coeff = 1.f - std::exp(-lambda * args.sampleTime);
 		}
 
-		// Choose the lerp target: the XY position when active, otherwise the
-		// selected corner. For the XY target the value is the bilinear
-		// interpolation of the four corners at (u,v) on the matrix.
-		float targetValue;
+		// Lerp mode: target = slew the output value toward the target; mix = slew
+		// the mix weights (the dot position) and mix the live inputs each sample
+		// using those weights, without filtering the signal itself.
+		int lerpMode = (int)std::round(params[LERP_MODE].getValue());
+
+		// Choose the target position: the XY position when active, otherwise the
+		// selected corner. In target mode the output value slews toward the value
+		// at this target; in mix mode the mix weights slew toward this position.
 		float targetDotX, targetDotY;
 		if (xyActive) {
-			float u = xyX, v = xyY;
-			targetValue = targets[0] * (1 - u) * (1 - v)
-				+ targets[1] * u * (1 - v)
-				+ targets[2] * (1 - u) * v
-				+ targets[3] * u * v;
-			targetDotX = u;
-			targetDotY = v;
+			targetDotX = xyX;
+			targetDotY = xyY;
 		} else {
-			targetValue = targets[activeTarget];
 			targetDotX = cornerX(activeTarget);
 			targetDotY = cornerY(activeTarget);
 		}
 
-		// Lerp the output value toward the active target
-		currentValue += (targetValue - currentValue) * coeff;
-
-		// Lerp the screen dot toward the active target's position
+		// Lerp the screen dot / mix weights toward the target position
 		dotX += (targetDotX - dotX) * coeff;
 		dotY += (targetDotY - dotY) * coeff;
+
+		float out;
+		if (lerpMode != 0) {
+			// Mix the live inputs using the slewed weights (u,v). The lerp only
+			// fades the mix weights; the audio inputs are mixed unprocessed.
+			float u = dotX, v = dotY;
+			out = targets[0] * (1 - u) * (1 - v)
+				+ targets[1] * u * (1 - v)
+				+ targets[2] * (1 - u) * v
+				+ targets[3] * u * v;
+			currentValue = out;
+		} else {
+			// Target value at the current (unslewed) target position
+			float targetValue;
+			if (xyActive) {
+				float u = xyX, v = xyY;
+				targetValue = targets[0] * (1 - u) * (1 - v)
+					+ targets[1] * u * (1 - v)
+					+ targets[2] * (1 - u) * v
+					+ targets[3] * u * v;
+			} else {
+				targetValue = targets[activeTarget];
+			}
+			// Lerp the output value toward the active target
+			currentValue += (targetValue - currentValue) * coeff;
+			out = currentValue;
+		}
 
 		// Apply the output range mode (maps the internal ±10V onto the chosen range)
 		int mode = (int)std::round(params[OUTPUT_MODE].getValue());
@@ -227,7 +252,7 @@ struct RaLerperModule : Module {
 			case 1: outScale = 0.5f; outOffset = 0.f; break;   // ±5V
 			case 2: outScale = 0.05f; outOffset = 0.5f; break; // 0–1V
 		}
-		float out = currentValue * outScale + outOffset;
+		out = out * outScale + outOffset;
 		outputs[CV_OUTPUT].setVoltage(out);
 
 		// Publish to UI thread. displayTarget 4 marks the active XY target.
@@ -424,9 +449,10 @@ struct RaLerperWidget : ModuleWidget {
 		addInput(createInputCentered<RaPort>(Vec(120, 292), module, RaLerperModule::X_INPUT));
 		addInput(createInputCentered<RaPort>(Vec(120, 320), module, RaLerperModule::Y_INPUT));
 
-		// ---- Output + mode switch ----
+		// ---- Output + mode switches ----
 		addOutput(createOutputCentered<RaPort>(Vec(120, 348), module, RaLerperModule::CV_OUTPUT));
 		addParam(createParamCentered<RaSwitch3>(Vec(196, 348), module, RaLerperModule::OUTPUT_MODE));
+		addParam(createParamCentered<RaSwitch2>(Vec(44, 348), module, RaLerperModule::LERP_MODE));
 	}
 };
 

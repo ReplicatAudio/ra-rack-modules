@@ -6,6 +6,9 @@ Lerps the CV output toward one of four target values (A, B, C, D) at a rate set 
 - **A / B / C / D**: target values (−10 to +10 V).
 - **T**: time to reach a target (0–10 s).
 - **A tr / B tr / C tr / D tr**: buttons that begin lerping the output toward that target.
+- **MODE** (switch, left of the output): selects the lerp behavior:
+  - **target**: lerps the output value toward the target value.
+  - **mix**: lerps toward a target mix weight.
 
 ## Inputs
 - **A CV / B CV / C CV / D CV**: CV inputs that override the corresponding target knobs when connected.
