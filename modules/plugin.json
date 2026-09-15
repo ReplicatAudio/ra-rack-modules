@@ -512,6 +512,15 @@
         "Visual",
         "Utility"
       ]
+    },
+    {
+      "slug": "ra-xyout",
+      "name": "ra-xyout",
+      "description": "Dual CV source \u2014 a square XY pad sets a position, clickable to place it, with a lerp speed knob + CV and selectable 0\u201310V / \u00b15V / 0\u20131V output range",
+      "tags": [
+        "Utility",
+        "CV source"
+      ]
     }
   ]
 }
