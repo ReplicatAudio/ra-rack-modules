@@ -475,13 +475,20 @@ struct RaKarplusStrongModule : Module {
             filtered = dcOut2;
 
             // --- Feedback with gain ---
-            float feedbackGain = feedback;
+            // Sustain is pitch-consistent (greenwave model): the Feedback
+            // knob is a per-cycle retention factor, converted to a per-sample
+            // loss so a given setting decays the same per cycle at every
+            // pitch. Previously a fixed per-sample multiply made per-cycle
+            // gain = feedback^delayLen, so low notes died almost instantly
+            // while high notes rang long.
+            float feedbackPerSample = std::exp(
+                std::log(std::max(1e-4f, feedback)) / (float)delayLen[c]);
 
             // --- Output (tapped before feedback gain, so low settings
             // yield audible short plucks instead of silence) ---
             out = filtered;
 
-            filtered *= feedbackGain;
+            filtered *= feedbackPerSample;
 
             // Bound the recirculated signal so runaway modes saturate
             // instead of overflowing to inf/NaN. Scaled tanh is transparent
@@ -511,10 +518,14 @@ struct RaKarplusStrongModule : Module {
                     float sympFiltered = sympPrevOut[c][i] + dampCoeff * (sympDelayOut - sympPrevOut[c][i]);
                     sympPrevOut[c][i] = sympFiltered;
 
-                    // Slightly lower feedback so sympathetic strings decay a bit faster
+                    // Slightly lower feedback so sympathetic strings decay a bit
+                    // faster; per-cycle normalized so the relative decay stays
+                    // pitch-consistent like the main loop.
                     // DC-block the recirculated path so the symp loop can't build
                     // up DC when feedback * 0.985 exceeds 1
-                    float sympRecirc = sympFiltered * feedbackGain * 0.985f;
+                    float sympFeedbackPerSample = std::exp(std::log(
+                        std::max(1e-4f, feedback * 0.985f)) / (float)sympDelayLen);
+                    float sympRecirc = sympFiltered * sympFeedbackPerSample;
                     float sympDc = sympRecirc - sympDcXPrev[c][i] + dcRCoeff * sympDcYPrev[c][i];
                     sympDcXPrev[c][i] = sympRecirc;
                     sympDcYPrev[c][i] = sympDc;
