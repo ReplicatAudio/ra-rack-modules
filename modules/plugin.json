@@ -521,6 +521,16 @@
         "Utility",
         "CV source"
       ]
+    },
+    {
+      "slug": "ra-repeater",
+      "name": "ra-repeater",
+      "description": "Trigger repeater \u2014 repeats an incoming trigger on 4 outputs, each with a delay (0\u20131 s) and chance (0\u2013100%) knob + CV, plus a global all-triggers output with input passthrough mode",
+      "tags": [
+        "Utility",
+        "Sequencer",
+        "Logic"
+      ]
     }
   ]
 }
