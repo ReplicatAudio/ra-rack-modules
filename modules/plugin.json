@@ -531,6 +531,16 @@
         "Sequencer",
         "Logic"
       ]
+    },
+    {
+      "slug": "ra-bump",
+      "name": "ra-bump",
+      "description": "Trigger sequencer \u2014 steps through 8 toggleable on/off steps at a step-time knob or clock-synced rate when triggered, with a single trigger output and input passthrough mode",
+      "tags": [
+        "Sequencer",
+        "Utility",
+        "Logic"
+      ]
     }
   ]
 }

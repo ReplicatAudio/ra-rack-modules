@@ -60,6 +60,7 @@ extern Model *modelRaCountdown;
 extern Model *modelRaControl;
 extern Model *modelRaXyout;
 extern Model *modelRaRepeater;
+extern Model *modelRaBump;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -120,4 +121,5 @@ void init(Plugin *p) {
 	p->addModel(modelRaControl);
     p->addModel(modelRaXyout);
     p->addModel(modelRaRepeater);
+    p->addModel(modelRaBump);
 }

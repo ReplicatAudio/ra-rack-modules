@@ -13,6 +13,7 @@
 // fname: MODE_PARAM "Mode"
 // fname: TRIGGER_BUTTON_PARAM "push"
 #include "ra-components.hpp"
+#include <atomic>
 
 using namespace rack;
 
@@ -78,12 +79,16 @@ struct RaRepeaterModule : Module {
     float timers[4];
     // Output LED brightness, peaks on fire and decays to 0.
     float ledBrightness[4];
+    // Last-seen delay knob value per output, used to spot the last-moved knob.
+    float lastDelayValue[4];
+    // Screen value: delay in ms of the most recently moved delay knob.
+    std::atomic<int> displayMs;
 
     RaRepeaterModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configInput(TRIG_INPUT, "Trigger");
         for (int i = 0; i < 4; i++) {
-            configParam(DELAY1_PARAM + i, 0.f, 1.f, 0.f, string::f("Delay %d", i + 1), " s", 1000.f, 0.f);
+            configParam(DELAY1_PARAM + i, 0.f, 1.f, 0.f, string::f("Delay %d", i + 1), " ms", 0.f, 1000.f, 0.f);
             configParam(CHANCE1_PARAM + i, 0.f, 1.f, 1.f, string::f("Chance %d", i + 1), "%", 0.f, 100.f);
             configInput(DELAY1_INPUT + i, string::f("Delay %d CV", i + 1));
             configInput(CHANCE1_INPUT + i, string::f("Chance %d CV", i + 1));
@@ -93,17 +98,21 @@ struct RaRepeaterModule : Module {
             configLight(LIGHT1_B + i * 3, string::f("Light %d B", i + 1));
             timers[i] = -1.f;
             ledBrightness[i] = 0.f;
+            lastDelayValue[i] = 0.f;
         }
         configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Mode", {"Passthrough", "No pass"});
         configButton(TRIGGER_BUTTON_PARAM, "Manual");
         configOutput(GLOBAL_OUTPUT, "All");
+        displayMs.store(0, std::memory_order_relaxed);
     }
 
     void onReset() override {
         for (int i = 0; i < 4; i++) {
             timers[i] = -1.f;
             ledBrightness[i] = 0.f;
+            lastDelayValue[i] = 0.f;
         }
+        displayMs.store(0, std::memory_order_relaxed);
     }
 
     void process(const ProcessArgs &args) override {
@@ -117,6 +126,13 @@ struct RaRepeaterModule : Module {
             // Delay time: knob 0-1s plus CV (5 V = 1 s), clamped 0-1 s.
             float delayT = params[DELAY1_PARAM + i].getValue() + inputs[DELAY1_INPUT + i].getVoltage() / 5.f;
             delayT = clamp(delayT, 0.f, 1.f);
+
+            // Track the most recently moved delay knob for the screen readout.
+            float knobV = params[DELAY1_PARAM + i].getValue();
+            if (knobV != lastDelayValue[i]) {
+                lastDelayValue[i] = knobV;
+                displayMs.store((int)std::lround(clamp(knobV, 0.f, 1.f) * 1000.f), std::memory_order_relaxed);
+            }
 
             // Chance: knob 0-100% plus CV (10 V = 100%), clamped 0-100%.
             float chance = params[CHANCE1_PARAM + i].getValue() + inputs[CHANCE1_INPUT + i].getVoltage() / 10.f;
@@ -167,6 +183,39 @@ struct RaRepeaterModule : Module {
     }
 };
 
+// Screen showing the most recently moved delay knob's value in milliseconds.
+struct RepeaterTimeDisplay : LedDisplay {
+	RaRepeaterModule *module;
+	std::shared_ptr<Font> font;
+
+	RepeaterTimeDisplay() {
+		font = APP->window->loadFont(asset::system("res/fonts/DejaVuSans.ttf"));
+	}
+
+	void draw(const DrawArgs &args) override {
+		nvgBeginPath(args.vg);
+		nvgRoundedRect(args.vg, -3, -3, box.size.x + 6, box.size.y + 6, 4);
+		nvgFillColor(args.vg, nvgRGB(0x10, 0x10, 0x10));
+		nvgFill(args.vg);
+		nvgStrokeWidth(args.vg, 1.5f);
+		nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
+		nvgStroke(args.vg);
+
+		if (!module || !font) return;
+
+		int ms = module->displayMs.load(std::memory_order_relaxed);
+
+		nvgFontFaceId(args.vg, font->handle);
+		nvgFontSize(args.vg, 14);
+		nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
+		nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+
+		char buf[16];
+		snprintf(buf, sizeof(buf), "%d", ms);
+		nvgText(args.vg, box.size.x / 2, box.size.y / 2, buf, NULL);
+	}
+};
+
 struct RaRepeaterWidget : ModuleWidget {
     RaRepeaterWidget(RaRepeaterModule *module) {
         setModule(module);
@@ -200,6 +249,12 @@ struct RaRepeaterWidget : ModuleWidget {
         // Global output and mode switch at the bottom
         addOutput(createOutputCentered<RaPort>(Vec(xs[2], 330), module, RaRepeaterModule::GLOBAL_OUTPUT));
         addParam(createParamCentered<RaSwitch2>(Vec(xs[4], 330), module, RaRepeaterModule::MODE_PARAM));
+
+        // Screen to the left of the global output jack, left edge aligned with the delay button column
+        RepeaterTimeDisplay *disp = createWidget<RepeaterTimeDisplay>(Vec(30.f, 315.f));
+        disp->box.size = Vec(30.f, 30.f);
+        disp->module = module;
+        addChild(disp);
     }
 };
 

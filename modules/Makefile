@@ -59,7 +59,8 @@ SOURCES = \
 	src/ra-countdown.cpp \
 	src/ra-control.cpp \
 	src/ra-xyout.cpp \
-	src/ra-repeater.cpp
+	src/ra-repeater.cpp \
+	src/ra-bump.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)
