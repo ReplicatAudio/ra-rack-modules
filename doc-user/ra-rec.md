@@ -3,10 +3,7 @@
 A 4-track CV/audio recorder with individual per-track control plus global transport, all four tracks shown on a wide scope display. Each track has its own recording buffer (up to 8 minutes) and is saved to its own `.rarec` file.
 
 ## Display
-A single wide scope readout shows all four tracks stacked as waveform lanes:
-- **Red** waveform while that track is recording (live input being captured).
-- **Green** waveform while the module is playing back.
-- **Blue** waveform when idle (stored recording, or blank if the track is empty).
+A single wide scope readout shows all four tracks stacked as waveform lanes. Each lane always shows the **full recording**, stretched or shrunk to fit the width — so the waveform compresses as a recording grows. Lines are drawn in **purple**, and are always clamped inside the lane (CV that exceeds ±5V is trimmed at the lane edge rather than spilling out). Empty tracks show a flat line.
 
 ## Per-track controls (one column per lane)
 Each of the four lanes has:

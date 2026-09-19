@@ -178,11 +178,6 @@ struct RaRecModule : Module {
     bool recording[NUM_CHANNELS] = {false, false, false, false};
     bool playing = false;
 
-    // Live input scope buffers (shown while recording)
-    std::vector<float> liveBufs[NUM_CHANNELS];
-    int livePos[NUM_CHANNELS] = {0, 0, 0, 0};
-    static constexpr int LIVE_CAP = 2048;
-
     // Base path shared by all 4 tracks, each suffixed _<n>. Guarded by a mutex.
     std::string basePath;
     mutable std::mutex pathMutex;
@@ -251,10 +246,8 @@ struct RaRecModule : Module {
         configLight(RESET_LIGHT, "Reset");
 
         int sr = (int)APP->engine->getSampleRate();
-        for (int i = 0; i < NUM_CHANNELS; i++) {
+        for (int i = 0; i < NUM_CHANNELS; i++)
             allocateBuffer(i, sr);
-            liveBufs[i].assign(LIVE_CAP, 0.f);
-        }
     }
 
     void allocateBuffer(int channel, float sr) {
@@ -268,10 +261,8 @@ struct RaRecModule : Module {
 
     void onSampleRateChange() override {
         int sr = (int)APP->engine->getSampleRate();
-        for (int i = 0; i < NUM_CHANNELS; i++) {
+        for (int i = 0; i < NUM_CHANNELS; i++)
             allocateBuffer(i, sr);
-            liveBufs[i].assign(LIVE_CAP, 0.f);
-        }
     }
 
     // ---- File dialog / base path helpers (UI thread access) ----
@@ -455,16 +446,10 @@ struct RaRecModule : Module {
             if (clearTriggers[i].process(clrSig))
                 clearTrack(i);
 
-            // Live scope capture (always, so we can show live input while recording)
-            float liveIn = inputs[IN1_INPUT + i].getVoltage();
-            liveBufs[i][livePos[i]] = liveIn;
-            livePos[i]++;
-            if (livePos[i] >= LIVE_CAP)
-                livePos[i] = 0;
-
             // Record current sample
+            float in = inputs[IN1_INPUT + i].getVoltage();
             if (recording[i]) {
-                buffers[i][writePositions[i]] = liveIn;
+                buffers[i][writePositions[i]] = in;
                 writePositions[i]++;
                 if (writePositions[i] >= bufferSizes[i])
                     writePositions[i] = 0;
@@ -497,7 +482,7 @@ struct RaRecModule : Module {
         for (int i = 0; i < NUM_CHANNELS; i++)
             lights[REC1_LIGHT + i].setBrightness(recording[i] ? 1.f : 0.f);
         lights[GLOBAL_REC_LIGHT].setBrightness((recording[0] || recording[1] || recording[2] || recording[3]) ? 1.f : 0.f);
-        lights[GLOBAL_CLEAR_LIGHT].setBrightness(pathRequested.load() ? 1.f : 0.f);
+        lights[GLOBAL_CLEAR_LIGHT].setBrightness(0.f);
         lights[PLAY_LIGHT].setBrightness(playing ? 1.f : 0.f);
         lights[RESET_LIGHT].setBrightness(0.f);
 
@@ -567,7 +552,6 @@ struct TrackScopeDisplay : LedDisplay {
     void draw(const DrawArgs &args) override {
         if (!module)
             return;
-        auto *m = module;
 
         // Backdrop
         nvgBeginPath(args.vg);
@@ -584,7 +568,6 @@ struct TrackScopeDisplay : LedDisplay {
 
         for (int i = 0; i < NUM_CHANNELS; i++) {
             float top = i * laneH;
-            // Center line
             float midY = top + laneH / 2.f;
 
             // Lane divider
@@ -613,66 +596,43 @@ struct TrackScopeDisplay : LedDisplay {
             nvgFillColor(args.vg, nvgRGB(0x77, 0x77, 0x88));
             nvgText(args.vg, 4, midY, label, NULL);
 
-            NVGcolor waveColor;
-            if (m->recording[i]) {
-                waveColor = nvgRGB(0xff, 0x55, 0x55); // red while recording
-            } else if (m->playing) {
-                waveColor = nvgRGB(0x99, 0xcc, 0x66); // green while playing
-            } else {
-                waveColor = nvgRGB(0x33, 0x99, 0xff); // blue when idle
-            }
-
-            drawWaveform(args.vg, i, top, midY, laneH, waveColor);
+            drawWaveform(args.vg, i, top, midY, laneH);
         }
     }
 
-    void drawWaveform(NVGcontext *vg, int channel, float top, float midY, float laneH, NVGcolor color) {
-        // Live input waveform while recording, stored waveform otherwise
-        bool live = module->recording[channel];
+    void drawWaveform(NVGcontext *vg, int channel, float top, float midY, float laneH) {
+        // Always draw the full recorded waveform, stretched/shrunk to fit the
+        // lane width. As the recording grows the waveform compresses to fit.
+        int len = module->writePositions[channel];
+        int cap = module->bufferSizes[channel];
+        if (cap <= 0)
+            return;
+        const auto &buf = module->buffers[channel];
 
+        // Vertical bounds — never let the line leave the lane
         const float plotTop = top + 3;
         const float plotBot = top + laneH - 3;
-        const float amp = (plotBot - plotTop) / 2.f;
-
-        // Vertical range: ±5V fills the lane
-        const float scale = amp / 5.f;
+        // Map ±5V to the lane height; anything beyond is clamped to the edge
+        const float scale = (plotBot - plotTop) / 2.f / 5.f;
 
         nvgBeginPath(vg);
-
-        if (live) {
-            int cap = module->LIVE_CAP;
-            const auto &buf = module->liveBufs[channel];
-            int pos = module->livePos[channel];
-            for (int x = 0; x < (int)box.size.x; x++) {
-                // Read from the ring buffer (most recent first)
-                int srcIdx = (pos - 1 - (int)((float)x / box.size.x * (cap - 1)) + cap * 2) % cap;
-                float v = buf[srcIdx];
-                float y = midY - v * scale;
-                if (x == 0)
-                    nvgMoveTo(vg, (float)x, y);
-                else
-                    nvgLineTo(vg, (float)x, y);
-            }
-        } else {
-            int len = module->writePositions[channel];
-            int cap = module->bufferSizes[channel];
-            if (cap > 0) {
-                const auto &buf = module->buffers[channel];
-                for (int x = 0; x < (int)box.size.x; x++) {
-                    float t = (float)x / box.size.x;
-                    int idx = (int)(t * (len > 0 ? len : cap));
-                    float v = buf[idx];
-                    float y = midY - v * scale;
-                    if (x == 0)
-                        nvgMoveTo(vg, (float)x, y);
-                    else
-                        nvgLineTo(vg, (float)x, y);
-                }
-            }
+        int n = (int)box.size.x;
+        for (int x = 0; x < n; x++) {
+            float t = (float)x / (float)n;
+            int idx = (int)(t * (len > 0 ? len : cap));
+            if (idx >= cap) idx = cap - 1;
+            float v = buf[idx];
+            float y = midY - v * scale;
+            if (y < plotTop) y = plotTop;
+            if (y > plotBot) y = plotBot;
+            if (x == 0)
+                nvgMoveTo(vg, (float)x, y);
+            else
+                nvgLineTo(vg, (float)x, y);
         }
 
         nvgStrokeWidth(vg, 1.2f);
-        nvgStrokeColor(vg, color);
+        nvgStrokeColor(vg, nvgRGB(0x99, 0x6d, 0xd2)); // purple
         nvgStroke(vg);
     }
 };
