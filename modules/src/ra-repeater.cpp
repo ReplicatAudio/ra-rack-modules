@@ -4,6 +4,7 @@
 // Overrides the configParam/Input/Output tooltip names.
 // ============================================================
 // fname: TRIG_INPUT "In"
+// fname: CLOCK_INPUT "Clk"
 // fname: DELAY1_PARAM "Del"
 // fname: DELAY1_INPUT "Del CV"
 // fname: CHANCE1_PARAM "Chance"
@@ -35,6 +36,7 @@ struct RaRepeaterModule : Module {
     };
     enum InputIds {
         TRIG_INPUT,
+        CLOCK_INPUT,
         DELAY1_INPUT,
         DELAY2_INPUT,
         DELAY3_INPUT,
@@ -77,6 +79,10 @@ struct RaRepeaterModule : Module {
     dsp::PulseGenerator outPulses[4];
     // Samples remaining until each repeat fires; -1 = not scheduled.
     float timers[4];
+    // Clock sync: measured period of the clock input when connected.
+    dsp::Timer clockTimer;
+    dsp::SchmittTrigger clockTrigger;
+    float clockFreq = 1.f;
     // Output LED brightness, peaks on fire and decays to 0.
     float ledBrightness[4];
     // Last-seen delay knob value per output, used to spot the last-moved knob.
@@ -87,6 +93,7 @@ struct RaRepeaterModule : Module {
     RaRepeaterModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         configInput(TRIG_INPUT, "Trigger");
+        configInput(CLOCK_INPUT, "Clock");
         for (int i = 0; i < 4; i++) {
             configParam(DELAY1_PARAM + i, 0.f, 1.f, 0.f, string::f("Delay %d", i + 1), " ms", 0.f, 1000.f, 0.f);
             configParam(CHANCE1_PARAM + i, 0.f, 1.f, 1.f, string::f("Chance %d", i + 1), "%", 0.f, 100.f);
@@ -112,6 +119,7 @@ struct RaRepeaterModule : Module {
             ledBrightness[i] = 0.f;
             lastDelayValue[i] = 0.f;
         }
+        clockFreq = 1.f;
         displayMs.store(0, std::memory_order_relaxed);
     }
 
@@ -122,10 +130,35 @@ struct RaRepeaterModule : Module {
 
         float globalOut = 0.f;
 
+        bool clocked = inputs[CLOCK_INPUT].isConnected();
+
+        // Clock sync: measure the period from the clock input when connected.
+        if (clocked) {
+            clockTimer.process(args.sampleTime);
+            if (clockTrigger.process(inputs[CLOCK_INPUT].getVoltage(), 0.1f, 2.f)) {
+                float f = 1.f / clockTimer.getTime();
+                clockTimer.reset();
+                if (0.001f <= f && f <= 1000.f)
+                    clockFreq = f;
+            }
+        }
+        else {
+            clockFreq = 1.f;
+        }
+
+        // Delay time max: the clock period when synced, otherwise 1 s.
+        float delayMax = clocked ? 1.f / clockFreq : 1.f;
+
         for (int i = 0; i < 4; i++) {
-            // Delay time: knob 0-1s plus CV (5 V = 1 s), clamped 0-1 s.
-            float delayT = params[DELAY1_PARAM + i].getValue() + inputs[DELAY1_INPUT + i].getVoltage() / 5.f;
-            delayT = clamp(delayT, 0.f, 1.f);
+            // Delay time: the clock period divided by the knob position when
+            // clocked; otherwise knob 0-1s plus CV (5 V = 1 s), clamped 0-1 s.
+            float delayT;
+            if (clocked) {
+                delayT = clamp(params[DELAY1_PARAM + i].getValue(), 0.f, 1.f) * delayMax;
+            } else {
+                delayT = params[DELAY1_PARAM + i].getValue() + inputs[DELAY1_INPUT + i].getVoltage() / 5.f;
+                delayT = clamp(delayT, 0.f, 1.f);
+            }
 
             // Track the most recently moved delay knob for the screen readout.
             float knobV = params[DELAY1_PARAM + i].getValue();
@@ -229,7 +262,8 @@ struct RaRepeaterWidget : ModuleWidget {
         // Column centres: delay knob | delay CV | chance knob | chance CV | output
         float xs[5] = {30.f, 60.f, 90.f, 120.f, 150.f};
 
-        // Single trigger input centred near the top
+        // Clock input to the left of the trigger input, both near the top
+        addInput(createInputCentered<RaPort>(Vec(xs[1], 48), module, RaRepeaterModule::CLOCK_INPUT));
         addInput(createInputCentered<RaPort>(Vec(xs[2], 48), module, RaRepeaterModule::TRIG_INPUT));
 
         // Manual trigger button above the first delay knob
