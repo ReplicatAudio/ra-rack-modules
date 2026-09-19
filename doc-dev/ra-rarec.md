@@ -52,16 +52,9 @@ To write a `.rarec` file:
 
 ## File Storage
 
-Recordings are stored in the Rack user data directory under `ra-recordings/`. The path is generated as:
+When a recording starts and no path has been chosen, the module opens the system file browser to ask where to save the recording. One base name/path is shared by all four tracks, each written with a `_<n>` suffix inserted before the extension:
 ```
-{asset::user("ra-recordings")}/ra-rec-{module_pointer}-{channel}.rarec
+{user-chosen base}.rarec  →  {base}_0.rarec, {base}_1.rarec, {base}_2.rarec, {base}_3.rarec
 ```
 
-File paths are persisted in the patch JSON via `dataToJson`/`dataFromJson`.
-
-## Persistence
-
-- Recordings are saved to disk when recording stops
-- File paths are stored in the patch JSON
-- Recordings survive patch save/load and Rack restarts
-- Each channel gets its own `.rarec` file
+The base path is persisted in the patch JSON via `dataToJson`/`dataFromJson`, and on load the four `_<n>` files are read back into the track buffers.

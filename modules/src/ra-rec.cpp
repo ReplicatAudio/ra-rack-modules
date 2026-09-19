@@ -3,14 +3,22 @@
 // Read by util/gen-panel.mjs for the rendered SVG label text.
 // Overrides the configParam/Input/Output tooltip names.
 // ============================================================
-// fname: RECORD_PARAM "Rec"
-// fname: RECORD_INPUT "Rec tr"
-// fname: PLAY_PARAM "Play"
-// fname: PLAY_INPUT "Play tr"
-// fname: RATE_PARAM "Rate"
-// fname: RATE_INPUT "Rate CV"
-// fname: POSITION_PARAM "Pos"
-// fname: POSITION_INPUT "Pos CV"
+// fname: REC1_PARAM "Rec 1"
+// fname: REC1_INPUT "Tr g 1"
+// fname: CLEAR1_PARAM "Clr 1"
+// fname: CLEAR1_INPUT "Tr c 1"
+// fname: REC2_PARAM "Rec 2"
+// fname: REC2_INPUT "Tr g 2"
+// fname: CLEAR2_PARAM "Clr 2"
+// fname: CLEAR2_INPUT "Tr c 2"
+// fname: REC3_PARAM "Rec 3"
+// fname: REC3_INPUT "Tr g 3"
+// fname: CLEAR3_PARAM "Clr 3"
+// fname: CLEAR3_INPUT "Tr c 3"
+// fname: REC4_PARAM "Rec 4"
+// fname: REC4_INPUT "Tr g 4"
+// fname: CLEAR4_PARAM "Clr 4"
+// fname: CLEAR4_INPUT "Tr c 4"
 // fname: IN1_INPUT "In 1"
 // fname: IN2_INPUT "In 2"
 // fname: IN3_INPUT "In 3"
@@ -19,11 +27,24 @@
 // fname: OUT2_OUTPUT "Out 2"
 // fname: OUT3_OUTPUT "Out 3"
 // fname: OUT4_OUTPUT "Out 4"
+// fname: GLOBAL_REC_PARAM "All Rec"
+// fname: GLOBAL_REC_INPUT "Tr g"
+// fname: GLOBAL_CLEAR_PARAM "All Clr"
+// fname: GLOBAL_CLEAR_INPUT "Tr c"
+// fname: PLAY_PARAM "Play"
+// fname: PLAY_INPUT "Tr p"
+// fname: RESET_PARAM "Reset"
+// fname: RESET_INPUT "Tr r"
 #include "ra-components.hpp"
 
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#include <mutex>
+#include <atomic>
+#include <algorithm>
+
+#include <osdialog.h>
 
 using namespace rack;
 using namespace rack::system;
@@ -33,25 +54,10 @@ using namespace rack;
 extern Plugin *pluginInstance;
 
 static constexpr int NUM_CHANNELS = 4;
-static constexpr float MAX_RECORD_SECONDS = 480.f; // 8 minutes
-
-// Write a 32-bit little-endian value to a buffer
-static void writeLE32(uint8_t *buf, uint32_t val) {
-    buf[0] = val & 0xff;
-    buf[1] = (val >> 8) & 0xff;
-    buf[2] = (val >> 16) & 0xff;
-    buf[3] = (val >> 24) & 0xff;
-}
-
-// Write a 16-bit little-endian value to a buffer
-static void writeLE16(uint8_t *buf, uint16_t val) {
-    buf[0] = val & 0xff;
-    buf[1] = (val >> 8) & 0xff;
-}
+static constexpr int MAX_RECORD_SECONDS = 480.f; // 8 minutes
 
 // Write a recording file with float32 PCM data
 // Format: [4 bytes: magic "RAREC"][4 bytes: sampleRate][4 bytes: numSamples][numSamples * 4 bytes: float samples]
-// Returns true on success
 static bool writeRecording(const std::string &path, const float *samples, int numSamples, int sampleRate) {
     std::vector<uint8_t> data;
     // Header
@@ -78,7 +84,6 @@ static bool writeRecording(const std::string &path, const float *samples, int nu
 }
 
 // Read a recording file and return the samples as float vector
-// Format: [4 bytes: magic "RAREC"][4 bytes: sampleRate][4 bytes: numSamples][numSamples * 4 bytes: float samples]
 // Returns empty vector on failure
 static std::vector<float> readRecording(const std::string &path, int &sampleRate) {
     std::vector<float> samples;
@@ -88,11 +93,9 @@ static std::vector<float> readRecording(const std::string &path, int &sampleRate
     if (data.size() < 12)
         return samples;
 
-    // Check magic
     if (memcmp(data.data(), "RAREC", 4) != 0)
         return samples;
 
-    // Parse header
     sampleRate = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
     int numSamples = (data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11];
 
@@ -111,21 +114,37 @@ static std::vector<float> readRecording(const std::string &path, int &sampleRate
 
 struct RaRecModule : Module {
     enum ParamIds {
-        RECORD_PARAM,
+        REC1_PARAM,
+        REC2_PARAM,
+        REC3_PARAM,
+        REC4_PARAM,
+        CLEAR1_PARAM,
+        CLEAR2_PARAM,
+        CLEAR3_PARAM,
+        CLEAR4_PARAM,
+        GLOBAL_REC_PARAM,
+        GLOBAL_CLEAR_PARAM,
         PLAY_PARAM,
-        RATE_PARAM,
-        POSITION_PARAM,
+        RESET_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
-        RECORD_INPUT,
-        PLAY_INPUT,
-        RATE_INPUT,
-        POSITION_INPUT,
         IN1_INPUT,
         IN2_INPUT,
         IN3_INPUT,
         IN4_INPUT,
+        REC1_INPUT,
+        REC2_INPUT,
+        REC3_INPUT,
+        REC4_INPUT,
+        CLEAR1_INPUT,
+        CLEAR2_INPUT,
+        CLEAR3_INPUT,
+        CLEAR4_INPUT,
+        GLOBAL_REC_INPUT,
+        GLOBAL_CLEAR_INPUT,
+        PLAY_INPUT,
+        RESET_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -136,56 +155,105 @@ struct RaRecModule : Module {
         NUM_OUTPUTS
     };
     enum LightIds {
-        RECORD_LIGHT,
+        REC1_LIGHT,
+        REC2_LIGHT,
+        REC3_LIGHT,
+        REC4_LIGHT,
+        CLEAR1_LIGHT,
+        CLEAR2_LIGHT,
+        CLEAR3_LIGHT,
+        CLEAR4_LIGHT,
+        GLOBAL_REC_LIGHT,
+        GLOBAL_CLEAR_LIGHT,
         PLAY_LIGHT,
+        RESET_LIGHT,
         NUM_LIGHTS
     };
 
-    // Per-channel recording buffers (dynamic allocation)
+    // Per-track recording buffers and playback state
     std::vector<float> buffers[NUM_CHANNELS];
-    int writePositions[NUM_CHANNELS] = {0, 0, 0, 0};
+    int writePositions[NUM_CHANNELS] = {0, 0, 0, 0};   // recorded sample length
     int bufferSizes[NUM_CHANNELS] = {0, 0, 0, 0};
-
-    // Playback state
     float readPositions[NUM_CHANNELS] = {0.f, 0.f, 0.f, 0.f};
-    bool recording = false;
+    bool recording[NUM_CHANNELS] = {false, false, false, false};
     bool playing = false;
-    float lastRecordedValue[NUM_CHANNELS] = {0.f, 0.f, 0.f, 0.f};
 
-    // File paths for persistence
-    std::string filePaths[NUM_CHANNELS];
+    // Live input scope buffers (shown while recording)
+    std::vector<float> liveBufs[NUM_CHANNELS];
+    int livePos[NUM_CHANNELS] = {0, 0, 0, 0};
+    static constexpr int LIVE_CAP = 2048;
+
+    // Base path shared by all 4 tracks, each suffixed _<n>. Guarded by a mutex.
+    std::string basePath;
+    mutable std::mutex pathMutex;
+
+    // Pending record start waiting on the file dialog (UI thread).
+    // pendingStart: -1 = none, 0..3 = single track, 4 = all tracks.
+    std::atomic<int> pendingStart{-1};
+    std::atomic<bool> pathRequested{false};
 
     // Triggers
-    dsp::SchmittTrigger recordTrigger;
+    dsp::SchmittTrigger recTriggers[NUM_CHANNELS];
+    dsp::SchmittTrigger clearTriggers[NUM_CHANNELS];
+    dsp::SchmittTrigger globalRecTrigger;
+    dsp::SchmittTrigger globalClearTrigger;
     dsp::SchmittTrigger playTrigger;
-    dsp::SchmittTrigger recordExtTrigger;
-    dsp::SchmittTrigger playExtTrigger;
+    dsp::SchmittTrigger resetTrigger;
 
     RaRecModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configButton(RECORD_PARAM, "Record");
+        configButton(REC1_PARAM, "Record 1");
+        configButton(REC2_PARAM, "Record 2");
+        configButton(REC3_PARAM, "Record 3");
+        configButton(REC4_PARAM, "Record 4");
+        configButton(CLEAR1_PARAM, "Clear 1");
+        configButton(CLEAR2_PARAM, "Clear 2");
+        configButton(CLEAR3_PARAM, "Clear 3");
+        configButton(CLEAR4_PARAM, "Clear 4");
+        configButton(GLOBAL_REC_PARAM, "Record all");
+        configButton(GLOBAL_CLEAR_PARAM, "Clear all");
         configButton(PLAY_PARAM, "Play");
-        configParam(RATE_PARAM, 0.f, 4.f, 1.f, "Rate", "x");
-        configParam(POSITION_PARAM, 0.f, 1.f, 0.f, "Position");
-        configInput(RECORD_INPUT, "Record");
-        configInput(PLAY_INPUT, "Play");
-        configInput(RATE_INPUT, "Rate CV");
-        configInput(POSITION_INPUT, "Position CV");
+        configButton(RESET_PARAM, "Reset");
+
         configInput(IN1_INPUT, "In 1");
         configInput(IN2_INPUT, "In 2");
         configInput(IN3_INPUT, "In 3");
         configInput(IN4_INPUT, "In 4");
+        configInput(REC1_INPUT, "Record 1 trigger");
+        configInput(REC2_INPUT, "Record 2 trigger");
+        configInput(REC3_INPUT, "Record 3 trigger");
+        configInput(REC4_INPUT, "Record 4 trigger");
+        configInput(CLEAR1_INPUT, "Clear 1 trigger");
+        configInput(CLEAR2_INPUT, "Clear 2 trigger");
+        configInput(CLEAR3_INPUT, "Clear 3 trigger");
+        configInput(CLEAR4_INPUT, "Clear 4 trigger");
+        configInput(GLOBAL_REC_INPUT, "Record all trigger");
+        configInput(GLOBAL_CLEAR_INPUT, "Clear all trigger");
+        configInput(PLAY_INPUT, "Play trigger");
+        configInput(RESET_INPUT, "Reset trigger");
+
         configOutput(OUT1_OUTPUT, "Out 1");
         configOutput(OUT2_OUTPUT, "Out 2");
         configOutput(OUT3_OUTPUT, "Out 3");
         configOutput(OUT4_OUTPUT, "Out 4");
-        configLight(RECORD_LIGHT, "Record");
-        configLight(PLAY_LIGHT, "Play");
 
+        configLight(REC1_LIGHT, "Record 1");
+        configLight(REC2_LIGHT, "Record 2");
+        configLight(REC3_LIGHT, "Record 3");
+        configLight(REC4_LIGHT, "Record 4");
+        configLight(CLEAR1_LIGHT, "Clear 1");
+        configLight(CLEAR2_LIGHT, "Clear 2");
+        configLight(CLEAR3_LIGHT, "Clear 3");
+        configLight(CLEAR4_LIGHT, "Clear 4");
+        configLight(GLOBAL_REC_LIGHT, "Record all");
+        configLight(GLOBAL_CLEAR_LIGHT, "Clear all");
+        configLight(PLAY_LIGHT, "Play");
+        configLight(RESET_LIGHT, "Reset");
+
+        int sr = (int)APP->engine->getSampleRate();
         for (int i = 0; i < NUM_CHANNELS; i++) {
-            allocateBuffer(i, APP->engine->getSampleRate());
-            // Set up file path for this channel
-            filePaths[i] = "";
+            allocateBuffer(i, sr);
+            liveBufs[i].assign(LIVE_CAP, 0.f);
         }
     }
 
@@ -199,9 +267,127 @@ struct RaRecModule : Module {
     }
 
     void onSampleRateChange() override {
+        int sr = (int)APP->engine->getSampleRate();
         for (int i = 0; i < NUM_CHANNELS; i++) {
-            allocateBuffer(i, APP->engine->getSampleRate());
+            allocateBuffer(i, sr);
+            liveBufs[i].assign(LIVE_CAP, 0.f);
         }
+    }
+
+    // ---- File dialog / base path helpers (UI thread access) ----
+
+    // Insert _<n> before the file extension, e.g. "foo.rarec" -> "foo_1.rarec"
+    static std::string suffixedPath(const std::string &base, int n) {
+        size_t dot = base.find_last_of('.');
+        size_t slash = base.find_last_of('/');
+        if (dot != std::string::npos && (slash == std::string::npos || dot > slash)) {
+            return base.substr(0, dot) + "_" + std::to_string(n) + base.substr(dot);
+        }
+        return base + "_" + std::to_string(n);
+    }
+
+    std::string getBasePath() {
+        std::lock_guard<std::mutex> lock(pathMutex);
+        return basePath;
+    }
+
+    void setBasePath(const std::string &p) {
+        {
+            std::lock_guard<std::mutex> lock(pathMutex);
+            basePath = p;
+        }
+        // Make sure any pending start is honored after the path is set
+        int start = pendingStart.exchange(-1);
+        if (start >= 0)
+            beginRecording(start);
+    }
+
+    // Discard a pending record start that was cancelled in the file dialog
+    void clearPendingStart() {
+        pendingStart = -1;
+        pathRequested = false;
+    }
+
+    // Start recording the given scope (called only on the UI thread after dialog)
+    void beginRecording(int scope) {
+        if (scope == 4) {
+            for (int i = 0; i < NUM_CHANNELS; i++) {
+                recording[i] = true;
+                writePositions[i] = 0;
+            }
+        } else if (scope >= 0 && scope < NUM_CHANNELS) {
+            recording[scope] = true;
+            writePositions[scope] = 0;
+        }
+        pathRequested = false;
+    }
+
+    void clearTrack(int channel) {
+        writePositions[channel] = 0;
+        readPositions[channel] = 0.f;
+        recording[channel] = false;
+    }
+
+    void clearAll() {
+        for (int i = 0; i < NUM_CHANNELS; i++)
+            clearTrack(i);
+        {
+            // Fresh take -> new base path requested next time
+            std::lock_guard<std::mutex> lock(pathMutex);
+            basePath.clear();
+        }
+    }
+
+    void saveTrack(int channel) {
+        std::string base;
+        {
+            std::lock_guard<std::mutex> lock(pathMutex);
+            base = basePath;
+        }
+        if (base.empty())
+            return;
+        std::string path = suffixedPath(base, channel);
+        int numSamples = writePositions[channel];
+        if (numSamples <= 0)
+            return;
+        // Ensure parent directory exists
+        std::string dir = getDirectory(base);
+        if (!dir.empty())
+            createDirectories(dir);
+        int sr = (int)APP->engine->getSampleRate();
+        writeRecording(path, buffers[channel].data(), numSamples, sr);
+    }
+
+    bool loadTrack(int channel, const std::string &base) {
+        std::string path = suffixedPath(base, channel);
+        int sr = (int)APP->engine->getSampleRate();
+        int fileSampleRate = 0;
+        auto samples = readRecording(path, fileSampleRate);
+        if (samples.empty())
+            return false;
+
+        int targetSize = bufferSizes[channel];
+        buffers[channel].assign(targetSize, 0.f);
+
+        if (fileSampleRate == sr) {
+            int copyLen = std::min((int)samples.size(), targetSize);
+            for (int i = 0; i < copyLen; i++)
+                buffers[channel][i] = samples[i];
+            writePositions[channel] = copyLen;
+        } else {
+            float ratio = (float)fileSampleRate / (float)sr;
+            int writePos = 0;
+            for (float srcPos = 0.f; srcPos < (float)samples.size() && writePos < targetSize; srcPos += ratio) {
+                int i0 = (int)srcPos;
+                int i1 = std::min(i0 + 1, (int)samples.size() - 1);
+                float frac = srcPos - (float)i0;
+                buffers[channel][writePos] = samples[i0] + frac * (samples[i1] - samples[i0]);
+                writePos++;
+            }
+            writePositions[channel] = writePos;
+        }
+        readPositions[channel] = 0.f;
+        return true;
     }
 
     float interpRead(int channel, float pos) const {
@@ -209,7 +395,6 @@ struct RaRecModule : Module {
         int size = bufferSizes[channel];
         if (size == 0)
             return 0.f;
-        // Wrap position
         while (pos < 0.f)
             pos += (float)size;
         while (pos >= (float)size)
@@ -220,213 +405,281 @@ struct RaRecModule : Module {
         return buf[i0] + frac * (buf[i1] - buf[i0]);
     }
 
-    // Get the recording directory path
-    std::string getRecordingsDir() {
-        return asset::user("ra-recordings");
-    }
-
-    // Get the file path for a channel
-    std::string getFilePath(int channel) {
-        if (!filePaths[channel].empty())
-            return filePaths[channel];
-        // Generate a unique file path based on module instance and channel
-        std::string dir = getRecordingsDir();
-        // Use module pointer as unique identifier
-        char path[512];
-        snprintf(path, sizeof(path), "%sra-rec-%p-%d.rarec", dir.c_str(), this, channel);
-        return std::string(path);
-    }
-
-    // Save a channel recording to file
-    void saveChannelToFile(int channel) {
-        std::string path = getFilePath(channel);
-        // Create the directory if it doesn't exist
-        std::string dir = getRecordingsDir();
-        createDirectories(dir);
-        int sr = (int)APP->engine->getSampleRate();
-        int numSamples = writePositions[channel];
-        if (numSamples <= 0)
-            return;
-        writeRecording(path, buffers[channel].data(), numSamples, sr);
-        filePaths[channel] = path;
-    }
-
-    // Load a channel recording from file into the buffer
-    void loadChannelFromFile(int channel) {
-        std::string path = getFilePath(channel);
-        int sr = (int)APP->engine->getSampleRate();
-        int fileSampleRate = 0;
-        auto samples = readRecording(path, fileSampleRate);
-        if (samples.empty())
-            return;
-
-        // Resample if sample rates differ
-        int targetSize = (int)(MAX_RECORD_SECONDS * sr);
-        buffers[channel].assign(targetSize, 0.f);
-        bufferSizes[channel] = targetSize;
-
-        if (fileSampleRate == sr) {
-            // Direct copy
-            int copyLen = std::min((int)samples.size(), targetSize);
-            for (int i = 0; i < copyLen; i++) {
-                buffers[channel][i] = samples[i];
-            }
-            writePositions[channel] = copyLen;
+    // ---- Record trigger handling ----
+    // Handles a record-on request from the audio thread. If a base path is set,
+    // starts immediately; otherwise requests the file dialog from the UI thread.
+    void requestRecordStart(int scope) {
+        std::string base = getBasePath();
+        if (!base.empty()) {
+            beginRecording(scope);
         } else {
-            // Resample
-            float ratio = (float)fileSampleRate / (float)sr;
-            int writePos = 0;
-            for (float srcPos = 0.f; srcPos < (float)samples.size() && writePos < targetSize;
-                 srcPos += ratio) {
-                int i0 = (int)srcPos;
-                int i1 = std::min(i0 + 1, (int)samples.size() - 1);
-                float frac = srcPos - (float)i0;
-                buffers[channel][writePos] = samples[i0] + frac * (samples[i1] - samples[i0]);
-                writePos++;
-            }
-            writePositions[channel] = writePos;
+            // Defer until the dialog supplies a base path
+            pendingStart = scope;
+            pathRequested = true;
         }
-
-        readPositions[channel] = 0.f;
-        filePaths[channel] = path;
     }
 
-    json_t *dataToJson() override {
-        json_t *rootJ = json_object();
-
-        // Save recording state
-        json_object_set_new(rootJ, "recording", json_boolean(recording));
-        json_object_set_new(rootJ, "playing", json_boolean(playing));
-
-        // Save file paths for each channel
-        json_t *pathsJ = json_array();
-        for (int i = 0; i < NUM_CHANNELS; i++) {
-            if (!filePaths[i].empty()) {
-                json_array_append_new(pathsJ, json_string(filePaths[i].c_str()));
-            } else {
-                json_array_append_new(pathsJ, NULL);
-            }
-        }
-        json_object_set_new(rootJ, "filePaths", pathsJ);
-
-        return rootJ;
-    }
-
-    void dataFromJson(json_t *rootJ) override {
-        // Restore recording state
-        json_t *recJ = json_object_get(rootJ, "recording");
-        if (recJ)
-            recording = json_boolean_value(recJ);
-
-        json_t *playJ = json_object_get(rootJ, "playing");
-        if (playJ)
-            playing = json_boolean_value(playJ);
-
-        // Restore file paths and load audio data
-        json_t *pathsJ = json_object_get(rootJ, "filePaths");
-        if (pathsJ) {
-            for (int i = 0; i < NUM_CHANNELS; i++) {
-                json_t *pathJ = json_array_get(pathsJ, i);
-                if (pathJ && json_is_string(pathJ)) {
-                    filePaths[i] = json_string_value(pathJ);
-                    loadChannelFromFile(i);
+    void toggleRecord(int scope) {
+        if (scope == 4) {
+            bool any = recording[0] || recording[1] || recording[2] || recording[3];
+            if (any) {
+                // Stop all recording and save each
+                for (int i = 0; i < NUM_CHANNELS; i++) {
+                    if (recording[i]) {
+                        saveTrack(i);
+                        recording[i] = false;
+                    }
                 }
+            } else {
+                requestRecordStart(4);
+            }
+        } else if (scope >= 0 && scope < NUM_CHANNELS) {
+            if (recording[scope]) {
+                saveTrack(scope);
+                recording[scope] = false;
+            } else {
+                requestRecordStart(scope);
             }
         }
     }
 
     void process(const ProcessArgs &args) override {
 
-        // Rate
-        float rate = params[RATE_PARAM].getValue();
-        if (inputs[RATE_INPUT].isConnected())
-            rate += inputs[RATE_INPUT].getVoltage() / 10.f * 4.f;
-        rate = clamp(rate, 0.f, 4.f);
-        if (rate < 0.001f)
-            rate = 0.001f;
+        // ---- Per-track record toggles (button + trigger) ----
+        for (int i = 0; i < NUM_CHANNELS; i++) {
+            float recSig = std::max(params[REC1_PARAM + i].getValue(), inputs[REC1_INPUT + i].getVoltage());
+            if (recTriggers[i].process(recSig))
+                toggleRecord(i);
 
-        // Position scrub
-        float position = params[POSITION_PARAM].getValue();
-        if (inputs[POSITION_INPUT].isConnected())
-            position += inputs[POSITION_INPUT].getVoltage() / 10.f;
-        position = clamp(position, 0.f, 1.f);
+            float clrSig = std::max(params[CLEAR1_PARAM + i].getValue(), inputs[CLEAR1_INPUT + i].getVoltage());
+            if (clearTriggers[i].process(clrSig))
+                clearTrack(i);
 
-        // Record toggle (button + external trigger)
-        bool recordBtn = recordTrigger.process(params[RECORD_PARAM].getValue());
-        bool recordExt = recordExtTrigger.process(inputs[RECORD_INPUT].getVoltage());
-        if (recordBtn || recordExt) {
-            if (recording) {
-                // Stopping recording — save all channels to files
-                for (int i = 0; i < NUM_CHANNELS; i++) {
-                    saveChannelToFile(i);
-                }
-            }
-            recording = !recording;
-            if (recording) {
-                for (int i = 0; i < NUM_CHANNELS; i++)
+            // Live scope capture (always, so we can show live input while recording)
+            float liveIn = inputs[IN1_INPUT + i].getVoltage();
+            liveBufs[i][livePos[i]] = liveIn;
+            livePos[i]++;
+            if (livePos[i] >= LIVE_CAP)
+                livePos[i] = 0;
+
+            // Record current sample
+            if (recording[i]) {
+                buffers[i][writePositions[i]] = liveIn;
+                writePositions[i]++;
+                if (writePositions[i] >= bufferSizes[i])
                     writePositions[i] = 0;
             }
         }
 
-        // Play toggle (button + external trigger)
-        bool playBtn = playTrigger.process(params[PLAY_PARAM].getValue());
-        bool playExt = playExtTrigger.process(inputs[PLAY_INPUT].getVoltage());
-        if (playBtn || playExt) {
-            if (playing) {
-                // Stopping playback — nothing to save
-            }
+        // ---- Global record ----
+        float gRec = std::max(params[GLOBAL_REC_PARAM].getValue(), inputs[GLOBAL_REC_INPUT].getVoltage());
+        if (globalRecTrigger.process(gRec))
+            toggleRecord(4);
+
+        // ---- Global clear ----
+        float gClr = std::max(params[GLOBAL_CLEAR_PARAM].getValue(), inputs[GLOBAL_CLEAR_INPUT].getVoltage());
+        if (globalClearTrigger.process(gClr))
+            clearAll();
+
+        // ---- Global play / pause ----
+        float playSig = std::max(params[PLAY_PARAM].getValue(), inputs[PLAY_INPUT].getVoltage());
+        if (playTrigger.process(playSig))
             playing = !playing;
-            if (playing) {
-                for (int i = 0; i < NUM_CHANNELS; i++)
-                    readPositions[i] = 0.f;
-            }
+
+        // ---- Reset playheads ----
+        float resetSig = std::max(params[RESET_PARAM].getValue(), inputs[RESET_INPUT].getVoltage());
+        if (resetTrigger.process(resetSig)) {
+            for (int i = 0; i < NUM_CHANNELS; i++)
+                readPositions[i] = 0.f;
         }
 
-        // Record light
-        lights[RECORD_LIGHT].setBrightness(recording ? 1.f : 0.f);
-
-        // Play light
+        // ---- Lights ----
+        for (int i = 0; i < NUM_CHANNELS; i++)
+            lights[REC1_LIGHT + i].setBrightness(recording[i] ? 1.f : 0.f);
+        lights[GLOBAL_REC_LIGHT].setBrightness((recording[0] || recording[1] || recording[2] || recording[3]) ? 1.f : 0.f);
+        lights[GLOBAL_CLEAR_LIGHT].setBrightness(pathRequested.load() ? 1.f : 0.f);
         lights[PLAY_LIGHT].setBrightness(playing ? 1.f : 0.f);
+        lights[RESET_LIGHT].setBrightness(0.f);
 
-        // Process each channel
+        // ---- Outputs ----
         for (int ch = 0; ch < NUM_CHANNELS; ch++) {
-            int inId = IN1_INPUT + ch;
-            int outId = OUT1_OUTPUT + ch;
+            float in = inputs[IN1_INPUT + ch].getVoltage();
+            float out = in; // pass-through
 
-            float in = inputs[inId].getVoltage();
-
-            // Record: write input to buffer
-            if (recording) {
-                buffers[ch][writePositions[ch]] = in;
-                writePositions[ch]++;
-                if (writePositions[ch] >= bufferSizes[ch])
-                    writePositions[ch] = 0;
-                lastRecordedValue[ch] = in;
-            }
-
-            // Playback or pass-through
-            float out = 0.f;
-            if (playing) {
-                out = interpRead(ch, readPositions[ch]);
-                readPositions[ch] += rate;
-                // Loop within the recorded range
-                float recordEnd = (float)writePositions[ch];
-                if (recordEnd > 0.f && readPositions[ch] >= recordEnd)
-                    readPositions[ch] = fmodf(readPositions[ch], recordEnd);
-            } else {
-                // Pass through input when not playing
+            if (recording[ch]) {
+                // Monitor the live input while recording
                 out = in;
+            } else if (playing) {
+                // Playback, looping within this track's own recorded length
+                if (writePositions[ch] > 0) {
+                    out = interpRead(ch, readPositions[ch]);
+                    readPositions[ch] += 1.f;
+                    float recordEnd = (float)writePositions[ch];
+                    if (readPositions[ch] >= recordEnd)
+                        readPositions[ch] = fmodf(readPositions[ch], recordEnd);
+                } else {
+                    out = 0.f;
+                }
             }
 
-            // Scrub position: sets the playhead. When playing, playback continues from the new position.
-            if (inputs[POSITION_INPUT].isConnected() && fabsf(inputs[POSITION_INPUT].getVoltage()) > 0.001f) {
-                readPositions[ch] = position * (float)bufferSizes[ch];
-            }
+            outputs[OUT1_OUTPUT + ch].setVoltage(out);
+        }
+    }
 
-            outputs[outId].setVoltage(out);
+    json_t *dataToJson() override {
+        json_t *rootJ = json_object();
+        json_object_set_new(rootJ, "playing", json_boolean(playing));
+        {
+            std::lock_guard<std::mutex> lock(pathMutex);
+            if (!basePath.empty())
+                json_object_set_new(rootJ, "basePath", json_string(basePath.c_str()));
+        }
+        return rootJ;
+    }
+
+    void dataFromJson(json_t *rootJ) override {
+        json_t *playJ = json_object_get(rootJ, "playing");
+        if (playJ)
+            playing = json_boolean_value(playJ);
+
+        json_t *pathJ = json_object_get(rootJ, "basePath");
+        if (pathJ && json_is_string(pathJ)) {
+            std::string base = json_string_value(pathJ);
+            {
+                std::lock_guard<std::mutex> lock(pathMutex);
+                basePath = base;
+            }
+            for (int i = 0; i < NUM_CHANNELS; i++)
+                loadTrack(i, base);
         }
     }
 };
+
+// ------------------------------------------------------------------
+// UI — scope display
+// ------------------------------------------------------------------
+
+struct TrackScopeDisplay : LedDisplay {
+    RaRecModule *module;
+
+    TrackScopeDisplay() {}
+
+    void draw(const DrawArgs &args) override {
+        if (!module)
+            return;
+        auto *m = module;
+
+        // Backdrop
+        nvgBeginPath(args.vg);
+        nvgRoundedRect(args.vg, 0, 0, box.size.x, box.size.y, 3);
+        nvgFillColor(args.vg, nvgRGB(0x0a, 0x0a, 0x0a));
+        nvgFill(args.vg);
+        nvgStrokeWidth(args.vg, 1.5f);
+        nvgStrokeColor(args.vg, nvgRGB(0x3c, 0x3c, 0x44));
+        nvgStroke(args.vg);
+
+        // Draw 4 lanes
+        float laneH = box.size.y / NUM_CHANNELS;
+        nvgFontFaceId(args.vg, APP->window->uiFont->handle);
+
+        for (int i = 0; i < NUM_CHANNELS; i++) {
+            float top = i * laneH;
+            // Center line
+            float midY = top + laneH / 2.f;
+
+            // Lane divider
+            if (i > 0) {
+                nvgBeginPath(args.vg);
+                nvgMoveTo(args.vg, 0, top);
+                nvgLineTo(args.vg, box.size.x, top);
+                nvgStrokeWidth(args.vg, 1.f);
+                nvgStrokeColor(args.vg, nvgRGBA(0x55, 0x55, 0x66, 120));
+                nvgStroke(args.vg);
+            }
+
+            // Horizontal center marker (subtle)
+            nvgBeginPath(args.vg);
+            nvgMoveTo(args.vg, 0, midY);
+            nvgLineTo(args.vg, box.size.x, midY);
+            nvgStrokeWidth(args.vg, 0.5f);
+            nvgStrokeColor(args.vg, nvgRGBA(0x55, 0x55, 0x66, 60));
+            nvgStroke(args.vg);
+
+            // Track label
+            char label[8];
+            snprintf(label, sizeof(label), "%d", i + 1);
+            nvgFontSize(args.vg, 10);
+            nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+            nvgFillColor(args.vg, nvgRGB(0x77, 0x77, 0x88));
+            nvgText(args.vg, 4, midY, label, NULL);
+
+            NVGcolor waveColor;
+            if (m->recording[i]) {
+                waveColor = nvgRGB(0xff, 0x55, 0x55); // red while recording
+            } else if (m->playing) {
+                waveColor = nvgRGB(0x99, 0xcc, 0x66); // green while playing
+            } else {
+                waveColor = nvgRGB(0x33, 0x99, 0xff); // blue when idle
+            }
+
+            drawWaveform(args.vg, i, top, midY, laneH, waveColor);
+        }
+    }
+
+    void drawWaveform(NVGcontext *vg, int channel, float top, float midY, float laneH, NVGcolor color) {
+        // Live input waveform while recording, stored waveform otherwise
+        bool live = module->recording[channel];
+
+        const float plotTop = top + 3;
+        const float plotBot = top + laneH - 3;
+        const float amp = (plotBot - plotTop) / 2.f;
+
+        // Vertical range: ±5V fills the lane
+        const float scale = amp / 5.f;
+
+        nvgBeginPath(vg);
+
+        if (live) {
+            int cap = module->LIVE_CAP;
+            const auto &buf = module->liveBufs[channel];
+            int pos = module->livePos[channel];
+            for (int x = 0; x < (int)box.size.x; x++) {
+                // Read from the ring buffer (most recent first)
+                int srcIdx = (pos - 1 - (int)((float)x / box.size.x * (cap - 1)) + cap * 2) % cap;
+                float v = buf[srcIdx];
+                float y = midY - v * scale;
+                if (x == 0)
+                    nvgMoveTo(vg, (float)x, y);
+                else
+                    nvgLineTo(vg, (float)x, y);
+            }
+        } else {
+            int len = module->writePositions[channel];
+            int cap = module->bufferSizes[channel];
+            if (cap > 0) {
+                const auto &buf = module->buffers[channel];
+                for (int x = 0; x < (int)box.size.x; x++) {
+                    float t = (float)x / box.size.x;
+                    int idx = (int)(t * (len > 0 ? len : cap));
+                    float v = buf[idx];
+                    float y = midY - v * scale;
+                    if (x == 0)
+                        nvgMoveTo(vg, (float)x, y);
+                    else
+                        nvgLineTo(vg, (float)x, y);
+                }
+            }
+        }
+
+        nvgStrokeWidth(vg, 1.2f);
+        nvgStrokeColor(vg, color);
+        nvgStroke(vg);
+    }
+};
+
+// ------------------------------------------------------------------
+// UI — module widget
+// ------------------------------------------------------------------
 
 struct PurpleLight : GrayModuleLightWidget {
     PurpleLight() {
@@ -444,45 +697,72 @@ struct RaRecWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        float cx = box.size.x / 2;
+        // ---- Global controls across the top ----
+        float gbtnY = 42;
+        float gtrigY = 62;
+        float gx[4] = {144.f, 302.f, 461.f, 619.f};
 
-        // Tight 2x2 grid: two columns flanking cx, fixed row step
-        float colA = cx - 15;
-        float colB = cx + 15;
-        float topY = 76;
-        float rowStep = 38;
+        addParam(createLightParamCentered<VCVLightBezel<RedLight>>(Vec(gx[0], gbtnY), module, RaRecModule::GLOBAL_REC_PARAM, RaRecModule::GLOBAL_REC_LIGHT));
+        addInput(createInputCentered<RaPort>(Vec(gx[0], gtrigY), module, RaRecModule::GLOBAL_REC_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<YellowLight>>(Vec(gx[1], gbtnY), module, RaRecModule::GLOBAL_CLEAR_PARAM, RaRecModule::GLOBAL_CLEAR_LIGHT));
+        addInput(createInputCentered<RaPort>(Vec(gx[1], gtrigY), module, RaRecModule::GLOBAL_CLEAR_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(gx[2], gbtnY), module, RaRecModule::PLAY_PARAM, RaRecModule::PLAY_LIGHT));
+        addInput(createInputCentered<RaPort>(Vec(gx[2], gtrigY), module, RaRecModule::PLAY_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(gx[3], gbtnY), module, RaRecModule::RESET_PARAM, RaRecModule::RESET_LIGHT));
+        addInput(createInputCentered<RaPort>(Vec(gx[3], gtrigY), module, RaRecModule::RESET_INPUT));
 
-        // ---- Top: 4 inputs in a tight 2x2 grid (1 2 / 3 4) ----
-        for (int i = 0; i < 2; i++) {
-            float x = colA + i * (colB - colA);
-            addInput(createInputCentered<RaPort>(Vec(x, topY), module, RaRecModule::IN1_INPUT + i));
+        // ---- Display ----
+        auto *display = new TrackScopeDisplay();
+        display->box.pos = Vec(150, 117);
+        display->box.size = Vec(420, 220);
+        display->module = module;
+        addChild(display);
+
+        // ---- Per-track controls ----
+        // Left column elements per lane (x-centers)
+        float inX = 28;
+        float recBtX = 62;
+        float recTrX = 86;
+        float clrBtX = 110;
+        float clrTrX = 132;
+        float outX = 665;
+
+        float laneYs[4] = {145.f, 200.f, 255.f, 310.f};
+
+        for (int i = 0; i < 4; i++) {
+            float y = laneYs[i];
+            addInput(createInputCentered<RaPort>(Vec(inX, y), module, RaRecModule::IN1_INPUT + i));
+            addParam(createLightParamCentered<VCVLightBezel<RedLight>>(Vec(recBtX, y), module, RaRecModule::REC1_PARAM + i, RaRecModule::REC1_LIGHT + i));
+            addInput(createInputCentered<RaPort>(Vec(recTrX, y), module, RaRecModule::REC1_INPUT + i));
+            addParam(createLightParamCentered<VCVLightBezel<YellowLight>>(Vec(clrBtX, y), module, RaRecModule::CLEAR1_PARAM + i, RaRecModule::CLEAR1_LIGHT + i));
+            addInput(createInputCentered<RaPort>(Vec(clrTrX, y), module, RaRecModule::CLEAR1_INPUT + i));
+            addOutput(createOutputCentered<RaPort>(Vec(outX, y), module, RaRecModule::OUT1_OUTPUT + i));
         }
-        for (int i = 0; i < 2; i++) {
-            float x = colA + i * (colB - colA);
-            addInput(createInputCentered<RaPort>(Vec(x, topY + rowStep), module, RaRecModule::IN3_INPUT + i));
-        }
+    }
 
-        // ---- Controls: Rec/Play buttons, Rate/Pos knobs, each with its CV jack below ----
-        float buttonY = topY + 2 * rowStep;
-        addParam(createLightParamCentered<VCVLightBezel<RedLight>>(Vec(colA, buttonY), module, RaRecModule::RECORD_PARAM, RaRecModule::RECORD_LIGHT));
-        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(colB, buttonY), module, RaRecModule::PLAY_PARAM, RaRecModule::PLAY_LIGHT));
-        addInput(createInputCentered<RaPort>(Vec(colA, buttonY + rowStep), module, RaRecModule::RECORD_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(colB, buttonY + rowStep), module, RaRecModule::PLAY_INPUT));
-        float knobY = buttonY + 2 * rowStep;
-        addParam(createParamCentered<RaKnob>(Vec(colA, knobY), module, RaRecModule::RATE_PARAM));
-        addParam(createParamCentered<RaKnob>(Vec(colB, knobY), module, RaRecModule::POSITION_PARAM));
-        addInput(createInputCentered<RaPort>(Vec(colA, knobY + rowStep), module, RaRecModule::RATE_INPUT));
-        addInput(createInputCentered<RaPort>(Vec(colB, knobY + rowStep), module, RaRecModule::POSITION_INPUT));
+    // Handle the file dialog on the UI thread when a record start requests a path.
+    void step() override {
+        ModuleWidget::step();
+        if (!module)
+            return;
+        auto *m = (RaRecModule*)module;
+        if (m->pathRequested.exchange(false)) {
+            // Ask the user where/what to save via the system file browser
+            std::string existing = m->getBasePath();
+            std::string dir = existing.empty() ? "" : getDirectory(existing);
+            std::string fname = existing.empty() ? "recording.rarec" : getFilename(existing);
 
-        // ---- Bottom: 4 outputs in a tight 2x2 grid (1 2 / 3 4) ----
-        float outY0 = knobY + 2 * rowStep;
-        for (int i = 0; i < 2; i++) {
-            float x = colA + i * (colB - colA);
-            addOutput(createOutputCentered<RaPort>(Vec(x, outY0), module, RaRecModule::OUT1_OUTPUT + i));
-        }
-        for (int i = 0; i < 2; i++) {
-            float x = colA + i * (colB - colA);
-            addOutput(createOutputCentered<RaPort>(Vec(x, outY0 + rowStep), module, RaRecModule::OUT3_OUTPUT + i));
+            char *pathC = osdialog_file(OSDIALOG_SAVE,
+                                        dir.empty() ? nullptr : dir.c_str(),
+                                        fname.empty() ? nullptr : fname.c_str(),
+                                        osdialog_filters_parse("RA-Rec Recording:rarec"));
+            if (pathC) {
+                m->setBasePath(pathC);
+                free(pathC);
+            } else {
+                // Cancelled — discard the pending start
+                m->clearPendingStart();
+            }
         }
     }
 };
