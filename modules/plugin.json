@@ -541,6 +541,16 @@
         "Utility",
         "Logic"
       ]
+    },
+    {
+      "slug": "ra-reverbir",
+      "name": "ra-reverbir",
+      "description": "Stereo convolution reverb \u2014 uniformly partitioned convolution of a user-loaded WAV impulse response, with predelay, length, damp, and attack/decay envelope",
+      "tags": [
+        "Effect",
+        "Reverb",
+        "Convolution"
+      ]
     }
   ]
 }

@@ -60,7 +60,8 @@ SOURCES = \
 	src/ra-control.cpp \
 	src/ra-xyout.cpp \
 	src/ra-repeater.cpp \
-	src/ra-bump.cpp
+	src/ra-bump.cpp \
+	src/ra-reverbir.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)
