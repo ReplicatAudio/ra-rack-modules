@@ -627,7 +627,10 @@ struct RaReverbirModule : Module {
 	}
 
 	void dataFromJson(json_t *rootJ) override {
-		Module::fromJson(rootJ);
+		// Note: do NOT call Module::fromJson(rootJ) here. dataFromJson receives
+		// the "data" object and Module::fromJson is the base dispatcher that
+		// loads params and routes to dataFromJson; calling it here re-runs that
+		// dispatch during deserialization, which breaks the module restore.
 		json_t *p = json_object_get(rootJ, "irPath");
 		if (p && json_is_string(p)) {
 			std::string path = json_string_value(p);
