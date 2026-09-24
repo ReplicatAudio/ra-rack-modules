@@ -288,15 +288,19 @@ struct RaReverbirModule : Module {
 		int irLen = srcIRLen.load(std::memory_order_relaxed);
 		if (fullKernelRate != (int)sampleRate || fullKernelSrcIRLen != irLen) {
 			std::vector<float> k = resampleIR(srcIR, srcIRRate, (int)sampleRate);
-			// Normalize so the reverb tail sits at ~unity peak. Level knob controls final trim.
-			float peak = 0.f;
-			for (float x : k) {
-				float a = std::fabs(x);
-				if (a > peak) peak = a;
-			}
-			float g = peak > 1e-9f ? 1.f / peak : 1.f;
-			if (g != 1.f)
-				for (float &x : k) x *= g;
+			// Power/energy normalize so the wet tail is level-matched with the dry
+			// signal: a unit-RMS (unit-power) dry input through the reverb yields a
+			// unit-RMS wet output. Peak-normalization is wrong for convolution reverb
+			// — a dense IR sums many overlapping taps, so a sustained dry signal
+			// comes back several times hotter than source. Normalizing so
+			// sum(k^2) == 1 keeps wet ~ dry for every IR (sparse or dense, short or
+			// long). Level knob then controls the final trim.
+			double sumsq = 0.0;
+			for (float x : k)
+				sumsq += (double)x * (double)x;
+			double g = (sumsq > 1e-12) ? 1.0 / std::sqrt(sumsq) : 1.0;
+			if (g != 1.0)
+				for (float &x : k) x = (float)((double)x * g);
 			fullKernel = std::move(k);
 			fullKernelRate = (int)sampleRate;
 			fullKernelSrcIRLen = irLen;
@@ -793,22 +797,22 @@ struct RaReverbirWidget : ModuleWidget {
 		addParam(createParamCentered<RaKnobSmall>(Vec(leftX, 136), module, RaReverbirModule::PREDELAY_PARAM));
 		addInput(createInputCentered<RaPort>(Vec(rightX, 136), module, RaReverbirModule::PREDELAY_CV_INPUT));
 
-		// Gate
-		addParam(createParamCentered<RaKnobSmall>(Vec(leftX, 168), module, RaReverbirModule::GATE_PARAM));
-		addInput(createInputCentered<RaPort>(Vec(rightX, 168), module, RaReverbirModule::GATE_CV_INPUT));
-		addChild(createLightCentered<SmallLight<GreenLight>>(Vec(60, 168), module, RaReverbirModule::GATE_LIGHT));
-
 		// Attack
-		addParam(createParamCentered<RaKnobSmall>(Vec(leftX, 200), module, RaReverbirModule::ATTACK_PARAM));
-		addInput(createInputCentered<RaPort>(Vec(rightX, 200), module, RaReverbirModule::ATTACK_CV_INPUT));
+		addParam(createParamCentered<RaKnobSmall>(Vec(leftX, 168), module, RaReverbirModule::ATTACK_PARAM));
+		addInput(createInputCentered<RaPort>(Vec(rightX, 168), module, RaReverbirModule::ATTACK_CV_INPUT));
 
 		// Decay
-		addParam(createParamCentered<RaKnobSmall>(Vec(leftX, 232), module, RaReverbirModule::DECAY_PARAM));
-		addInput(createInputCentered<RaPort>(Vec(rightX, 232), module, RaReverbirModule::DECAY_CV_INPUT));
+		addParam(createParamCentered<RaKnobSmall>(Vec(leftX, 200), module, RaReverbirModule::DECAY_PARAM));
+		addInput(createInputCentered<RaPort>(Vec(rightX, 200), module, RaReverbirModule::DECAY_CV_INPUT));
 
 		// Damp
-		addParam(createParamCentered<RaKnobSmall>(Vec(leftX, 264), module, RaReverbirModule::DAMP_PARAM));
-		addInput(createInputCentered<RaPort>(Vec(rightX, 264), module, RaReverbirModule::DAMP_CV_INPUT));
+		addParam(createParamCentered<RaKnobSmall>(Vec(leftX, 232), module, RaReverbirModule::DAMP_PARAM));
+		addInput(createInputCentered<RaPort>(Vec(rightX, 232), module, RaReverbirModule::DAMP_CV_INPUT));
+
+		// Gate
+		addParam(createParamCentered<RaKnobSmall>(Vec(leftX, 264), module, RaReverbirModule::GATE_PARAM));
+		addInput(createInputCentered<RaPort>(Vec(rightX, 264), module, RaReverbirModule::GATE_CV_INPUT));
+		addChild(createLightCentered<SmallLight<GreenLight>>(Vec(60, 264), module, RaReverbirModule::GATE_LIGHT));
 
 		// Length (no CV input) — right below Damp
 		addParam(createParamCentered<RaKnobSmall>(Vec(leftX, 296), module, RaReverbirModule::LENGTH_PARAM));
