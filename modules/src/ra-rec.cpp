@@ -5,20 +5,44 @@
 // ============================================================
 // fname: REC1_PARAM "Rec 1"
 // fname: REC1_INPUT "Tr g 1"
+// fname: PLAY1_INPUT "Tr p 1"
 // fname: CLEAR1_PARAM "Clr 1"
 // fname: CLEAR1_INPUT "Tr c 1"
+// fname: WRITE1_PARAM "Wr 1"
+// fname: READ1_PARAM "Rd 1"
+// fname: PLAY1_PARAM "▶ 1"
+// fname: RESET1_PARAM "Rst 1"
+// fname: RESET1_INPUT "Tr r 1"
 // fname: REC2_PARAM "Rec 2"
 // fname: REC2_INPUT "Tr g 2"
+// fname: PLAY2_INPUT "Tr p 2"
 // fname: CLEAR2_PARAM "Clr 2"
 // fname: CLEAR2_INPUT "Tr c 2"
+// fname: WRITE2_PARAM "Wr 2"
+// fname: READ2_PARAM "Rd 2"
+// fname: PLAY2_PARAM "▶ 2"
+// fname: RESET2_PARAM "Rst 2"
+// fname: RESET2_INPUT "Tr r 2"
 // fname: REC3_PARAM "Rec 3"
 // fname: REC3_INPUT "Tr g 3"
+// fname: PLAY3_INPUT "Tr p 3"
 // fname: CLEAR3_PARAM "Clr 3"
 // fname: CLEAR3_INPUT "Tr c 3"
+// fname: WRITE3_PARAM "Wr 3"
+// fname: READ3_PARAM "Rd 3"
+// fname: PLAY3_PARAM "▶ 3"
+// fname: RESET3_PARAM "Rst 3"
+// fname: RESET3_INPUT "Tr r 3"
 // fname: REC4_PARAM "Rec 4"
 // fname: REC4_INPUT "Tr g 4"
+// fname: PLAY4_INPUT "Tr p 4"
 // fname: CLEAR4_PARAM "Clr 4"
 // fname: CLEAR4_INPUT "Tr c 4"
+// fname: WRITE4_PARAM "Wr 4"
+// fname: READ4_PARAM "Rd 4"
+// fname: PLAY4_PARAM "▶ 4"
+// fname: RESET4_PARAM "Rst 4"
+// fname: RESET4_INPUT "Tr r 4"
 // fname: IN1_INPUT "In 1"
 // fname: IN2_INPUT "In 2"
 // fname: IN3_INPUT "In 3"
@@ -31,10 +55,10 @@
 // fname: GLOBAL_REC_INPUT "Tr g"
 // fname: GLOBAL_CLEAR_PARAM "All Clr"
 // fname: GLOBAL_CLEAR_INPUT "Tr c"
-// fname: PLAY_PARAM "Play"
-// fname: PLAY_INPUT "Tr p"
-// fname: RESET_PARAM "Reset"
-// fname: RESET_INPUT "Tr r"
+// fname: GLOBAL_PLAY_PARAM "▶ All"
+// fname: GLOBAL_PLAY_INPUT "Tr p"
+// fname: GLOBAL_RESET_PARAM "Rst All"
+// fname: GLOBAL_RESET_INPUT "Tr r"
 #include "ra-components.hpp"
 
 #include <cstdio>
@@ -43,6 +67,7 @@
 #include <mutex>
 #include <atomic>
 #include <algorithm>
+#include <random>
 
 #include <osdialog.h>
 
@@ -56,57 +81,146 @@ extern Plugin *pluginInstance;
 static constexpr int NUM_CHANNELS = 4;
 static constexpr int MAX_RECORD_SECONDS = 480.f; // 8 minutes
 
-// Write a recording file with float32 PCM data
-// Format: [4 bytes: magic "RAREC"][4 bytes: sampleRate][4 bytes: numSamples][numSamples * 4 bytes: float samples]
+// Write a recording file as 16-bit mono WAV
 static bool writeRecording(const std::string &path, const float *samples, int numSamples, int sampleRate) {
+    const int numChannels = 1;
+    const int bitsPerSample = 16;
+    const int bytesPerSample = bitsPerSample / 8;
+    int dataSize = numSamples * numChannels * bytesPerSample;
+    int fileSize = 36 + dataSize; // Total file size minus 8 (RIFF header includes this)
+
     std::vector<uint8_t> data;
-    // Header
-    data.insert(data.end(), (uint8_t*)"RAREC", (uint8_t*)"RAREC" + 4);
-    data.push_back((sampleRate >> 24) & 0xff);
-    data.push_back((sampleRate >> 16) & 0xff);
-    data.push_back((sampleRate >> 8) & 0xff);
+    data.reserve(44 + dataSize);
+
+    // RIFF header
+    data.insert(data.end(), (uint8_t*)"RIFF", (uint8_t*)"RIFF" + 4);
+    data.push_back(fileSize & 0xff);
+    data.push_back((fileSize >> 8) & 0xff);
+    data.push_back((fileSize >> 16) & 0xff);
+    data.push_back((fileSize >> 24) & 0xff);
+    data.insert(data.end(), (uint8_t*)"WAVE", (uint8_t*)"WAVE" + 4);
+
+    // fmt chunk
+    data.insert(data.end(), (uint8_t*)"fmt ", (uint8_t*)"fmt " + 4);
+    int fmtChunkSize = 16; // PCM format
+    data.push_back(fmtChunkSize & 0xff);
+    data.push_back((fmtChunkSize >> 8) & 0xff);
+    data.push_back((fmtChunkSize >> 16) & 0xff);
+    data.push_back((fmtChunkSize >> 24) & 0xff);
+    int16_t audioFormat = 1; // PCM
+    data.push_back(audioFormat & 0xff);
+    data.push_back((audioFormat >> 8) & 0xff);
+    int16_t channels = numChannels;
+    data.push_back(channels & 0xff);
+    data.push_back((channels >> 8) & 0xff);
     data.push_back(sampleRate & 0xff);
-    data.push_back((numSamples >> 24) & 0xff);
-    data.push_back((numSamples >> 16) & 0xff);
-    data.push_back((numSamples >> 8) & 0xff);
-    data.push_back(numSamples & 0xff);
-    // Samples
+    data.push_back((sampleRate >> 8) & 0xff);
+    data.push_back((sampleRate >> 16) & 0xff);
+    data.push_back((sampleRate >> 24) & 0xff);
+    int byteRate = sampleRate * numChannels * bytesPerSample;
+    data.push_back(byteRate & 0xff);
+    data.push_back((byteRate >> 8) & 0xff);
+    data.push_back((byteRate >> 16) & 0xff);
+    data.push_back((byteRate >> 24) & 0xff);
+    int blockAlign = numChannels * bytesPerSample;
+    data.push_back(blockAlign & 0xff);
+    data.push_back((blockAlign >> 8) & 0xff);
+    data.push_back(bitsPerSample & 0xff);
+    data.push_back((bitsPerSample >> 8) & 0xff);
+
+    // data chunk
+    data.insert(data.end(), (uint8_t*)"data", (uint8_t*)"data" + 4);
+    data.push_back(dataSize & 0xff);
+    data.push_back((dataSize >> 8) & 0xff);
+    data.push_back((dataSize >> 16) & 0xff);
+    data.push_back((dataSize >> 24) & 0xff);
+
+    // Audio samples (16-bit mono)
     for (int i = 0; i < numSamples; i++) {
         float s = clamp(samples[i], -1.f, 1.f);
-        int32_t val = static_cast<int32_t>(s * 2147483647.f);
-        data.push_back((val >> 24) & 0xff);
-        data.push_back((val >> 16) & 0xff);
-        data.push_back((val >> 8) & 0xff);
+        int16_t val = static_cast<int16_t>(s * 32767.f);
         data.push_back(val & 0xff);
+        data.push_back((val >> 8) & 0xff);
     }
+
     writeFile(path, data);
     return true;
 }
 
-// Read a recording file and return the samples as float vector
+// Read a WAV file and return the samples as float vector
 // Returns empty vector on failure
 static std::vector<float> readRecording(const std::string &path, int &sampleRate) {
     std::vector<float> samples;
     sampleRate = 44100;
 
     auto data = readFile(path);
-    if (data.size() < 12)
+    if (data.size() < 44)
         return samples;
 
-    if (memcmp(data.data(), "RAREC", 4) != 0)
+    // Check RIFF header
+    if (memcmp(data.data(), "RIFF", 4) != 0)
+        return samples;
+    if (memcmp(data.data() + 8, "WAVE", 4) != 0)
         return samples;
 
-    sampleRate = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
-    int numSamples = (data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11];
+    // Find fmt chunk
+    size_t offset = 12;
+    int channels = 1;
+    int bitsPerSample = 16;
+    while (offset + 8 < data.size()) {
+        uint32_t chunkId = *(uint32_t*)(data.data() + offset);
+        uint32_t chunkSize = data[offset+4] | (data[offset+5] << 8) | (data[offset+6] << 16) | (data[offset+7] << 24);
 
-    if ((int)data.size() < 12 + numSamples * 4)
-        return samples;
+        if (memcmp(&chunkId, "fmt ", 4) == 0) {
+            channels = data[offset+10] | (data[offset+11] << 8);
+            sampleRate = data[offset+12] | (data[offset+13] << 8) | (data[offset+14] << 16) | (data[offset+15] << 24);
+            bitsPerSample = data[offset+22] | (data[offset+23] << 8);
+            break;
+        }
+        offset += 8 + chunkSize;
+        if (chunkSize % 2) offset++; // Pad byte
+    }
 
-    samples.resize(numSamples);
-    for (int i = 0; i < numSamples; i++) {
-        int idx = 12 + i * 4;
-        int32_t val = (data[idx] << 24) | (data[idx+1] << 16) | (data[idx+2] << 8) | data[idx+3];
-        samples[i] = (float)val / 2147483647.f;
+    // Find data chunk
+    offset = 12;
+    while (offset + 8 < data.size()) {
+        uint32_t chunkId = *(uint32_t*)(data.data() + offset);
+        uint32_t chunkSize = data[offset+4] | (data[offset+5] << 8) | (data[offset+6] << 16) | (data[offset+7] << 24);
+
+        if (memcmp(&chunkId, "data", 4) == 0) {
+            size_t audioOffset = offset + 8;
+            int bytesPerSample = bitsPerSample / 8;
+            int numSamples = chunkSize / (channels * bytesPerSample);
+
+            samples.resize(numSamples);
+            for (int i = 0; i < numSamples; i++) {
+                float sum = 0.f;
+                for (int ch = 0; ch < channels; ch++) {
+                    size_t idx = audioOffset + (i * channels + ch) * bytesPerSample;
+                    if (idx + bytesPerSample <= data.size()) {
+                        int32_t val;
+                        if (bitsPerSample == 16) {
+                            val = (int16_t)(data[idx] | (data[idx+1] << 8));
+                        } else if (bitsPerSample == 24) {
+                            val = data[idx] | (data[idx+1] << 8) | ((int8_t)data[idx+2] << 16);
+                        } else if (bitsPerSample == 32) {
+                            val = data[idx] | (data[idx+1] << 8) | (data[idx+2] << 16) | ((int8_t)data[idx+3] << 24);
+                        } else {
+                            val = 0;
+                        }
+                        sum += (float)val;
+                    }
+                }
+                samples[i] = sum / (float)channels;
+                // Normalize to -1..1 range
+                if (bitsPerSample == 16) samples[i] /= 32768.f;
+                else if (bitsPerSample == 24) samples[i] /= 8388608.f;
+                else if (bitsPerSample == 32) samples[i] /= 2147483648.f;
+            }
+            return samples;
+        }
+        offset += 8 + chunkSize;
+        if (chunkSize % 2) offset++; // Pad byte
     }
 
     return samples;
@@ -122,10 +236,26 @@ struct RaRecModule : Module {
         CLEAR2_PARAM,
         CLEAR3_PARAM,
         CLEAR4_PARAM,
+        WRITE1_PARAM,
+        WRITE2_PARAM,
+        WRITE3_PARAM,
+        WRITE4_PARAM,
+        READ1_PARAM,
+        READ2_PARAM,
+        READ3_PARAM,
+        READ4_PARAM,
+        PLAY1_PARAM,
+        PLAY2_PARAM,
+        PLAY3_PARAM,
+        PLAY4_PARAM,
+        RESET1_PARAM,
+        RESET2_PARAM,
+        RESET3_PARAM,
+        RESET4_PARAM,
         GLOBAL_REC_PARAM,
         GLOBAL_CLEAR_PARAM,
-        PLAY_PARAM,
-        RESET_PARAM,
+        GLOBAL_PLAY_PARAM,
+        GLOBAL_RESET_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -141,10 +271,18 @@ struct RaRecModule : Module {
         CLEAR2_INPUT,
         CLEAR3_INPUT,
         CLEAR4_INPUT,
+        PLAY1_INPUT,
+        PLAY2_INPUT,
+        PLAY3_INPUT,
+        PLAY4_INPUT,
+        RESET1_INPUT,
+        RESET2_INPUT,
+        RESET3_INPUT,
+        RESET4_INPUT,
         GLOBAL_REC_INPUT,
         GLOBAL_CLEAR_INPUT,
-        PLAY_INPUT,
-        RESET_INPUT,
+        GLOBAL_PLAY_INPUT,
+        GLOBAL_RESET_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -163,10 +301,18 @@ struct RaRecModule : Module {
         CLEAR2_LIGHT,
         CLEAR3_LIGHT,
         CLEAR4_LIGHT,
+        PLAY1_LIGHT,
+        PLAY2_LIGHT,
+        PLAY3_LIGHT,
+        PLAY4_LIGHT,
+        RESET1_LIGHT,
+        RESET2_LIGHT,
+        RESET3_LIGHT,
+        RESET4_LIGHT,
         GLOBAL_REC_LIGHT,
         GLOBAL_CLEAR_LIGHT,
-        PLAY_LIGHT,
-        RESET_LIGHT,
+        GLOBAL_PLAY_LIGHT,
+        GLOBAL_RESET_LIGHT,
         NUM_LIGHTS
     };
 
@@ -176,7 +322,7 @@ struct RaRecModule : Module {
     int bufferSizes[NUM_CHANNELS] = {0, 0, 0, 0};
     float readPositions[NUM_CHANNELS] = {0.f, 0.f, 0.f, 0.f};
     bool recording[NUM_CHANNELS] = {false, false, false, false};
-    bool playing = false;
+    bool playing[NUM_CHANNELS] = {false, false, false, false};
 
     // Base path shared by all 4 tracks, each suffixed _<n>. Guarded by a mutex.
     std::string basePath;
@@ -187,13 +333,21 @@ struct RaRecModule : Module {
     std::atomic<int> pendingStart{-1};
     std::atomic<bool> pathRequested{false};
 
+    // Pending write/read per channel. -1 = none, 0..3 = channel index.
+    std::atomic<int> pendingWrite{-1};
+    std::atomic<int> pendingRead{-1};
+    std::atomic<bool> writeRequested{false};
+    std::atomic<bool> readRequested{false};
+
     // Triggers
     dsp::SchmittTrigger recTriggers[NUM_CHANNELS];
     dsp::SchmittTrigger clearTriggers[NUM_CHANNELS];
+    dsp::SchmittTrigger playTriggers[NUM_CHANNELS];
+    dsp::SchmittTrigger resetTriggers[NUM_CHANNELS];
     dsp::SchmittTrigger globalRecTrigger;
     dsp::SchmittTrigger globalClearTrigger;
-    dsp::SchmittTrigger playTrigger;
-    dsp::SchmittTrigger resetTrigger;
+    dsp::SchmittTrigger globalPlayTrigger;
+    dsp::SchmittTrigger globalResetTrigger;
 
     RaRecModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -205,10 +359,26 @@ struct RaRecModule : Module {
         configButton(CLEAR2_PARAM, "Clear 2");
         configButton(CLEAR3_PARAM, "Clear 3");
         configButton(CLEAR4_PARAM, "Clear 4");
+        configButton(WRITE1_PARAM, "Write 1");
+        configButton(WRITE2_PARAM, "Write 2");
+        configButton(WRITE3_PARAM, "Write 3");
+        configButton(WRITE4_PARAM, "Write 4");
+        configButton(READ1_PARAM, "Read 1");
+        configButton(READ2_PARAM, "Read 2");
+        configButton(READ3_PARAM, "Read 3");
+        configButton(READ4_PARAM, "Read 4");
+        configButton(PLAY1_PARAM, "Play 1");
+        configButton(PLAY2_PARAM, "Play 2");
+        configButton(PLAY3_PARAM, "Play 3");
+        configButton(PLAY4_PARAM, "Play 4");
+        configButton(RESET1_PARAM, "Reset 1");
+        configButton(RESET2_PARAM, "Reset 2");
+        configButton(RESET3_PARAM, "Reset 3");
+        configButton(RESET4_PARAM, "Reset 4");
         configButton(GLOBAL_REC_PARAM, "Record all");
         configButton(GLOBAL_CLEAR_PARAM, "Clear all");
-        configButton(PLAY_PARAM, "Play");
-        configButton(RESET_PARAM, "Reset");
+        configButton(GLOBAL_PLAY_PARAM, "Play all");
+        configButton(GLOBAL_RESET_PARAM, "Reset all");
 
         configInput(IN1_INPUT, "In 1");
         configInput(IN2_INPUT, "In 2");
@@ -222,10 +392,18 @@ struct RaRecModule : Module {
         configInput(CLEAR2_INPUT, "Clear 2 trigger");
         configInput(CLEAR3_INPUT, "Clear 3 trigger");
         configInput(CLEAR4_INPUT, "Clear 4 trigger");
+        configInput(PLAY1_INPUT, "Play 1 trigger");
+        configInput(PLAY2_INPUT, "Play 2 trigger");
+        configInput(PLAY3_INPUT, "Play 3 trigger");
+        configInput(PLAY4_INPUT, "Play 4 trigger");
+        configInput(RESET1_INPUT, "Reset 1 trigger");
+        configInput(RESET2_INPUT, "Reset 2 trigger");
+        configInput(RESET3_INPUT, "Reset 3 trigger");
+        configInput(RESET4_INPUT, "Reset 4 trigger");
         configInput(GLOBAL_REC_INPUT, "Record all trigger");
         configInput(GLOBAL_CLEAR_INPUT, "Clear all trigger");
-        configInput(PLAY_INPUT, "Play trigger");
-        configInput(RESET_INPUT, "Reset trigger");
+        configInput(GLOBAL_PLAY_INPUT, "Play all trigger");
+        configInput(GLOBAL_RESET_INPUT, "Reset all trigger");
 
         configOutput(OUT1_OUTPUT, "Out 1");
         configOutput(OUT2_OUTPUT, "Out 2");
@@ -240,10 +418,18 @@ struct RaRecModule : Module {
         configLight(CLEAR2_LIGHT, "Clear 2");
         configLight(CLEAR3_LIGHT, "Clear 3");
         configLight(CLEAR4_LIGHT, "Clear 4");
+        configLight(PLAY1_LIGHT, "Play 1");
+        configLight(PLAY2_LIGHT, "Play 2");
+        configLight(PLAY3_LIGHT, "Play 3");
+        configLight(PLAY4_LIGHT, "Play 4");
+        configLight(RESET1_LIGHT, "Reset 1");
+        configLight(RESET2_LIGHT, "Reset 2");
+        configLight(RESET3_LIGHT, "Reset 3");
+        configLight(RESET4_LIGHT, "Reset 4");
         configLight(GLOBAL_REC_LIGHT, "Record all");
         configLight(GLOBAL_CLEAR_LIGHT, "Clear all");
-        configLight(PLAY_LIGHT, "Play");
-        configLight(RESET_LIGHT, "Reset");
+        configLight(GLOBAL_PLAY_LIGHT, "Play all");
+        configLight(GLOBAL_RESET_LIGHT, "Reset all");
 
         int sr = (int)APP->engine->getSampleRate();
         for (int i = 0; i < NUM_CHANNELS; i++)
@@ -267,7 +453,7 @@ struct RaRecModule : Module {
 
     // ---- File dialog / base path helpers (UI thread access) ----
 
-    // Insert _<n> before the file extension, e.g. "foo.rarec" -> "foo_1.rarec"
+    // Insert _<n> before the file extension, e.g. "foo.wav" -> "foo_1.wav"
     static std::string suffixedPath(const std::string &base, int n) {
         size_t dot = base.find_last_of('.');
         size_t slash = base.find_last_of('/');
@@ -299,6 +485,18 @@ struct RaRecModule : Module {
         pathRequested = false;
     }
 
+    // Clear pending write request
+    void clearPendingWrite() {
+        pendingWrite = -1;
+        writeRequested = false;
+    }
+
+    // Clear pending read request
+    void clearPendingRead() {
+        pendingRead = -1;
+        readRequested = false;
+    }
+
     // Start recording the given scope (called only on the UI thread after dialog)
     void beginRecording(int scope) {
         if (scope == 4) {
@@ -311,6 +509,20 @@ struct RaRecModule : Module {
             writePositions[scope] = 0;
         }
         pathRequested = false;
+    }
+
+    // Generate a unique temp path for the given channel
+    std::string generateTempPath(int channel) {
+        std::string tempDir = system::getTempDirectory();
+        // Use random hex to avoid collisions
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, 15);
+        char hex[9];
+        for (int i = 0; i < 8; i++)
+            hex[i] = "0123456789abcdef"[dis(gen)];
+        hex[8] = '\0';
+        return system::join(tempDir, "ra-rec-ch" + std::to_string(channel + 1) + "-" + hex + ".wav");
     }
 
     void clearTrack(int channel) {
@@ -398,15 +610,16 @@ struct RaRecModule : Module {
 
     // ---- Record trigger handling ----
     // Handles a record-on request from the audio thread. If a base path is set,
-    // starts immediately; otherwise requests the file dialog from the UI thread.
+    // starts immediately; otherwise uses a temp directory.
     void requestRecordStart(int scope) {
         std::string base = getBasePath();
         if (!base.empty()) {
             beginRecording(scope);
         } else {
-            // Defer until the dialog supplies a base path
-            pendingStart = scope;
-            pathRequested = true;
+            // Use temp directory
+            std::string tempPath = generateTempPath(0);
+            setBasePath(tempPath);
+            beginRecording(scope);
         }
     }
 
@@ -446,6 +659,16 @@ struct RaRecModule : Module {
             if (clearTriggers[i].process(clrSig))
                 clearTrack(i);
 
+            // Per-channel play toggle
+            float playSig = std::max(params[PLAY1_PARAM + i].getValue(), inputs[PLAY1_INPUT + i].getVoltage());
+            if (playTriggers[i].process(playSig))
+                playing[i] = !playing[i];
+
+            // Per-channel reset
+            float resetSig = std::max(params[RESET1_PARAM + i].getValue(), inputs[RESET1_INPUT + i].getVoltage());
+            if (resetTriggers[i].process(resetSig))
+                readPositions[i] = 0.f;
+
             // Record current sample
             float in = inputs[IN1_INPUT + i].getVoltage();
             if (recording[i]) {
@@ -466,14 +689,17 @@ struct RaRecModule : Module {
         if (globalClearTrigger.process(gClr))
             clearAll();
 
-        // ---- Global play / pause ----
-        float playSig = std::max(params[PLAY_PARAM].getValue(), inputs[PLAY_INPUT].getVoltage());
-        if (playTrigger.process(playSig))
-            playing = !playing;
+        // ---- Global play (toggle all) ----
+        float gPlay = std::max(params[GLOBAL_PLAY_PARAM].getValue(), inputs[GLOBAL_PLAY_INPUT].getVoltage());
+        if (globalPlayTrigger.process(gPlay)) {
+            bool anyPlaying = playing[0] || playing[1] || playing[2] || playing[3];
+            for (int i = 0; i < NUM_CHANNELS; i++)
+                playing[i] = !anyPlaying;
+        }
 
-        // ---- Reset playheads ----
-        float resetSig = std::max(params[RESET_PARAM].getValue(), inputs[RESET_INPUT].getVoltage());
-        if (resetTrigger.process(resetSig)) {
+        // ---- Global reset ----
+        float gReset = std::max(params[GLOBAL_RESET_PARAM].getValue(), inputs[GLOBAL_RESET_INPUT].getVoltage());
+        if (globalResetTrigger.process(gReset)) {
             for (int i = 0; i < NUM_CHANNELS; i++)
                 readPositions[i] = 0.f;
         }
@@ -481,10 +707,23 @@ struct RaRecModule : Module {
         // ---- Lights ----
         for (int i = 0; i < NUM_CHANNELS; i++)
             lights[REC1_LIGHT + i].setBrightness(recording[i] ? 1.f : 0.f);
+        for (int i = 0; i < NUM_CHANNELS; i++)
+            lights[PLAY1_LIGHT + i].setBrightness(playing[i] ? 1.f : 0.f);
         lights[GLOBAL_REC_LIGHT].setBrightness((recording[0] || recording[1] || recording[2] || recording[3]) ? 1.f : 0.f);
+        lights[GLOBAL_PLAY_LIGHT].setBrightness((playing[0] || playing[1] || playing[2] || playing[3]) ? 1.f : 0.f);
         lights[GLOBAL_CLEAR_LIGHT].setBrightness(0.f);
-        lights[PLAY_LIGHT].setBrightness(playing ? 1.f : 0.f);
-        lights[RESET_LIGHT].setBrightness(0.f);
+
+        // ---- Write/Read button handling ----
+        for (int i = 0; i < NUM_CHANNELS; i++) {
+            if (params[WRITE1_PARAM + i].getValue() > 0.f) {
+                pendingWrite = i;
+                writeRequested = true;
+            }
+            if (params[READ1_PARAM + i].getValue() > 0.f) {
+                pendingRead = i;
+                readRequested = true;
+            }
+        }
 
         // ---- Outputs ----
         for (int ch = 0; ch < NUM_CHANNELS; ch++) {
@@ -494,7 +733,7 @@ struct RaRecModule : Module {
             if (recording[ch]) {
                 // Monitor the live input while recording
                 out = in;
-            } else if (playing) {
+            } else if (playing[ch]) {
                 // Playback, looping within this track's own recorded length
                 if (writePositions[ch] > 0) {
                     out = interpRead(ch, readPositions[ch]);
@@ -513,7 +752,10 @@ struct RaRecModule : Module {
 
     json_t *dataToJson() override {
         json_t *rootJ = json_object();
-        json_object_set_new(rootJ, "playing", json_boolean(playing));
+        json_t *playingJ = json_array();
+        for (int i = 0; i < NUM_CHANNELS; i++)
+            json_array_append_new(playingJ, json_boolean(playing[i]));
+        json_object_set_new(rootJ, "playing", playingJ);
         {
             std::lock_guard<std::mutex> lock(pathMutex);
             if (!basePath.empty())
@@ -524,8 +766,10 @@ struct RaRecModule : Module {
 
     void dataFromJson(json_t *rootJ) override {
         json_t *playJ = json_object_get(rootJ, "playing");
-        if (playJ)
-            playing = json_boolean_value(playJ);
+        if (playJ && json_is_array(playJ)) {
+            for (int i = 0; i < NUM_CHANNELS; i++)
+                playing[i] = json_boolean_value(json_array_get(playJ, i));
+        }
 
         json_t *pathJ = json_object_get(rootJ, "basePath");
         if (pathJ && json_is_string(pathJ)) {
@@ -597,6 +841,26 @@ struct TrackScopeDisplay : LedDisplay {
             nvgText(args.vg, 4, midY, label, NULL);
 
             drawWaveform(args.vg, i, top, midY, laneH);
+
+            // Playhead marker (show when playing, flash when paused if has content)
+            if (module->writePositions[i] > 0) {
+                float playPos = module->readPositions[i] / (float)module->writePositions[i];
+                float playX = playPos * box.size.x;
+                nvgBeginPath(args.vg);
+                nvgMoveTo(args.vg, playX, top + 2);
+                nvgLineTo(args.vg, playX, top + laneH - 2);
+                nvgStrokeWidth(args.vg, 2.f);
+                if (module->playing[i]) {
+                    // Solid white when playing
+                    nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 200));
+                } else {
+                    // Flash when paused
+                    float t = system::getTime();
+                    float flash = (fmodf(t, 1.f) < 0.5f) ? 1.f : 0.2f;
+                    nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, (uint8_t)(255.f * flash)));
+                }
+                nvgStroke(args.vg);
+            }
         }
     }
 
@@ -658,45 +922,64 @@ struct RaRecWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         // ---- Global controls across the top ----
-        float gbtnY = 42;
-        float gtrigY = 62;
-        float gx[4] = {144.f, 302.f, 461.f, 619.f};
+        // Positions from SVG: four groups at x=22.35, 48.77, 75.18, 101.60, y=14.22 (lights), y=21 (ports)
+        float gx[4] = {22.35f, 48.77f, 75.18f, 101.60f};
+        float gLightY = 14.22f;
+        float gTrigY = 21.00f;
 
-        addParam(createLightParamCentered<VCVLightBezel<RedLight>>(Vec(gx[0], gbtnY), module, RaRecModule::GLOBAL_REC_PARAM, RaRecModule::GLOBAL_REC_LIGHT));
-        addInput(createInputCentered<RaPort>(Vec(gx[0], gtrigY), module, RaRecModule::GLOBAL_REC_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<YellowLight>>(Vec(gx[1], gbtnY), module, RaRecModule::GLOBAL_CLEAR_PARAM, RaRecModule::GLOBAL_CLEAR_LIGHT));
-        addInput(createInputCentered<RaPort>(Vec(gx[1], gtrigY), module, RaRecModule::GLOBAL_CLEAR_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(gx[2], gbtnY), module, RaRecModule::PLAY_PARAM, RaRecModule::PLAY_LIGHT));
-        addInput(createInputCentered<RaPort>(Vec(gx[2], gtrigY), module, RaRecModule::PLAY_INPUT));
-        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(Vec(gx[3], gbtnY), module, RaRecModule::RESET_PARAM, RaRecModule::RESET_LIGHT));
-        addInput(createInputCentered<RaPort>(Vec(gx[3], gtrigY), module, RaRecModule::RESET_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<RedLight>>(mm2px(Vec(gx[0], gLightY)), module, RaRecModule::GLOBAL_REC_PARAM, RaRecModule::GLOBAL_REC_LIGHT));
+        addInput(createInputCentered<RaPort>(mm2px(Vec(gx[0], gTrigY)), module, RaRecModule::GLOBAL_REC_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<YellowLight>>(mm2px(Vec(gx[1], gLightY)), module, RaRecModule::GLOBAL_CLEAR_PARAM, RaRecModule::GLOBAL_CLEAR_LIGHT));
+        addInput(createInputCentered<RaPort>(mm2px(Vec(gx[1], gTrigY)), module, RaRecModule::GLOBAL_CLEAR_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(mm2px(Vec(gx[2], gLightY)), module, RaRecModule::GLOBAL_PLAY_PARAM, RaRecModule::GLOBAL_PLAY_LIGHT));
+        addInput(createInputCentered<RaPort>(mm2px(Vec(gx[2], gTrigY)), module, RaRecModule::GLOBAL_PLAY_INPUT));
+        addParam(createLightParamCentered<VCVLightBezel<WhiteLight>>(mm2px(Vec(gx[3], gLightY)), module, RaRecModule::GLOBAL_RESET_PARAM, RaRecModule::GLOBAL_RESET_LIGHT));
+        addInput(createInputCentered<RaPort>(mm2px(Vec(gx[3], gTrigY)), module, RaRecModule::GLOBAL_RESET_INPUT));
 
         // ---- Display ----
+        // Display: narrower to leave room for output jacks on the right
+        // Module is 243.84mm wide, leave ~50mm on right for outputs
         auto *display = new TrackScopeDisplay();
-        display->box.pos = Vec(150, 117);
-        display->box.size = Vec(420, 220);
+        display->box.pos = mm2px(Vec(67.f, 38.f));
+        display->box.size = mm2px(Vec(125.f, 84.f));
         display->module = module;
         addChild(display);
 
         // ---- Per-track controls ----
-        // Left column elements per lane (x-centers)
-        float inX = 28;
-        float recBtX = 62;
-        float recTrX = 86;
-        float clrBtX = 110;
-        float clrTrX = 132;
-        float outX = 665;
-
-        float laneYs[4] = {145.f, 200.f, 255.f, 310.f};
+        // Left side: input jack + 4 buttons (Rec, Clr, Play, Rst) + 4 trigger inputs
+        // Right side: output jack + Wr/Rd buttons
+        float colIn = 8.f;
+        float colRec = 19.f;
+        float colClr = 30.f;
+        float colPly = 41.f;
+        float colRst = 52.f;
+        float colTrigRec = 19.f;
+        float colTrigClr = 30.f;
+        float colTrigPly = 41.f;
+        float colTrigRst = 52.f;
+        float colWr = 207.f;
+        float colRd = 218.f;
+        float colOut = 229.f;
 
         for (int i = 0; i < 4; i++) {
-            float y = laneYs[i];
-            addInput(createInputCentered<RaPort>(Vec(inX, y), module, RaRecModule::IN1_INPUT + i));
-            addParam(createLightParamCentered<VCVLightBezel<RedLight>>(Vec(recBtX, y), module, RaRecModule::REC1_PARAM + i, RaRecModule::REC1_LIGHT + i));
-            addInput(createInputCentered<RaPort>(Vec(recTrX, y), module, RaRecModule::REC1_INPUT + i));
-            addParam(createLightParamCentered<VCVLightBezel<YellowLight>>(Vec(clrBtX, y), module, RaRecModule::CLEAR1_PARAM + i, RaRecModule::CLEAR1_LIGHT + i));
-            addInput(createInputCentered<RaPort>(Vec(clrTrX, y), module, RaRecModule::CLEAR1_INPUT + i));
-            addOutput(createOutputCentered<RaPort>(Vec(outX, y), module, RaRecModule::OUT1_OUTPUT + i));
+            float yRow1 = 46.f + i * 20.5f;
+            float yRow2 = 52.f + i * 20.5f;
+
+            // Row 1: Input jack + buttons (Rec, Clr, Play, Rst)
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colIn, yRow1)), module, RaRecModule::IN1_INPUT + i));
+            addParam(createLightParamCentered<VCVLightBezel<RedLight>>(mm2px(Vec(colRec, yRow1)), module, RaRecModule::REC1_PARAM + i, RaRecModule::REC1_LIGHT + i));
+            addParam(createParamCentered<RaButton>(mm2px(Vec(colClr, yRow1)), module, RaRecModule::CLEAR1_PARAM + i));
+            addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(mm2px(Vec(colPly, yRow1)), module, RaRecModule::PLAY1_PARAM + i, RaRecModule::PLAY1_LIGHT + i));
+            addParam(createParamCentered<RaButton>(mm2px(Vec(colRst, yRow1)), module, RaRecModule::RESET1_PARAM + i));
+
+            // Row 2: Triggers (Rec, Clr, Play, Rst) + Wr/Rd + Output jack
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigRec, yRow2)), module, RaRecModule::REC1_INPUT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigClr, yRow2)), module, RaRecModule::CLEAR1_INPUT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigPly, yRow2)), module, RaRecModule::PLAY1_INPUT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigRst, yRow2)), module, RaRecModule::RESET1_INPUT + i));
+            addParam(createParamCentered<RaButton>(mm2px(Vec(colWr, yRow2)), module, RaRecModule::WRITE1_PARAM + i));
+            addParam(createParamCentered<RaButton>(mm2px(Vec(colRd, yRow2)), module, RaRecModule::READ1_PARAM + i));
+            addOutput(createOutputCentered<RaPort>(mm2px(Vec(colOut, yRow2)), module, RaRecModule::OUT1_OUTPUT + i));
         }
     }
 
@@ -710,18 +993,80 @@ struct RaRecWidget : ModuleWidget {
             // Ask the user where/what to save via the system file browser
             std::string existing = m->getBasePath();
             std::string dir = existing.empty() ? "" : getDirectory(existing);
-            std::string fname = existing.empty() ? "recording.rarec" : getFilename(existing);
+            std::string fname = existing.empty() ? "recording.wav" : getFilename(existing);
 
             char *pathC = osdialog_file(OSDIALOG_SAVE,
                                         dir.empty() ? nullptr : dir.c_str(),
                                         fname.empty() ? nullptr : fname.c_str(),
-                                        osdialog_filters_parse("RA-Rec Recording:rarec"));
+                                        osdialog_filters_parse("WAV Audio:wav"));
             if (pathC) {
                 m->setBasePath(pathC);
                 free(pathC);
             } else {
                 // Cancelled — discard the pending start
                 m->clearPendingStart();
+            }
+        }
+
+        // Handle write dialog
+        if (m->writeRequested.exchange(false)) {
+            int ch = m->pendingWrite;
+            if (ch >= 0 && ch < NUM_CHANNELS) {
+                char *pathC = osdialog_file(OSDIALOG_SAVE,
+                                            nullptr, nullptr,
+                                            osdialog_filters_parse("WAV Audio:wav"));
+                if (pathC) {
+                    std::string path(pathC);
+                    free(pathC);
+                    // Save the channel's recording to the chosen path
+                    int numSamples = m->writePositions[ch];
+                    if (numSamples > 0) {
+                        int sr = (int)APP->engine->getSampleRate();
+                        writeRecording(path, m->buffers[ch].data(), numSamples, sr);
+                    }
+                }
+                m->clearPendingWrite();
+            }
+        }
+
+        // Handle read dialog
+        if (m->readRequested.exchange(false)) {
+            int ch = m->pendingRead;
+            if (ch >= 0 && ch < NUM_CHANNELS) {
+                char *pathC = osdialog_file(OSDIALOG_OPEN,
+                                            nullptr, nullptr,
+                                            osdialog_filters_parse("WAV Audio:wav"));
+                if (pathC) {
+                    std::string path(pathC);
+                    free(pathC);
+                    // Load the file into the channel
+                    int fileSampleRate = 0;
+                    auto samples = readRecording(path, fileSampleRate);
+                    if (!samples.empty()) {
+                        int targetSize = m->bufferSizes[ch];
+                        m->buffers[ch].assign(targetSize, 0.f);
+
+                        if (fileSampleRate == (int)APP->engine->getSampleRate()) {
+                            int copyLen = std::min((int)samples.size(), targetSize);
+                            for (int i = 0; i < copyLen; i++)
+                                m->buffers[ch][i] = samples[i];
+                            m->writePositions[ch] = copyLen;
+                        } else {
+                            float ratio = (float)fileSampleRate / (float)APP->engine->getSampleRate();
+                            int writePos = 0;
+                            for (float srcPos = 0.f; srcPos < (float)samples.size() && writePos < targetSize; srcPos += ratio) {
+                                int i0 = (int)srcPos;
+                                int i1 = std::min(i0 + 1, (int)samples.size() - 1);
+                                float frac = srcPos - (float)i0;
+                                m->buffers[ch][writePos] = samples[i0] + frac * (samples[i1] - samples[i0]);
+                                writePos++;
+                            }
+                            m->writePositions[ch] = writePos;
+                        }
+                        m->readPositions[ch] = 0.f;
+                    }
+                }
+                m->clearPendingRead();
             }
         }
     }
