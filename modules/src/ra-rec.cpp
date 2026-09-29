@@ -46,6 +46,14 @@
 // fname: PLAY4_PARAM "▶ 4"
 // fname: RESET4_PARAM "Rst 4"
 // fname: RESET4_INPUT "Tr r 4"
+// fname: SPEED1_PARAM "Spd 1"
+// fname: SPEED1_INPUT "CV s 1"
+// fname: SPEED2_PARAM "Spd 2"
+// fname: SPEED2_INPUT "CV s 2"
+// fname: SPEED3_PARAM "Spd 3"
+// fname: SPEED3_INPUT "CV s 3"
+// fname: SPEED4_PARAM "Spd 4"
+// fname: SPEED4_INPUT "CV s 4"
 // fname: POSITION4_INPUT "Pos 4"
 // fname: IN1_INPUT "In 1"
 // fname: IN2_INPUT "In 2"
@@ -256,6 +264,10 @@ struct RaRecModule : Module {
         RESET2_PARAM,
         RESET3_PARAM,
         RESET4_PARAM,
+        SPEED1_PARAM,
+        SPEED2_PARAM,
+        SPEED3_PARAM,
+        SPEED4_PARAM,
         GLOBAL_REC_PARAM,
         GLOBAL_CLEAR_PARAM,
         GLOBAL_PLAY_PARAM,
@@ -283,6 +295,10 @@ struct RaRecModule : Module {
         RESET2_INPUT,
         RESET3_INPUT,
         RESET4_INPUT,
+        SPEED1_INPUT,
+        SPEED2_INPUT,
+        SPEED3_INPUT,
+        SPEED4_INPUT,
         POSITION1_INPUT,
         POSITION2_INPUT,
         POSITION3_INPUT,
@@ -384,6 +400,10 @@ struct RaRecModule : Module {
         configButton(RESET2_PARAM, "Reset 2");
         configButton(RESET3_PARAM, "Reset 3");
         configButton(RESET4_PARAM, "Reset 4");
+        configParam(SPEED1_PARAM, 0.f, 1.f, 0.125f, "Speed 1", "x", 8, 0);
+        configParam(SPEED2_PARAM, 0.f, 1.f, 0.125f, "Speed 2", "x", 8, 0);
+        configParam(SPEED3_PARAM, 0.f, 1.f, 0.125f, "Speed 3", "x", 8, 0);
+        configParam(SPEED4_PARAM, 0.f, 1.f, 0.125f, "Speed 4", "x", 8, 0);
         configButton(GLOBAL_REC_PARAM, "Record all");
         configButton(GLOBAL_CLEAR_PARAM, "Clear all");
         configButton(GLOBAL_PLAY_PARAM, "Play all");
@@ -409,6 +429,10 @@ struct RaRecModule : Module {
         configInput(RESET2_INPUT, "Reset 2 trigger");
         configInput(RESET3_INPUT, "Reset 3 trigger");
         configInput(RESET4_INPUT, "Reset 4 trigger");
+        configInput(SPEED1_INPUT, "Speed 1");
+        configInput(SPEED2_INPUT, "Speed 2");
+        configInput(SPEED3_INPUT, "Speed 3");
+        configInput(SPEED4_INPUT, "Speed 4");
         configInput(POSITION1_INPUT, "Position 1");
         configInput(POSITION2_INPUT, "Position 2");
         configInput(POSITION3_INPUT, "Position 3");
@@ -765,8 +789,14 @@ struct RaRecModule : Module {
             } else if (playing[ch]) {
                 // Playback, looping within this track's own recorded length
                 if (writePositions[ch] > 0) {
+                    // Calculate speed: knob (0-1) * 8 = base speed, CV adds up to same amount again
+                    float baseSpeed = params[SPEED1_PARAM + ch].getValue() * 8.f;
+                    if (inputs[SPEED1_INPUT + ch].isConnected()) {
+                        float cvMod = inputs[SPEED1_INPUT + ch].getVoltage() / 10.f;
+                        baseSpeed *= (1.f + cvMod);
+                    }
                     out = interpRead(ch, readPositions[ch]);
-                    readPositions[ch] += 1.f;
+                    readPositions[ch] += baseSpeed;
                     float recordEnd = (float)writePositions[ch];
                     if (readPositions[ch] >= recordEnd)
                         readPositions[ch] = fmodf(readPositions[ch], recordEnd);
@@ -980,48 +1010,50 @@ struct RaRecWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(mm2px(Vec(gx[3], gTrigY)), module, RaRecModule::GLOBAL_RESET_INPUT));
 
         // ---- Display ----
-        // Display: narrower to leave room for output jacks on the right
-        // Module is 243.84mm wide, leave ~50mm on right for outputs
         auto *display = new TrackScopeDisplay();
-        display->box.pos = mm2px(Vec(67.f, 38.f));
+        display->box.pos = mm2px(Vec(88.f, 38.f));
         display->box.size = mm2px(Vec(125.f, 84.f));
         display->module = module;
         addChild(display);
 
         // ---- Per-track controls ----
-        // Left side: input jack + 5 trigger inputs (Rec, Clr, Play, Rst, Pos)
-        // Left buttons: Rec, Clr, Play, Rst
+        // Left side: input jack + buttons (Rec, Clr, Play, Rst, Speed knob)
+        // Left triggers: Rec, Clr, Play, Rst, Speed CV, Pos
         // Right side: output jack + Wr/Rd buttons
         float colIn = 8.f;
         float colRec = 19.f;
         float colClr = 30.f;
         float colPly = 41.f;
         float colRst = 52.f;
-        float colPos = 63.f;
+        float colSpeedKnob = 63.f;
+        float colSpeedCV = 63.f;
+        float colPos = 74.f;
         float colTrigRec = 19.f;
         float colTrigClr = 30.f;
         float colTrigPly = 41.f;
         float colTrigRst = 52.f;
-        float colWr = 207.f;
-        float colRd = 218.f;
-        float colOut = 229.f;
+        float colWr = 220.f;
+        float colRd = 231.f;
+        float colOut = 244.f;
 
         for (int i = 0; i < 4; i++) {
-            float yRow1 = 46.f + i * 20.5f;
-            float yRow2 = 52.f + i * 20.5f;
+            float yRow1 = 42.f + i * 21.f;
+            float yRow2 = 48.f + i * 21.f;
 
-            // Row 1: Input jack + buttons (Rec, Clr, Play, Rst)
+            // Row 1: Input jack + buttons (Rec, Clr, Play, Rst, Speed knob)
             addInput(createInputCentered<RaPort>(mm2px(Vec(colIn, yRow1)), module, RaRecModule::IN1_INPUT + i));
             addParam(createLightParamCentered<VCVLightBezel<RedLight>>(mm2px(Vec(colRec, yRow1)), module, RaRecModule::REC1_PARAM + i, RaRecModule::REC1_LIGHT + i));
             addParam(createParamCentered<RaButton>(mm2px(Vec(colClr, yRow1)), module, RaRecModule::CLEAR1_PARAM + i));
             addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(mm2px(Vec(colPly, yRow1)), module, RaRecModule::PLAY1_PARAM + i, RaRecModule::PLAY1_LIGHT + i));
             addParam(createParamCentered<RaButton>(mm2px(Vec(colRst, yRow1)), module, RaRecModule::RESET1_PARAM + i));
+            addParam(createParamCentered<RaKnobSmall>(mm2px(Vec(colSpeedKnob, yRow1)), module, RaRecModule::SPEED1_PARAM + i));
 
-            // Row 2: Triggers (Rec, Clr, Play, Rst) + Wr/Rd + Output jack
+            // Row 2: Triggers (Rec, Clr, Play, Rst) + Speed CV + Pos + Wr/Rd + Out
             addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigRec, yRow2)), module, RaRecModule::REC1_INPUT + i));
             addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigClr, yRow2)), module, RaRecModule::CLEAR1_INPUT + i));
             addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigPly, yRow2)), module, RaRecModule::PLAY1_INPUT + i));
             addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigRst, yRow2)), module, RaRecModule::RESET1_INPUT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colSpeedCV, yRow2)), module, RaRecModule::SPEED1_INPUT + i));
             addInput(createInputCentered<RaPort>(mm2px(Vec(colPos, yRow2)), module, RaRecModule::POSITION1_INPUT + i));
             addParam(createParamCentered<RaButton>(mm2px(Vec(colWr, yRow2)), module, RaRecModule::WRITE1_PARAM + i));
             addParam(createParamCentered<RaButton>(mm2px(Vec(colRd, yRow2)), module, RaRecModule::READ1_PARAM + i));
