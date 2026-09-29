@@ -13,6 +13,7 @@
 // fname: PLAY1_PARAM "▶ 1"
 // fname: RESET1_PARAM "Rst 1"
 // fname: RESET1_INPUT "Tr r 1"
+// fname: POSITION1_INPUT "Pos 1"
 // fname: REC2_PARAM "Rec 2"
 // fname: REC2_INPUT "Tr g 2"
 // fname: PLAY2_INPUT "Tr p 2"
@@ -23,6 +24,7 @@
 // fname: PLAY2_PARAM "▶ 2"
 // fname: RESET2_PARAM "Rst 2"
 // fname: RESET2_INPUT "Tr r 2"
+// fname: POSITION2_INPUT "Pos 2"
 // fname: REC3_PARAM "Rec 3"
 // fname: REC3_INPUT "Tr g 3"
 // fname: PLAY3_INPUT "Tr p 3"
@@ -33,6 +35,7 @@
 // fname: PLAY3_PARAM "▶ 3"
 // fname: RESET3_PARAM "Rst 3"
 // fname: RESET3_INPUT "Tr r 3"
+// fname: POSITION3_INPUT "Pos 3"
 // fname: REC4_PARAM "Rec 4"
 // fname: REC4_INPUT "Tr g 4"
 // fname: PLAY4_INPUT "Tr p 4"
@@ -43,6 +46,7 @@
 // fname: PLAY4_PARAM "▶ 4"
 // fname: RESET4_PARAM "Rst 4"
 // fname: RESET4_INPUT "Tr r 4"
+// fname: POSITION4_INPUT "Pos 4"
 // fname: IN1_INPUT "In 1"
 // fname: IN2_INPUT "In 2"
 // fname: IN3_INPUT "In 3"
@@ -279,6 +283,10 @@ struct RaRecModule : Module {
         RESET2_INPUT,
         RESET3_INPUT,
         RESET4_INPUT,
+        POSITION1_INPUT,
+        POSITION2_INPUT,
+        POSITION3_INPUT,
+        POSITION4_INPUT,
         GLOBAL_REC_INPUT,
         GLOBAL_CLEAR_INPUT,
         GLOBAL_PLAY_INPUT,
@@ -323,6 +331,7 @@ struct RaRecModule : Module {
     float readPositions[NUM_CHANNELS] = {0.f, 0.f, 0.f, 0.f};
     bool recording[NUM_CHANNELS] = {false, false, false, false};
     bool playing[NUM_CHANNELS] = {false, false, false, false};
+    float lastPositionVoltage[NUM_CHANNELS] = {100.f, 100.f, 100.f, 100.f};  // Start with out-of-range value
 
     // Base path shared by all 4 tracks, each suffixed _<n>. Guarded by a mutex.
     std::string basePath;
@@ -400,6 +409,10 @@ struct RaRecModule : Module {
         configInput(RESET2_INPUT, "Reset 2 trigger");
         configInput(RESET3_INPUT, "Reset 3 trigger");
         configInput(RESET4_INPUT, "Reset 4 trigger");
+        configInput(POSITION1_INPUT, "Position 1");
+        configInput(POSITION2_INPUT, "Position 2");
+        configInput(POSITION3_INPUT, "Position 3");
+        configInput(POSITION4_INPUT, "Position 4");
         configInput(GLOBAL_REC_INPUT, "Record all trigger");
         configInput(GLOBAL_CLEAR_INPUT, "Clear all trigger");
         configInput(GLOBAL_PLAY_INPUT, "Play all trigger");
@@ -669,6 +682,22 @@ struct RaRecModule : Module {
             if (resetTriggers[i].process(resetSig))
                 readPositions[i] = 0.f;
 
+            // Per-channel scrub/position (continuous CV)
+            if (inputs[POSITION1_INPUT + i].isConnected() && writePositions[i] > 0) {
+                float posVoltage = inputs[POSITION1_INPUT + i].getVoltage();
+                // Only update position if changed by more than 0.05V threshold
+                if (std::abs(posVoltage - lastPositionVoltage[i]) > 0.05f) {
+                    lastPositionVoltage[i] = posVoltage;
+                    // 0V = start, 10V = end
+                    float pos = clamp(posVoltage / 10.f, 0.f, 1.f);
+                    readPositions[i] = pos * (float)writePositions[i];
+                    // When not playing, output audio at the scrubbed position for audible scrubbing
+                    if (!playing[i]) {
+                        outputs[OUT1_OUTPUT + i].setVoltage(interpRead(i, readPositions[i]));
+                    }
+                }
+            }
+
             // Record current sample
             float in = inputs[IN1_INPUT + i].getVoltage();
             if (recording[i]) {
@@ -869,22 +898,36 @@ struct TrackScopeDisplay : LedDisplay {
         // lane width. As the recording grows the waveform compresses to fit.
         int len = module->writePositions[channel];
         int cap = module->bufferSizes[channel];
-        if (cap <= 0)
+        if (cap <= 0 || len <= 0)
             return;
         const auto &buf = module->buffers[channel];
 
         // Vertical bounds — never let the line leave the lane
         const float plotTop = top + 3;
         const float plotBot = top + laneH - 3;
-        // Map ±5V to the lane height; anything beyond is clamped to the edge
-        const float scale = (plotBot - plotTop) / 2.f / 5.f;
+        const float plotHeight = plotBot - plotTop;
+
+        // Auto-scale: find the peak value in the recording
+        float peak = 0.1f;  // Minimum to avoid division by zero
+        int samplesToCheck = std::min(len, 1000);  // Sample up to 1000 points for performance
+        int step = len / samplesToCheck;
+        if (step < 1) step = 1;
+        for (int i = 0; i < len; i += step) {
+            float v = std::abs(buf[i]);
+            if (v > peak) peak = v;
+        }
+        // Add 10% headroom
+        peak *= 1.1f;
+
+        // Map ±peak to the lane height
+        const float scale = plotHeight / 2.f / peak;
 
         nvgBeginPath(vg);
         int n = (int)box.size.x;
         for (int x = 0; x < n; x++) {
             float t = (float)x / (float)n;
-            int idx = (int)(t * (len > 0 ? len : cap));
-            if (idx >= cap) idx = cap - 1;
+            int idx = (int)(t * (float)len);
+            if (idx >= len) idx = len - 1;
             float v = buf[idx];
             float y = midY - v * scale;
             if (y < plotTop) y = plotTop;
@@ -946,13 +989,15 @@ struct RaRecWidget : ModuleWidget {
         addChild(display);
 
         // ---- Per-track controls ----
-        // Left side: input jack + 4 buttons (Rec, Clr, Play, Rst) + 4 trigger inputs
+        // Left side: input jack + 5 trigger inputs (Rec, Clr, Play, Rst, Pos)
+        // Left buttons: Rec, Clr, Play, Rst
         // Right side: output jack + Wr/Rd buttons
         float colIn = 8.f;
         float colRec = 19.f;
         float colClr = 30.f;
         float colPly = 41.f;
         float colRst = 52.f;
+        float colPos = 63.f;
         float colTrigRec = 19.f;
         float colTrigClr = 30.f;
         float colTrigPly = 41.f;
@@ -977,6 +1022,7 @@ struct RaRecWidget : ModuleWidget {
             addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigClr, yRow2)), module, RaRecModule::CLEAR1_INPUT + i));
             addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigPly, yRow2)), module, RaRecModule::PLAY1_INPUT + i));
             addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigRst, yRow2)), module, RaRecModule::RESET1_INPUT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colPos, yRow2)), module, RaRecModule::POSITION1_INPUT + i));
             addParam(createParamCentered<RaButton>(mm2px(Vec(colWr, yRow2)), module, RaRecModule::WRITE1_PARAM + i));
             addParam(createParamCentered<RaButton>(mm2px(Vec(colRd, yRow2)), module, RaRecModule::READ1_PARAM + i));
             addOutput(createOutputCentered<RaPort>(mm2px(Vec(colOut, yRow2)), module, RaRecModule::OUT1_OUTPUT + i));
