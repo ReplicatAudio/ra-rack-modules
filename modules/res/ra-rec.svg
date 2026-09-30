@@ -111,7 +111,7 @@
     <circle cx="246.38" cy="2.54" r="0.8" fill="#444"/>
     <circle cx="246.38" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
     <circle cx="246.38" cy="125.96" r="0.8" fill="#444"/>
-    <rect x="88.00" y="38.00" width="125.00" height="84.00" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
+    <rect x="88.00" y="31.50" width="125.00" height="84.00" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
     <circle cx="22.35" cy="14.22" r="3.61" fill="#1a1a1a" stroke="#888" stroke-width="2.40" opacity="0.6"/>
     <circle cx="22.35" cy="14.22" r="1.26" fill="#333" opacity="0.5"/>
     <path d="M19.04 27.00 A1.50 1.50 0 0 1 17.54 25.50 L17.54 20.20 A4.01 4.01 0 0 1 21.55 16.19 L23.15 16.19 A4.01 4.01 0 0 1 27.16 20.20 L27.16 25.50 A1.50 1.50 0 0 1 25.66 27.00 L19.04 27.00 Z" fill="#996dd2" opacity="0.7"/>

@@ -1092,8 +1092,10 @@ struct RaRecWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(mm2px(Vec(gx[3], gTrigY)), module, RaRecModule::GLOBAL_RESET_INPUT));
 
         // ---- Display ----
+        // Display: y=31.5, height=84mm gives 21mm lanes with centers at 42, 63, 84, 105mm
+        // This aligns with the per-channel control rows (yRow1 at 42/63/84/105, yRow2 at 48/69/90/111)
         auto *display = new TrackScopeDisplay();
-        display->box.pos = mm2px(Vec(88.f, 38.f));
+        display->box.pos = mm2px(Vec(88.f, 31.5f));
         display->box.size = mm2px(Vec(125.f, 84.f));
         display->module = module;
         addChild(display);
