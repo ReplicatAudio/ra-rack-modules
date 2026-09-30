@@ -598,6 +598,15 @@
         "Utility",
         "Logic"
       ]
+    },
+    {
+      "slug": "ra-minmax",
+      "name": "ra-minmax",
+      "description": "Min/max math module — outputs the minimum or maximum of two inputs, with LEDs indicating which input is active",
+      "tags": [
+        "Utility",
+        "Logic"
+      ]
     }
   ]
 }
