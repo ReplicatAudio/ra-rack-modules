@@ -9,6 +9,7 @@
 // fname: IN1A_INPUT "In1A"
 // fname: IN1B_INPUT "In1B"
 // fname: OUT1_OUTPUT "Out1"
+// fname: ATTN1_PARAM "Attn1"
 // fname: CLAMP1_PARAM "C1"
 // fname: MODE2_PARAM "M2"
 // fname: KNOB2A_PARAM "A2"
@@ -16,6 +17,7 @@
 // fname: IN2A_INPUT "In2A"
 // fname: IN2B_INPUT "In2B"
 // fname: OUT2_OUTPUT "Out2"
+// fname: ATTN2_PARAM "Attn2"
 // fname: CLAMP2_PARAM "C2"
 // fname: MODE3_PARAM "M3"
 // fname: KNOB3A_PARAM "A3"
@@ -23,6 +25,7 @@
 // fname: IN3A_INPUT "In3A"
 // fname: IN3B_INPUT "In3B"
 // fname: OUT3_OUTPUT "Out3"
+// fname: ATTN3_PARAM "Attn3"
 // fname: CLAMP3_PARAM "C3"
 // fname: MODE4_PARAM "M4"
 // fname: KNOB4A_PARAM "A4"
@@ -30,6 +33,7 @@
 // fname: IN4A_INPUT "In4A"
 // fname: IN4B_INPUT "In4B"
 // fname: OUT4_OUTPUT "Out4"
+// fname: ATTN4_PARAM "Attn4"
 // fname: CLAMP4_PARAM "C4"
 #include "ra-components.hpp"
 
@@ -69,6 +73,10 @@ struct RaMathModule : Module {
         KNOB3B_PARAM,
         KNOB4A_PARAM,
         KNOB4B_PARAM,
+        ATTN1_PARAM,
+        ATTN2_PARAM,
+        ATTN3_PARAM,
+        ATTN4_PARAM,
         CLAMP1_PARAM,
         CLAMP2_PARAM,
         CLAMP3_PARAM,
@@ -113,6 +121,7 @@ struct RaMathModule : Module {
             configInput(IN1A_INPUT + i * 2, string::f("In %d A", i + 1));
             configInput(IN1B_INPUT + i * 2, string::f("In %d B", i + 1));
             configOutput(OUT1_OUTPUT + i, string::f("Out %d", i + 1));
+            configParam(ATTN1_PARAM + i, -1.f, 1.f, 1.f, string::f("Attn %d", i + 1), "", 0.f, 1.f, -1.f);
             configSwitch(CLAMP1_PARAM + i, 0.f, 1.f, 0.f, string::f("Clamp %d", i + 1), {"Off", "On"});
             paramQuantities[CLAMP1_PARAM + i]->snapEnabled = true;
             configLight(CLAMP1_LIGHT + i, string::f("Clamp %d LED", i + 1));
@@ -157,6 +166,10 @@ struct RaMathModule : Module {
             if (clamp) {
                 result = std::max(-10.f, std::min(result, 10.f));
             }
+
+            float attn = params[ATTN1_PARAM + i].getValue();
+            result = result * attn;
+
             lights[CLAMP1_LIGHT + i].setBrightness(clamp ? 1.f : 0.f);
 
             outputs[OUT1_OUTPUT + i].setVoltage(result);
@@ -250,7 +263,7 @@ struct RaMathWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         float colX[4] = {36.f, 72.f, 108.f, 144.f};
-        float rowY = 55.f;
+        float rowY = 45.f;
 
         for (int i = 0; i < 4; i++) {
             float x = colX[i];
@@ -269,15 +282,17 @@ struct RaMathWidget : ModuleWidget {
             addParam(createParamCentered<RaKnobTrim>(Vec(x, rowY + 115), module, RaMathModule::KNOB1B_PARAM + i * 2));
             addInput(createInputCentered<RaPort>(Vec(x, rowY + 145), module, RaMathModule::IN1B_INPUT + i * 2));
 
-            addOutput(createOutputCentered<RaPort>(Vec(x, rowY + 180), module, RaMathModule::OUT1_OUTPUT + i));
+            addOutput(createOutputCentered<RaPort>(Vec(x, rowY + 175), module, RaMathModule::OUT1_OUTPUT + i));
 
-            ValueDisplay *valueDisplay = createWidget<ValueDisplay>(Vec(x - 15, rowY + 205));
+            addParam(createParamCentered<RaKnobTrim>(Vec(x, rowY + 205), module, RaMathModule::ATTN1_PARAM + i));
+
+            ValueDisplay *valueDisplay = createWidget<ValueDisplay>(Vec(x - 15, rowY + 235));
             valueDisplay->box.size = Vec(30, 60);
             valueDisplay->module = module;
             valueDisplay->channel = i;
             addChild(valueDisplay);
 
-            addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(x, rowY + 275), module, RaMathModule::CLAMP1_PARAM + i, RaMathModule::CLAMP1_LIGHT + i));
+            addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(x, rowY + 305), module, RaMathModule::CLAMP1_PARAM + i, RaMathModule::CLAMP1_LIGHT + i));
         }
     }
 };
