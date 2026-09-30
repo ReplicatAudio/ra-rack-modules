@@ -176,16 +176,28 @@ struct ValueDisplay : LedDisplay {
 
         if (!module) return;
 
-        float v = module->outputs[RaMathModule::OUT1_OUTPUT + channel].getVoltage();
+        float a = module->inputs[RaMathModule::IN1A_INPUT + channel * 2].getVoltage();
+        float b = module->inputs[RaMathModule::IN1B_INPUT + channel * 2].getVoltage();
+        float out = module->outputs[RaMathModule::OUT1_OUTPUT + channel].getVoltage();
 
         nvgFontFaceId(args.vg, APP->window->uiFont->handle);
-        nvgFontSize(args.vg, 9);
+        nvgFontSize(args.vg, 8);
         nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-        nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
 
         char buf[16];
-        snprintf(buf, sizeof(buf), "%+.2f", v);
-        nvgText(args.vg, box.size.x / 2, box.size.y / 2, buf, NULL);
+        float y = box.size.y / 4.f;
+
+        nvgFillColor(args.vg, nvgRGB(0x14, 0xb2, 0x74));
+        snprintf(buf, sizeof(buf), "%+.2f", a);
+        nvgText(args.vg, box.size.x / 2, y, buf, NULL);
+
+        nvgFillColor(args.vg, nvgRGB(0x14, 0xb2, 0x74));
+        snprintf(buf, sizeof(buf), "%+.2f", b);
+        nvgText(args.vg, box.size.x / 2, y * 2.f, buf, NULL);
+
+        nvgFillColor(args.vg, nvgRGB(0x99, 0x6d, 0xd2));
+        snprintf(buf, sizeof(buf), "%+.2f", out);
+        nvgText(args.vg, box.size.x / 2, y * 3.f, buf, NULL);
     }
 };
 
@@ -222,7 +234,7 @@ struct RaMathWidget : ModuleWidget {
             addOutput(createOutputCentered<RaPort>(Vec(x, rowY + 180), module, RaMathModule::OUT1_OUTPUT + i));
 
             ValueDisplay *valueDisplay = createWidget<ValueDisplay>(Vec(x - 15, rowY + 205));
-            valueDisplay->box.size = Vec(30, 20);
+            valueDisplay->box.size = Vec(30, 60);
             valueDisplay->module = module;
             valueDisplay->channel = i;
             addChild(valueDisplay);
