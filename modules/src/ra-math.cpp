@@ -9,24 +9,28 @@
 // fname: IN1A_INPUT "In1A"
 // fname: IN1B_INPUT "In1B"
 // fname: OUT1_OUTPUT "Out1"
+// fname: CLAMP1_PARAM "C1"
 // fname: MODE2_PARAM "M2"
 // fname: KNOB2A_PARAM "A2"
 // fname: KNOB2B_PARAM "B2"
 // fname: IN2A_INPUT "In2A"
 // fname: IN2B_INPUT "In2B"
 // fname: OUT2_OUTPUT "Out2"
+// fname: CLAMP2_PARAM "C2"
 // fname: MODE3_PARAM "M3"
 // fname: KNOB3A_PARAM "A3"
 // fname: KNOB3B_PARAM "B3"
 // fname: IN3A_INPUT "In3A"
 // fname: IN3B_INPUT "In3B"
 // fname: OUT3_OUTPUT "Out3"
+// fname: CLAMP3_PARAM "C3"
 // fname: MODE4_PARAM "M4"
 // fname: KNOB4A_PARAM "A4"
 // fname: KNOB4B_PARAM "B4"
 // fname: IN4A_INPUT "In4A"
 // fname: IN4B_INPUT "In4B"
 // fname: OUT4_OUTPUT "Out4"
+// fname: CLAMP4_PARAM "C4"
 #include "ra-components.hpp"
 
 #include <cmath>
@@ -45,6 +49,12 @@ static const char *MODE_NAMES[NUM_MODES] = {
     "AVG", "ABS", "SQRT", "FLOOR", "CEIL", "ROUND", "SIN", "COS"
 };
 
+struct PurpleLight : GrayModuleLightWidget {
+    PurpleLight() {
+        addBaseColor(nvgRGB(0x99, 0x6d, 0xd2));
+    }
+};
+
 struct RaMathModule : Module {
     enum ParamIds {
         MODE1_PARAM,
@@ -59,6 +69,10 @@ struct RaMathModule : Module {
         KNOB3B_PARAM,
         KNOB4A_PARAM,
         KNOB4B_PARAM,
+        CLAMP1_PARAM,
+        CLAMP2_PARAM,
+        CLAMP3_PARAM,
+        CLAMP4_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
@@ -80,6 +94,10 @@ struct RaMathModule : Module {
         NUM_OUTPUTS
     };
     enum LightIds {
+        CLAMP1_LIGHT,
+        CLAMP2_LIGHT,
+        CLAMP3_LIGHT,
+        CLAMP4_LIGHT,
         NUM_LIGHTS
     };
 
@@ -95,6 +113,8 @@ struct RaMathModule : Module {
             configInput(IN1A_INPUT + i * 2, string::f("In %d A", i + 1));
             configInput(IN1B_INPUT + i * 2, string::f("In %d B", i + 1));
             configOutput(OUT1_OUTPUT + i, string::f("Out %d", i + 1));
+            configSwitch(CLAMP1_PARAM + i, 0.f, 1.f, 0.f, string::f("Clamp %d", i + 1), {"Off", "On"});
+            configLight(CLAMP1_LIGHT + i, string::f("Clamp %d LED", i + 1));
         }
     }
 
@@ -130,6 +150,12 @@ struct RaMathModule : Module {
                 case 15: result = std::cos(a + b); break;
                 default: result = 0.f; break;
             }
+
+            bool clamp = params[CLAMP1_PARAM + i].getValue() > 0.5f;
+            if (clamp) {
+                result = std::max(-10.f, std::min(result, 10.f));
+            }
+            lights[CLAMP1_LIGHT + i].setBrightness(clamp ? 1.f : 0.f);
 
             outputs[OUT1_OUTPUT + i].setVoltage(result);
         }
@@ -193,15 +219,21 @@ struct ValueDisplay : LedDisplay {
 
         nvgFillColor(args.vg, nvgRGB(0x7c, 0xfc, 0x00));
         snprintf(buf, sizeof(buf), fmtA, a);
-        nvgText(args.vg, box.size.x / 2, y, buf, NULL);
+        if (std::isinf(a)) nvgText(args.vg, box.size.x / 2, y, "∞", NULL);
+        else if (strlen(buf) > 6) nvgText(args.vg, box.size.x / 2, y, "...", NULL);
+        else nvgText(args.vg, box.size.x / 2, y, buf, NULL);
 
         nvgFillColor(args.vg, nvgRGB(0x7c, 0xfc, 0x00));
         snprintf(buf, sizeof(buf), fmtB, b);
-        nvgText(args.vg, box.size.x / 2, y * 2.f, buf, NULL);
+        if (std::isinf(b)) nvgText(args.vg, box.size.x / 2, y * 2.f, "∞", NULL);
+        else if (strlen(buf) > 6) nvgText(args.vg, box.size.x / 2, y * 2.f, "...", NULL);
+        else nvgText(args.vg, box.size.x / 2, y * 2.f, buf, NULL);
 
         nvgFillColor(args.vg, nvgRGB(0x99, 0x6d, 0xd2));
         snprintf(buf, sizeof(buf), fmtOut, out);
-        nvgText(args.vg, box.size.x / 2, y * 3.f, buf, NULL);
+        if (std::isinf(out)) nvgText(args.vg, box.size.x / 2, y * 3.f, "∞", NULL);
+        else if (strlen(buf) > 6) nvgText(args.vg, box.size.x / 2, y * 3.f, "...", NULL);
+        else nvgText(args.vg, box.size.x / 2, y * 3.f, buf, NULL);
     }
 };
 
@@ -242,6 +274,8 @@ struct RaMathWidget : ModuleWidget {
             valueDisplay->module = module;
             valueDisplay->channel = i;
             addChild(valueDisplay);
+
+            addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(x, rowY + 275), module, RaMathModule::CLAMP1_PARAM + i, RaMathModule::CLAMP1_LIGHT + i));
         }
     }
 };
