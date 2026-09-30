@@ -142,9 +142,6 @@ struct GearDisplay : LedDisplay {
         float toothSideAngle = toothAngle * 0.2f;
 
         float topAngle = -M_PI / 2.f;
-        float relAngle = fmodf(topAngle - angle, 2.f * M_PI);
-        if (relAngle < 0) relAngle += 2.f * M_PI;
-        int topTooth = (int)roundf(relAngle / toothAngle) % teeth;
 
         nvgBeginPath(args.vg);
         for (int i = 0; i < teeth; i++) {
@@ -174,7 +171,7 @@ struct GearDisplay : LedDisplay {
         nvgFillColor(args.vg, nvgRGB(0x99, 0x6d, 0xd2));
         nvgFill(args.vg);
 
-        float ta = angle + topTooth * toothAngle;
+        float ta = angle;
         float ta1 = ta - toothSideAngle;
         float ta2 = ta - toothTopAngle / 2.f;
         float ta3 = ta + toothTopAngle / 2.f;
