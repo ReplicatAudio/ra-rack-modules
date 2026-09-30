@@ -141,6 +141,11 @@ struct GearDisplay : LedDisplay {
         float toothTopAngle = toothAngle * 0.3f;
         float toothSideAngle = toothAngle * 0.2f;
 
+        float topAngle = -M_PI / 2.f;
+        float relAngle = fmodf(topAngle - angle, 2.f * M_PI);
+        if (relAngle < 0) relAngle += 2.f * M_PI;
+        int topTooth = (int)roundf(relAngle / toothAngle) % teeth;
+
         nvgBeginPath(args.vg);
         for (int i = 0; i < teeth; i++) {
             float a = angle + i * toothAngle;
@@ -169,12 +174,33 @@ struct GearDisplay : LedDisplay {
         nvgFillColor(args.vg, nvgRGB(0x99, 0x6d, 0xd2));
         nvgFill(args.vg);
 
+        float ta = angle + topTooth * toothAngle;
+        float ta1 = ta - toothSideAngle;
+        float ta2 = ta - toothTopAngle / 2.f;
+        float ta3 = ta + toothTopAngle / 2.f;
+        float ta4 = ta + toothSideAngle;
+        float tx1 = cx + rootRadius * cosf(ta1);
+        float ty1 = cy + rootRadius * sinf(ta1);
+        float tx2 = cx + tipRadius * cosf(ta2);
+        float ty2 = cy + tipRadius * sinf(ta2);
+        float tx3 = cx + tipRadius * cosf(ta3);
+        float ty3 = cy + tipRadius * sinf(ta3);
+        float tx4 = cx + rootRadius * cosf(ta4);
+        float ty4 = cy + rootRadius * sinf(ta4);
+        nvgBeginPath(args.vg);
+        nvgMoveTo(args.vg, tx1, ty1);
+        nvgLineTo(args.vg, tx2, ty2);
+        nvgLineTo(args.vg, tx3, ty3);
+        nvgLineTo(args.vg, tx4, ty4);
+        nvgClosePath(args.vg);
+        nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
+        nvgFill(args.vg);
+
         nvgBeginPath(args.vg);
         nvgCircle(args.vg, cx, cy, radius * 0.25f);
         nvgFillColor(args.vg, nvgRGB(0x10, 0x10, 0x10));
         nvgFill(args.vg);
 
-        float topAngle = -M_PI / 2.f;
         float indicatorRadius = tipRadius + 3.f;
         float ix = cx + indicatorRadius * cosf(topAngle);
         float iy = cy + indicatorRadius * sinf(topAngle);
