@@ -349,6 +349,12 @@ struct RaRecModule : Module {
     bool playing[NUM_CHANNELS] = {false, false, false, false};
     float lastPositionVoltage[NUM_CHANNELS] = {100.f, 100.f, 100.f, 100.f};  // Start with out-of-range value
 
+    // Track which channels have valid waveform data loaded
+    bool loaded[NUM_CHANNELS] = {false, false, false, false};
+
+    // Flag to trigger loading from storage after JSON load
+    bool needsStorageLoad = false;
+
     // Base path shared by all 4 tracks, each suffixed _<n>. Guarded by a mutex.
     std::string basePath;
     mutable std::mutex pathMutex;
@@ -600,6 +606,12 @@ struct RaRecModule : Module {
 
     bool loadTrack(int channel, const std::string &base) {
         std::string path = suffixedPath(base, channel);
+        return loadTrackDirect(channel, path);
+    }
+
+    bool loadTrackDirect(int channel, const std::string &path) {
+        if (!system::isFile(path))
+            return false;
         int sr = (int)APP->engine->getSampleRate();
         int fileSampleRate = 0;
         auto samples = readRecording(path, fileSampleRate);
@@ -837,9 +849,14 @@ struct RaRecModule : Module {
                 std::lock_guard<std::mutex> lock(pathMutex);
                 basePath = base;
             }
-            for (int i = 0; i < NUM_CHANNELS; i++)
-                loadTrack(i, base);
+            for (int i = 0; i < NUM_CHANNELS; i++) {
+                if (loadTrack(i, base))
+                    loaded[i] = true;
+            }
         }
+
+        // Mark that we need to load from storage
+        needsStorageLoad = true;
     }
 };
 
@@ -1142,9 +1159,29 @@ struct RaRecWidget : ModuleWidget {
                             m->writePositions[ch] = writePos;
                         }
                         m->readPositions[ch] = 0.f;
+                        m->loaded[ch] = true;
+
+                        // Save to storage for persistence
+                        std::string storageDir = system::getTempDirectory();
+                        std::string storagePath = system::join(storageDir, "ra-rec-track_" + std::to_string(ch) + ".wav");
+                        int sr = (int)APP->engine->getSampleRate();
+                        writeRecording(storagePath, m->buffers[ch].data(), m->writePositions[ch], sr);
                     }
                 }
                 m->clearPendingRead();
+            }
+        }
+
+        // Load from storage if needed
+        if (m->needsStorageLoad) {
+            m->needsStorageLoad = false;
+            std::string storageDir = system::getTempDirectory();
+            for (int i = 0; i < NUM_CHANNELS; i++) {
+                std::string path = system::join(storageDir, "ra-rec-track_" + std::to_string(i) + ".wav");
+                if (system::isFile(path)) {
+                    if (m->loadTrackDirect(i, path))
+                        m->loaded[i] = true;
+                }
             }
         }
     }
