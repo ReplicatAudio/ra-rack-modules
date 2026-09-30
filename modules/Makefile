@@ -65,7 +65,8 @@ SOURCES = \
 	src/ra-autotrig.cpp \
 	src/ra-resampler.cpp \
 	src/ra-repitch.cpp \
-	src/ra-slowrandom.cpp
+	src/ra-slowrandom.cpp \
+	src/ra-gear.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)

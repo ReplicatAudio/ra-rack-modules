@@ -589,6 +589,15 @@
         "Random",
         "Utility"
       ]
+    },
+    {
+      "slug": "ra-gear",
+      "name": "ra-gear",
+      "description": "Gear module — increment/decrement through gear teeth with visual display, trigger on cycle complete, and CV position output",
+      "tags": [
+        "Utility",
+        "Logic"
+      ]
     }
   ]
 }
