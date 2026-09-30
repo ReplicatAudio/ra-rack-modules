@@ -9,6 +9,8 @@
 // fname: INCREMENT_INPUT "Inc trig"
 // fname: DECREMENT_PARAM "Dec"
 // fname: DECREMENT_INPUT "Dec trig"
+// fname: RESET_PARAM "Reset"
+// fname: RESET_INPUT "Reset trig"
 // fname: TRIG_OUTPUT "Trig"
 // fname: CV_OUTPUT "CV"
 #include "ra-components.hpp"
@@ -26,11 +28,13 @@ struct RaGearModule : Module {
         RANGE_PARAM,
         INCREMENT_PARAM,
         DECREMENT_PARAM,
+        RESET_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
         INCREMENT_INPUT,
         DECREMENT_INPUT,
+        RESET_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
@@ -48,6 +52,8 @@ struct RaGearModule : Module {
     dsp::SchmittTrigger decrementTrigger;
     dsp::SchmittTrigger incrementBtnTrigger;
     dsp::SchmittTrigger decrementBtnTrigger;
+    dsp::SchmittTrigger resetTrigger;
+    dsp::SchmittTrigger resetBtnTrigger;
 
     RaGearModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -55,17 +61,29 @@ struct RaGearModule : Module {
         configSwitch(RANGE_PARAM, 0.f, 2.f, 1.f, "Range", {"0-1V", "0-10V", "±5V"});
         configButton(INCREMENT_PARAM, "Increment");
         configButton(DECREMENT_PARAM, "Decrement");
+        configButton(RESET_PARAM, "Reset");
         configInput(INCREMENT_INPUT, "Increment trig");
         configInput(DECREMENT_INPUT, "Decrement trig");
+        configInput(RESET_INPUT, "Reset trig");
         configOutput(TRIG_OUTPUT, "Trig");
         configOutput(CV_OUTPUT, "CV");
     }
 
     void process(const ProcessArgs &args) override {
-        teeth = (int)std::round(params[TEETH_PARAM].getValue());
+        int newTeeth = (int)std::round(params[TEETH_PARAM].getValue());
+        if (newTeeth != teeth) {
+            teeth = newTeeth;
+            position = position % teeth;
+        }
         int range = (int)std::round(params[RANGE_PARAM].getValue());
 
         bool cycleComplete = false;
+
+        bool reset = resetTrigger.process(inputs[RESET_INPUT].getVoltage());
+        reset |= resetBtnTrigger.process(params[RESET_PARAM].getValue());
+        if (reset) {
+            position = 0;
+        }
 
         bool increment = incrementTrigger.process(inputs[INCREMENT_INPUT].getVoltage());
         increment |= incrementBtnTrigger.process(params[INCREMENT_PARAM].getValue());
@@ -136,10 +154,10 @@ struct GearDisplay : LedDisplay {
 
         int teeth = module->teeth;
         float toothAngle = 2.f * M_PI / (float)teeth;
-        float rootRadius = radius * 0.75f;
+        float rootRadius = radius * 0.7f;
         float tipRadius = radius;
-        float toothTopAngle = toothAngle * 0.3f;
-        float toothSideAngle = toothAngle * 0.2f;
+        float toothTopAngle = toothAngle * 0.45f;
+        float toothSideAngle = toothAngle * 0.25f;
 
         float topAngle = -M_PI / 2.f;
 
@@ -193,8 +211,19 @@ struct GearDisplay : LedDisplay {
         nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
         nvgFill(args.vg);
 
+        float holeRadius = radius * 0.35f;
         nvgBeginPath(args.vg);
-        nvgCircle(args.vg, cx, cy, radius * 0.25f);
+        for (int i = 0; i < 6; i++) {
+            float a = (float)i * M_PI / 3.f;
+            float x = cx + holeRadius * cosf(a);
+            float y = cy + holeRadius * sinf(a);
+            if (i == 0) {
+                nvgMoveTo(args.vg, x, y);
+            } else {
+                nvgLineTo(args.vg, x, y);
+            }
+        }
+        nvgClosePath(args.vg);
         nvgFillColor(args.vg, nvgRGB(0x10, 0x10, 0x10));
         nvgFill(args.vg);
 
@@ -221,7 +250,7 @@ struct RaGearWidget : ModuleWidget {
         float colX[2] = {30.f, 75.f};
         float displayY = 20.f;
         float displayH = 60.f;
-        float rowY[4] = {100.f, 160.f, 220.f, 280.f};
+        float rowY[5] = {100.f, 150.f, 200.f, 250.f, 300.f};
 
         auto *display = new GearDisplay();
         display->box.pos = Vec(15, displayY);
@@ -238,8 +267,11 @@ struct RaGearWidget : ModuleWidget {
         addInput(createInputCentered<RaPort>(Vec(colX[0], rowY[2]), module, RaGearModule::INCREMENT_INPUT));
         addInput(createInputCentered<RaPort>(Vec(colX[1], rowY[2]), module, RaGearModule::DECREMENT_INPUT));
 
-        addOutput(createOutputCentered<RaPort>(Vec(colX[0], rowY[3]), module, RaGearModule::TRIG_OUTPUT));
-        addOutput(createOutputCentered<RaPort>(Vec(colX[1], rowY[3]), module, RaGearModule::CV_OUTPUT));
+        addParam(createParamCentered<RaButton>(Vec(colX[0], rowY[3]), module, RaGearModule::RESET_PARAM));
+        addInput(createInputCentered<RaPort>(Vec(colX[1], rowY[3]), module, RaGearModule::RESET_INPUT));
+
+        addOutput(createOutputCentered<RaPort>(Vec(colX[0], rowY[4]), module, RaGearModule::TRIG_OUTPUT));
+        addOutput(createOutputCentered<RaPort>(Vec(colX[1], rowY[4]), module, RaGearModule::CV_OUTPUT));
     }
 };
 
