@@ -1,0 +1,19 @@
+[;4m[96m BRANCH[;4m
+[mmaster
+
+[;4m[93m STATUS[;4m
+[m D doc-user/ra-math.md
+ M modules/Makefile
+ M modules/plugin.json
+ D modules/res/ra-math.svg
+ M modules/src/plugin.cpp
+ D modules/src/ra-math.cpp
+?? calc
+?? doc-user/ra-calc.md
+?? modules/res/ra-calc.svg
+?? modules/src/ra-calc.cpp
+
+[;4m[92m CONFIRM[;4m
+[m[32mmath-
+]7;file://mathieu-king95/mnt/nvme0n1p2/Lab/ra-rack-modules]0;/m/n/L/ra-rack-modules\[m[?2004h[?2031h[>4;1m=]133;A;click_events=1\[33mProceed with commit? (y/n): [97m]133;B\[K[28C[?2004l[?2031l[>4;0m>
+[m[m[31mCommit aborted

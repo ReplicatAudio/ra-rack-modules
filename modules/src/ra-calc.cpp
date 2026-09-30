@@ -59,7 +59,7 @@ struct PurpleLight : GrayModuleLightWidget {
     }
 };
 
-struct RaMathModule : Module {
+struct RaCalcModule : Module {
     enum ParamIds {
         MODE1_PARAM,
         MODE2_PARAM,
@@ -114,7 +114,7 @@ struct RaMathModule : Module {
     bool clampState[NUM_CHANNELS] = {};
     dsp::SchmittTrigger clampTriggers[NUM_CHANNELS];
 
-    RaMathModule() {
+    RaCalcModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         for (int i = 0; i < NUM_CHANNELS; i++) {
             configButton(MODE1_PARAM + i, string::f("Mode %d", i + 1));
@@ -181,7 +181,7 @@ struct RaMathModule : Module {
 };
 
 struct MathDisplay : LedDisplay {
-    RaMathModule *module;
+    RaCalcModule *module;
     int channel = 0;
 
     void draw(const DrawArgs &args) override {
@@ -206,7 +206,7 @@ struct MathDisplay : LedDisplay {
 };
 
 struct ValueDisplay : LedDisplay {
-    RaMathModule *module;
+    RaCalcModule *module;
     int channel = 0;
 
     void draw(const DrawArgs &args) override {
@@ -220,9 +220,9 @@ struct ValueDisplay : LedDisplay {
 
         if (!module) return;
 
-        float a = module->inputs[RaMathModule::IN1A_INPUT + channel * 2].getVoltage();
-        float b = module->inputs[RaMathModule::IN1B_INPUT + channel * 2].getVoltage();
-        float out = module->outputs[RaMathModule::OUT1_OUTPUT + channel].getVoltage();
+        float a = module->inputs[RaCalcModule::IN1A_INPUT + channel * 2].getVoltage();
+        float b = module->inputs[RaCalcModule::IN1B_INPUT + channel * 2].getVoltage();
+        float out = module->outputs[RaCalcModule::OUT1_OUTPUT + channel].getVoltage();
 
         nvgFontFaceId(args.vg, APP->window->uiFont->handle);
         nvgFontSize(args.vg, 11);
@@ -255,8 +255,8 @@ struct ValueDisplay : LedDisplay {
     }
 };
 
-struct RaMathWidget : ModuleWidget {
-    RaMathWidget(RaMathModule *module) {
+struct RaCalcWidget : ModuleWidget {
+    RaCalcWidget(RaCalcModule *module) {
         setModule(module);
         setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-math.svg")));
 
@@ -277,17 +277,17 @@ struct RaMathWidget : ModuleWidget {
             display->channel = i;
             addChild(display);
 
-            addParam(createParamCentered<RaButton>(Vec(x, rowY + 25), module, RaMathModule::MODE1_PARAM + i));
+            addParam(createParamCentered<RaButton>(Vec(x, rowY + 25), module, RaCalcModule::MODE1_PARAM + i));
 
-            addParam(createParamCentered<RaKnobTrim>(Vec(x, rowY + 55), module, RaMathModule::KNOB1A_PARAM + i * 2));
-            addInput(createInputCentered<RaPort>(Vec(x, rowY + 85), module, RaMathModule::IN1A_INPUT + i * 2));
+            addParam(createParamCentered<RaKnobTrim>(Vec(x, rowY + 55), module, RaCalcModule::KNOB1A_PARAM + i * 2));
+            addInput(createInputCentered<RaPort>(Vec(x, rowY + 85), module, RaCalcModule::IN1A_INPUT + i * 2));
 
-            addParam(createParamCentered<RaKnobTrim>(Vec(x, rowY + 115), module, RaMathModule::KNOB1B_PARAM + i * 2));
-            addInput(createInputCentered<RaPort>(Vec(x, rowY + 145), module, RaMathModule::IN1B_INPUT + i * 2));
+            addParam(createParamCentered<RaKnobTrim>(Vec(x, rowY + 115), module, RaCalcModule::KNOB1B_PARAM + i * 2));
+            addInput(createInputCentered<RaPort>(Vec(x, rowY + 145), module, RaCalcModule::IN1B_INPUT + i * 2));
 
-            addOutput(createOutputCentered<RaPort>(Vec(x, rowY + 175), module, RaMathModule::OUT1_OUTPUT + i));
+            addOutput(createOutputCentered<RaPort>(Vec(x, rowY + 175), module, RaCalcModule::OUT1_OUTPUT + i));
 
-            addParam(createParamCentered<RaKnobTrim>(Vec(x, rowY + 205), module, RaMathModule::ATTN1_PARAM + i));
+            addParam(createParamCentered<RaKnobTrim>(Vec(x, rowY + 205), module, RaCalcModule::ATTN1_PARAM + i));
 
             ValueDisplay *valueDisplay = createWidget<ValueDisplay>(Vec(x - 15, rowY + 225));
             valueDisplay->box.size = Vec(30, 60);
@@ -295,9 +295,9 @@ struct RaMathWidget : ModuleWidget {
             valueDisplay->channel = i;
             addChild(valueDisplay);
 
-            addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(x, rowY + 305), module, RaMathModule::CLAMP1_PARAM + i, RaMathModule::CLAMP1_LIGHT + i));
+            addParam(createLightParamCentered<VCVLightBezel<PurpleLight>>(Vec(x, rowY + 305), module, RaCalcModule::CLAMP1_PARAM + i, RaCalcModule::CLAMP1_LIGHT + i));
         }
     }
 };
 
-Model *modelRaMath = createModel<RaMathModule, RaMathWidget>("ra-math");
+Model *modelRaCalc = createModel<RaCalcModule, RaCalcWidget>("ra-calc");

@@ -68,7 +68,7 @@ SOURCES = \
 	src/ra-slowrandom.cpp \
 	src/ra-gear.cpp \
 	src/ra-minmax.cpp \
-	src/ra-math.cpp
+	src/ra-calc.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)
