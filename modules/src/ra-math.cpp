@@ -181,20 +181,21 @@ struct ValueDisplay : LedDisplay {
         float out = module->outputs[RaMathModule::OUT1_OUTPUT + channel].getVoltage();
 
         nvgFontFaceId(args.vg, APP->window->uiFont->handle);
-        nvgFontSize(args.vg, 8);
         nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
 
         char buf[16];
         float y = box.size.y / 4.f;
 
-        nvgFillColor(args.vg, nvgRGB(0x14, 0xb2, 0x74));
+        nvgFontSize(args.vg, 7);
+        nvgFillColor(args.vg, nvgRGB(0x7c, 0xfc, 0x00));
         snprintf(buf, sizeof(buf), "%+.2f", a);
         nvgText(args.vg, box.size.x / 2, y, buf, NULL);
 
-        nvgFillColor(args.vg, nvgRGB(0x14, 0xb2, 0x74));
+        nvgFillColor(args.vg, nvgRGB(0x7c, 0xfc, 0x00));
         snprintf(buf, sizeof(buf), "%+.2f", b);
         nvgText(args.vg, box.size.x / 2, y * 2.f, buf, NULL);
 
+        nvgFontSize(args.vg, 11);
         nvgFillColor(args.vg, nvgRGB(0x99, 0x6d, 0xd2));
         snprintf(buf, sizeof(buf), "%+.2f", out);
         nvgText(args.vg, box.size.x / 2, y * 3.f, buf, NULL);
