@@ -131,6 +131,12 @@ struct RaAutotrigModule : Module {
     }
 };
 
+struct PurpleLight : GrayModuleLightWidget {
+    PurpleLight() {
+        addBaseColor(nvgRGB(0x99, 0x6d, 0xd2));
+    }
+};
+
 struct RaAutotrigWidget : ModuleWidget {
     RaAutotrigWidget(RaAutotrigModule *module) {
         setModule(module);
@@ -141,7 +147,7 @@ struct RaAutotrigWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        float colX[4] = {20.f, 55.f, 90.f, 125.f};
+        float colX[4] = {22.5f, 57.5f, 92.5f, 127.5f};
         float rowY[6] = {40.f, 75.f, 110.f, 145.f, 180.f, 215.f};
 
         for (int col = 0; col < 4; col++) {
@@ -151,7 +157,7 @@ struct RaAutotrigWidget : ModuleWidget {
             addParam(createParamCentered<RaKnobTrim>(Vec(x, rowY[1]), module, RaAutotrigModule::KNOB1_PARAM + col));
             addInput(createInputCentered<RaPort>(Vec(x, rowY[2]), module, RaAutotrigModule::DELTA1_CV_INPUT + col));
             addParam(createParamCentered<RaSwitch2>(Vec(x, rowY[3]), module, RaAutotrigModule::MODE1_PARAM + col));
-            addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(Vec(x, rowY[4]), module, RaAutotrigModule::LED1 + col));
+            addChild(createLightCentered<MediumLight<PurpleLight>>(Vec(x, rowY[4]), module, RaAutotrigModule::LED1 + col));
             addOutput(createOutputCentered<RaPort>(Vec(x, rowY[5]), module, RaAutotrigModule::TRIG1_OUTPUT + col));
             addOutput(createOutputCentered<RaPort>(Vec(x, rowY[5] + 30.f), module, RaAutotrigModule::PASSTHRU1_OUTPUT + col));
         }
