@@ -42,11 +42,11 @@ using namespace rack;
 extern Plugin *pluginInstance;
 
 static constexpr int NUM_CHANNELS = 4;
-static constexpr int NUM_MODES = 16;
+static constexpr int NUM_MODES = 17;
 
 static const char *MODE_NAMES[NUM_MODES] = {
     "ADD", "SUB", "MULT", "DIV", "POW", "MOD", "MAX", "MIN",
-    "AVG", "ABS", "SQRT", "FLOOR", "CEIL", "ROUND", "SIN", "COS"
+    "AVG", "ABS", "SQRT", "FLOOR", "CEIL", "ROUND", "SIN", "COS", "LOG"
 };
 
 struct PurpleLight : GrayModuleLightWidget {
@@ -114,6 +114,7 @@ struct RaMathModule : Module {
             configInput(IN1B_INPUT + i * 2, string::f("In %d B", i + 1));
             configOutput(OUT1_OUTPUT + i, string::f("Out %d", i + 1));
             configSwitch(CLAMP1_PARAM + i, 0.f, 1.f, 0.f, string::f("Clamp %d", i + 1), {"Off", "On"});
+            paramQuantities[CLAMP1_PARAM + i]->snapEnabled = true;
             configLight(CLAMP1_LIGHT + i, string::f("Clamp %d LED", i + 1));
         }
     }
@@ -148,6 +149,7 @@ struct RaMathModule : Module {
                 case 13: result = std::round(a + b); break;
                 case 14: result = std::sin(a + b); break;
                 case 15: result = std::cos(a + b); break;
+                case 16: result = std::log(std::abs(a + b)); break;
                 default: result = 0.f; break;
             }
 
@@ -248,7 +250,7 @@ struct RaMathWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         float colX[4] = {36.f, 72.f, 108.f, 144.f};
-        float rowY = 75.f;
+        float rowY = 55.f;
 
         for (int i = 0; i < 4; i++) {
             float x = colX[i];
