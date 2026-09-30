@@ -579,6 +579,16 @@
         "Effect",
         "Pitch shifter"
       ]
+    },
+    {
+      "slug": "ra-slowrandom",
+      "name": "ra-slowrandom",
+      "description": "Slow random oscillator — Perlin noise, smooth random, and brown noise sources with selectable output range and scale",
+      "tags": [
+        "LFO",
+        "Random",
+        "Utility"
+      ]
     }
   ]
 }
