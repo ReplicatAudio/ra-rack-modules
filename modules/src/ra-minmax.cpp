@@ -106,7 +106,7 @@ struct RaMinmaxWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         float colX[3] = {20.f, 45.f, 70.f};
-        float rowY[3] = {40.f, 100.f, 160.f};
+        float rowY[3] = {40.f, 130.f, 220.f};
 
         for (int i = 0; i < 3; i++) {
             float y = rowY[i];
