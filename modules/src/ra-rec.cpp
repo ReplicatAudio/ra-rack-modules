@@ -55,6 +55,14 @@
 // fname: SPEED4_PARAM "Spd 4"
 // fname: SPEED4_INPUT "CV s 4"
 // fname: POSITION4_INPUT "Pos 4"
+// fname: REVERSE1_PARAM "◀ 1"
+// fname: REVERSE1_INPUT "Tr v 1"
+// fname: REVERSE2_PARAM "◀ 2"
+// fname: REVERSE2_INPUT "Tr v 2"
+// fname: REVERSE3_PARAM "◀ 3"
+// fname: REVERSE3_INPUT "Tr v 3"
+// fname: REVERSE4_PARAM "◀ 4"
+// fname: REVERSE4_INPUT "Tr v 4"
 // fname: IN1_INPUT "In 1"
 // fname: IN2_INPUT "In 2"
 // fname: IN3_INPUT "In 3"
@@ -268,6 +276,10 @@ struct RaRecModule : Module {
         SPEED2_PARAM,
         SPEED3_PARAM,
         SPEED4_PARAM,
+        REVERSE1_PARAM,
+        REVERSE2_PARAM,
+        REVERSE3_PARAM,
+        REVERSE4_PARAM,
         GLOBAL_REC_PARAM,
         GLOBAL_CLEAR_PARAM,
         GLOBAL_PLAY_PARAM,
@@ -299,6 +311,10 @@ struct RaRecModule : Module {
         SPEED2_INPUT,
         SPEED3_INPUT,
         SPEED4_INPUT,
+        REVERSE1_INPUT,
+        REVERSE2_INPUT,
+        REVERSE3_INPUT,
+        REVERSE4_INPUT,
         POSITION1_INPUT,
         POSITION2_INPUT,
         POSITION3_INPUT,
@@ -333,6 +349,10 @@ struct RaRecModule : Module {
         RESET2_LIGHT,
         RESET3_LIGHT,
         RESET4_LIGHT,
+        REVERSE1_LIGHT,
+        REVERSE2_LIGHT,
+        REVERSE3_LIGHT,
+        REVERSE4_LIGHT,
         GLOBAL_REC_LIGHT,
         GLOBAL_CLEAR_LIGHT,
         GLOBAL_PLAY_LIGHT,
@@ -351,6 +371,7 @@ struct RaRecModule : Module {
 
     // Track which channels have valid waveform data loaded
     bool loaded[NUM_CHANNELS] = {false, false, false, false};
+    bool reversePlaying[NUM_CHANNELS] = {false, false, false, false};
 
     // Flag to trigger loading from storage after JSON load
     bool needsStorageLoad = false;
@@ -375,6 +396,7 @@ struct RaRecModule : Module {
     dsp::SchmittTrigger clearTriggers[NUM_CHANNELS];
     dsp::SchmittTrigger playTriggers[NUM_CHANNELS];
     dsp::SchmittTrigger resetTriggers[NUM_CHANNELS];
+    dsp::SchmittTrigger reverseTriggers[NUM_CHANNELS];
     dsp::SchmittTrigger globalRecTrigger;
     dsp::SchmittTrigger globalClearTrigger;
     dsp::SchmittTrigger globalPlayTrigger;
@@ -410,6 +432,10 @@ struct RaRecModule : Module {
         configParam(SPEED2_PARAM, 0.f, 1.f, 0.125f, "Speed 2", "x", 8, 0);
         configParam(SPEED3_PARAM, 0.f, 1.f, 0.125f, "Speed 3", "x", 8, 0);
         configParam(SPEED4_PARAM, 0.f, 1.f, 0.125f, "Speed 4", "x", 8, 0);
+        configButton(REVERSE1_PARAM, "Reverse 1");
+        configButton(REVERSE2_PARAM, "Reverse 2");
+        configButton(REVERSE3_PARAM, "Reverse 3");
+        configButton(REVERSE4_PARAM, "Reverse 4");
         configButton(GLOBAL_REC_PARAM, "Record all");
         configButton(GLOBAL_CLEAR_PARAM, "Clear all");
         configButton(GLOBAL_PLAY_PARAM, "Play all");
@@ -439,6 +465,10 @@ struct RaRecModule : Module {
         configInput(SPEED2_INPUT, "Speed 2");
         configInput(SPEED3_INPUT, "Speed 3");
         configInput(SPEED4_INPUT, "Speed 4");
+        configInput(REVERSE1_INPUT, "Reverse 1 trigger");
+        configInput(REVERSE2_INPUT, "Reverse 2 trigger");
+        configInput(REVERSE3_INPUT, "Reverse 3 trigger");
+        configInput(REVERSE4_INPUT, "Reverse 4 trigger");
         configInput(POSITION1_INPUT, "Position 1");
         configInput(POSITION2_INPUT, "Position 2");
         configInput(POSITION3_INPUT, "Position 3");
@@ -469,6 +499,10 @@ struct RaRecModule : Module {
         configLight(RESET2_LIGHT, "Reset 2");
         configLight(RESET3_LIGHT, "Reset 3");
         configLight(RESET4_LIGHT, "Reset 4");
+        configLight(REVERSE1_LIGHT, "Reverse 1");
+        configLight(REVERSE2_LIGHT, "Reverse 2");
+        configLight(REVERSE3_LIGHT, "Reverse 3");
+        configLight(REVERSE4_LIGHT, "Reverse 4");
         configLight(GLOBAL_REC_LIGHT, "Record all");
         configLight(GLOBAL_CLEAR_LIGHT, "Clear all");
         configLight(GLOBAL_PLAY_LIGHT, "Play all");
@@ -718,6 +752,11 @@ struct RaRecModule : Module {
             if (resetTriggers[i].process(resetSig))
                 readPositions[i] = 0.f;
 
+            // Per-channel reverse toggle
+            float revSig = std::max(params[REVERSE1_PARAM + i].getValue(), inputs[REVERSE1_INPUT + i].getVoltage());
+            if (reverseTriggers[i].process(revSig))
+                reversePlaying[i] = !reversePlaying[i];
+
             // Per-channel scrub/position (continuous CV)
             if (inputs[POSITION1_INPUT + i].isConnected() && writePositions[i] > 0) {
                 float posVoltage = inputs[POSITION1_INPUT + i].getVoltage();
@@ -774,6 +813,8 @@ struct RaRecModule : Module {
             lights[REC1_LIGHT + i].setBrightness(recording[i] ? 1.f : 0.f);
         for (int i = 0; i < NUM_CHANNELS; i++)
             lights[PLAY1_LIGHT + i].setBrightness(playing[i] ? 1.f : 0.f);
+        for (int i = 0; i < NUM_CHANNELS; i++)
+            lights[REVERSE1_LIGHT + i].setBrightness(reversePlaying[i] ? 1.f : 0.f);
         lights[GLOBAL_REC_LIGHT].setBrightness((recording[0] || recording[1] || recording[2] || recording[3]) ? 1.f : 0.f);
         lights[GLOBAL_PLAY_LIGHT].setBrightness((playing[0] || playing[1] || playing[2] || playing[3]) ? 1.f : 0.f);
         lights[GLOBAL_CLEAR_LIGHT].setBrightness(0.f);
@@ -808,10 +849,18 @@ struct RaRecModule : Module {
                         baseSpeed *= (1.f + cvMod);
                     }
                     out = interpRead(ch, readPositions[ch]);
-                    readPositions[ch] += baseSpeed;
+                    // Direction: positive speed for forward, negative for reverse
+                    float dir = reversePlaying[ch] ? -1.f : 1.f;
+                    readPositions[ch] += baseSpeed * dir;
                     float recordEnd = (float)writePositions[ch];
-                    if (readPositions[ch] >= recordEnd)
-                        readPositions[ch] = fmodf(readPositions[ch], recordEnd);
+                    // Handle wrap-around for both directions
+                    if (reversePlaying[ch]) {
+                        if (readPositions[ch] < 0.f)
+                            readPositions[ch] += recordEnd;
+                    } else {
+                        if (readPositions[ch] >= recordEnd)
+                            readPositions[ch] -= recordEnd;
+                    }
                 } else {
                     out = 0.f;
                 }
@@ -824,9 +873,13 @@ struct RaRecModule : Module {
     json_t *dataToJson() override {
         json_t *rootJ = json_object();
         json_t *playingJ = json_array();
-        for (int i = 0; i < NUM_CHANNELS; i++)
+        json_t *reversePlayingJ = json_array();
+        for (int i = 0; i < NUM_CHANNELS; i++) {
             json_array_append_new(playingJ, json_boolean(playing[i]));
+            json_array_append_new(reversePlayingJ, json_boolean(reversePlaying[i]));
+        }
         json_object_set_new(rootJ, "playing", playingJ);
+        json_object_set_new(rootJ, "reversePlaying", reversePlayingJ);
         {
             std::lock_guard<std::mutex> lock(pathMutex);
             if (!basePath.empty())
@@ -853,6 +906,12 @@ struct RaRecModule : Module {
                 if (loadTrack(i, base))
                     loaded[i] = true;
             }
+        }
+
+        json_t *revJ = json_object_get(rootJ, "reversePlaying");
+        if (revJ && json_is_array(revJ)) {
+            for (int i = 0; i < NUM_CHANNELS; i++)
+                reversePlaying[i] = json_boolean_value(json_array_get(revJ, i));
         }
 
         // Mark that we need to load from storage
@@ -1001,6 +1060,12 @@ struct PurpleLight : GrayModuleLightWidget {
     }
 };
 
+struct CyanLight : GrayModuleLightWidget {
+    CyanLight() {
+        addBaseColor(nvgRGB(0x33, 0x88, 0xdd));
+    }
+};
+
 struct RaRecWidget : ModuleWidget {
     RaRecWidget(RaRecModule *module) {
         setModule(module);
@@ -1044,13 +1109,13 @@ struct RaRecWidget : ModuleWidget {
         float colRst = 52.f;
         float colSpeedKnob = 63.f;
         float colSpeedCV = 63.f;
-        float colPos = 74.f;
+        float colRev = 74.f;
+        float colPos = 8.f;
         float colTrigRec = 19.f;
         float colTrigClr = 30.f;
         float colTrigPly = 41.f;
         float colTrigRst = 52.f;
-        float colWr = 220.f;
-        float colRd = 231.f;
+        float colWr = 233.f;
         float colOut = 244.f;
 
         for (int i = 0; i < 4; i++) {
@@ -1065,15 +1130,17 @@ struct RaRecWidget : ModuleWidget {
             addParam(createParamCentered<RaButton>(mm2px(Vec(colRst, yRow1)), module, RaRecModule::RESET1_PARAM + i));
             addParam(createParamCentered<RaKnobSmall>(mm2px(Vec(colSpeedKnob, yRow1)), module, RaRecModule::SPEED1_PARAM + i));
 
-            // Row 2: Triggers (Rec, Clr, Play, Rst) + Speed CV + Pos + Wr/Rd + Out
-            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigRec, yRow2)), module, RaRecModule::REC1_INPUT + i));
-            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigClr, yRow2)), module, RaRecModule::CLEAR1_INPUT + i));
-            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigPly, yRow2)), module, RaRecModule::PLAY1_INPUT + i));
-            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigRst, yRow2)), module, RaRecModule::RESET1_INPUT + i));
-            addInput(createInputCentered<RaPort>(mm2px(Vec(colSpeedCV, yRow2)), module, RaRecModule::SPEED1_INPUT + i));
-            addInput(createInputCentered<RaPort>(mm2px(Vec(colPos, yRow2)), module, RaRecModule::POSITION1_INPUT + i));
-            addParam(createParamCentered<RaButton>(mm2px(Vec(colWr, yRow2)), module, RaRecModule::WRITE1_PARAM + i));
-            addParam(createParamCentered<RaButton>(mm2px(Vec(colRd, yRow2)), module, RaRecModule::READ1_PARAM + i));
+            // Row 2: Triggers (Rec, Clr, Play, Rst) + Speed CV + Rev trig + Pos + Wr/Rd + Out
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigRec, yRow2 + 5.f)), module, RaRecModule::REC1_INPUT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigClr, yRow2 + 5.f)), module, RaRecModule::CLEAR1_INPUT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigPly, yRow2 + 5.f)), module, RaRecModule::PLAY1_INPUT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colTrigRst, yRow2 + 5.f)), module, RaRecModule::RESET1_INPUT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colSpeedCV, yRow2 + 5.f)), module, RaRecModule::SPEED1_INPUT + i));
+            addParam(createLightParamCentered<VCVLightBezel<CyanLight>>(mm2px(Vec(colRev, yRow1)), module, RaRecModule::REVERSE1_PARAM + i, RaRecModule::REVERSE1_LIGHT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colRev, yRow2 + 5.f)), module, RaRecModule::REVERSE1_INPUT + i));
+            addInput(createInputCentered<RaPort>(mm2px(Vec(colPos, yRow2 + 5.f)), module, RaRecModule::POSITION1_INPUT + i));
+            addParam(createParamCentered<RaButton>(mm2px(Vec(colWr, yRow1)), module, RaRecModule::WRITE1_PARAM + i));
+            addParam(createParamCentered<RaButton>(mm2px(Vec(colWr, yRow2 + 3.f)), module, RaRecModule::READ1_PARAM + i));
             addOutput(createOutputCentered<RaPort>(mm2px(Vec(colOut, yRow2)), module, RaRecModule::OUT1_OUTPUT + i));
         }
     }
