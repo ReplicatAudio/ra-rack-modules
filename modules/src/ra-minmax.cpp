@@ -29,6 +29,12 @@ extern Plugin *pluginInstance;
 
 static constexpr int NUM_CHANNELS = 3;
 
+struct PurpleLight : GrayModuleLightWidget {
+    PurpleLight() {
+        addBaseColor(nvgRGB(0x99, 0x6d, 0xd2));
+    }
+};
+
 struct RaMinmaxModule : Module {
     enum ParamIds {
         MODE1_PARAM,
@@ -82,12 +88,12 @@ struct RaMinmaxModule : Module {
             float out;
             if (mode == 0) {
                 out = std::min(a, b);
-                lights[LED1_A + i * 2].setBrightness(a <= b ? 1.f : 0.f);
-                lights[LED1_B + i * 2].setBrightness(b < a ? 1.f : 0.f);
+                lights[LED1_A + i * 2].setBrightness(a < b ? 1.f : 0.f);
+                lights[LED1_B + i * 2].setBrightness(b <= a ? 1.f : 0.f);
             } else {
                 out = std::max(a, b);
-                lights[LED1_A + i * 2].setBrightness(a >= b ? 1.f : 0.f);
-                lights[LED1_B + i * 2].setBrightness(b > a ? 1.f : 0.f);
+                lights[LED1_A + i * 2].setBrightness(a > b ? 1.f : 0.f);
+                lights[LED1_B + i * 2].setBrightness(b >= a ? 1.f : 0.f);
             }
 
             outputs[OUT1_OUTPUT + i].setVoltage(out);
@@ -112,12 +118,12 @@ struct RaMinmaxWidget : ModuleWidget {
             float y = rowY[i];
 
             addInput(createInputCentered<RaPort>(Vec(colX[0], y), module, RaMinmaxModule::A1_INPUT + i * 2));
-            addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(Vec(colX[0], y + 25.f), module, RaMinmaxModule::LED1_A + i * 2));
+            addChild(createLightCentered<MediumLight<PurpleLight>>(Vec(colX[0], y + 25.f), module, RaMinmaxModule::LED1_A + i * 2));
 
             addParam(createParamCentered<RaSwitch2>(Vec(colX[1], y), module, RaMinmaxModule::MODE1_PARAM + i));
 
             addInput(createInputCentered<RaPort>(Vec(colX[2], y), module, RaMinmaxModule::B1_INPUT + i * 2));
-            addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(Vec(colX[2], y + 25.f), module, RaMinmaxModule::LED1_B + i * 2));
+            addChild(createLightCentered<MediumLight<PurpleLight>>(Vec(colX[2], y + 25.f), module, RaMinmaxModule::LED1_B + i * 2));
 
             addOutput(createOutputCentered<RaPort>(Vec(colX[1], y + 50.f), module, RaMinmaxModule::OUT1_OUTPUT + i));
         }
