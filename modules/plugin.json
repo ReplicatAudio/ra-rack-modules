@@ -570,6 +570,15 @@
         "Sampler",
         "Sound source"
       ]
+    },
+    {
+      "slug": "ra-repitch",
+      "name": "ra-repitch",
+      "description": "Phase vocoder pitch shifter — repitches incoming audio with octave, semitone, and cent controls plus dry/wet mix",
+      "tags": [
+        "Effect",
+        "Pitch shifter"
+      ]
     }
   ]
 }

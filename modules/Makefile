@@ -63,7 +63,8 @@ SOURCES = \
 	src/ra-bump.cpp \
 	src/ra-reverbir.cpp \
 	src/ra-autotrig.cpp \
-	src/ra-resampler.cpp
+	src/ra-resampler.cpp \
+	src/ra-repitch.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)

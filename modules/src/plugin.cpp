@@ -64,6 +64,7 @@ extern Model *modelRaBump;
 extern Model *modelRaReverbir;
 extern Model *modelRaAutotrig;
 extern Model *modelRaResampler;
+extern Model *modelRaRepitch;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -128,4 +129,5 @@ void init(Plugin *p) {
     p->addModel(modelRaReverbir);
     p->addModel(modelRaAutotrig);
     p->addModel(modelRaResampler);
+    p->addModel(modelRaRepitch);
 }
