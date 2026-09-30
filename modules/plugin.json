@@ -551,6 +551,15 @@
         "Reverb",
         "Convolution"
       ]
+    },
+    {
+      "slug": "ra-threshold",
+      "name": "ra-threshold",
+      "description": "8-channel CV threshold comparator — trigger output fires when 1V/oct CV crosses a note threshold, with CV passthrough",
+      "tags": [
+        "Utility",
+        "Logic"
+      ]
     }
   ]
 }
