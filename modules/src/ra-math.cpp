@@ -31,6 +31,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <cstdio>
 
 using namespace rack;
 
@@ -160,6 +161,34 @@ struct MathDisplay : LedDisplay {
     }
 };
 
+struct ValueDisplay : LedDisplay {
+    RaMathModule *module;
+    int channel = 0;
+
+    void draw(const DrawArgs &args) override {
+        nvgBeginPath(args.vg);
+        nvgRoundedRect(args.vg, -3, -3, box.size.x + 6, box.size.y + 6, 4);
+        nvgFillColor(args.vg, nvgRGB(0x0a, 0x0a, 0x0a));
+        nvgFill(args.vg);
+        nvgStrokeWidth(args.vg, 1.5f);
+        nvgStrokeColor(args.vg, nvgRGB(0x4a, 0x40, 0x66));
+        nvgStroke(args.vg);
+
+        if (!module) return;
+
+        float v = module->outputs[RaMathModule::OUT1_OUTPUT + channel].getVoltage();
+
+        nvgFontFaceId(args.vg, APP->window->uiFont->handle);
+        nvgFontSize(args.vg, 9);
+        nvgTextAlign(args.vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+        nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
+
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%+.2f", v);
+        nvgText(args.vg, box.size.x / 2, box.size.y / 2, buf, NULL);
+    }
+};
+
 struct RaMathWidget : ModuleWidget {
     RaMathWidget(RaMathModule *module) {
         setModule(module);
@@ -170,8 +199,8 @@ struct RaMathWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        float colX[4] = {22.f, 60.f, 98.f, 136.f};
-        float rowY = 40.f;
+        float colX[4] = {36.f, 72.f, 108.f, 144.f};
+        float rowY = 75.f;
 
         for (int i = 0; i < 4; i++) {
             float x = colX[i];
@@ -191,6 +220,12 @@ struct RaMathWidget : ModuleWidget {
             addInput(createInputCentered<RaPort>(Vec(x, rowY + 145), module, RaMathModule::IN1B_INPUT + i * 2));
 
             addOutput(createOutputCentered<RaPort>(Vec(x, rowY + 180), module, RaMathModule::OUT1_OUTPUT + i));
+
+            ValueDisplay *valueDisplay = createWidget<ValueDisplay>(Vec(x - 15, rowY + 205));
+            valueDisplay->box.size = Vec(30, 20);
+            valueDisplay->module = module;
+            valueDisplay->channel = i;
+            addChild(valueDisplay);
         }
     }
 };
