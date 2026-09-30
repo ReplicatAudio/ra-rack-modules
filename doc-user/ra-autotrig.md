@@ -1,4 +1,4 @@
-# ra-threshold — 8-Channel CV Threshold Comparator
+# ra-autotrig — 8-Channel CV Threshold Comparator
 
 Eight independent threshold comparators. Each channel watches a 1 V/oct CV input and outputs a trigger when the CV crosses above a note threshold, plus a CV passthrough of the input.
 

@@ -44,7 +44,7 @@ extern Plugin *pluginInstance;
 static constexpr int NUM_CHANNELS = 8;
 static constexpr float HYSTERESIS = 0.01f;
 
-struct RaThresholdModule : Module {
+struct RaAutotrigModule : Module {
     enum ParamIds {
         KNOB1_PARAM,
         KNOB2_PARAM,
@@ -92,7 +92,7 @@ struct RaThresholdModule : Module {
 
     bool trigState[NUM_CHANNELS] = {};
 
-    RaThresholdModule() {
+    RaAutotrigModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
         for (int i = 0; i < NUM_CHANNELS; i++) {
             configParam(KNOB1_PARAM + i, 0.f, 10.f, 5.f, string::f("Threshold %d", i + 1));
@@ -121,10 +121,10 @@ struct RaThresholdModule : Module {
     }
 };
 
-struct RaThresholdWidget : ModuleWidget {
-    RaThresholdWidget(RaThresholdModule *module) {
+struct RaAutotrigWidget : ModuleWidget {
+    RaAutotrigWidget(RaAutotrigModule *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-threshold.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-autotrig.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
@@ -140,13 +140,13 @@ struct RaThresholdWidget : ModuleWidget {
                 float x = colX[col];
                 float yBase = rowY[row];
 
-                addInput(createInputCentered<RaPort>(Vec(x, yBase), module, RaThresholdModule::CV1_INPUT + ch));
-                addParam(createParamCentered<RaKnobTrim>(Vec(x, yBase + 35), module, RaThresholdModule::KNOB1_PARAM + ch));
-                addOutput(createOutputCentered<RaPort>(Vec(x, yBase + 70), module, RaThresholdModule::TRIG1_OUTPUT + ch));
-                addOutput(createOutputCentered<RaPort>(Vec(x, yBase + 105), module, RaThresholdModule::PASSTHRU1_OUTPUT + ch));
+                addInput(createInputCentered<RaPort>(Vec(x, yBase), module, RaAutotrigModule::CV1_INPUT + ch));
+                addParam(createParamCentered<RaKnobTrim>(Vec(x, yBase + 35), module, RaAutotrigModule::KNOB1_PARAM + ch));
+                addOutput(createOutputCentered<RaPort>(Vec(x, yBase + 70), module, RaAutotrigModule::TRIG1_OUTPUT + ch));
+                addOutput(createOutputCentered<RaPort>(Vec(x, yBase + 105), module, RaAutotrigModule::PASSTHRU1_OUTPUT + ch));
             }
         }
     }
 };
 
-Model *modelRaThreshold = createModel<RaThresholdModule, RaThresholdWidget>("ra-threshold");
+Model *modelRaAutotrig = createModel<RaAutotrigModule, RaAutotrigWidget>("ra-autotrig");
