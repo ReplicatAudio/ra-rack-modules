@@ -68,6 +68,7 @@ extern Model *modelRaRepitch;
 extern Model *modelRaSlowRandom;
 extern Model *modelRaGear;
 extern Model *modelRaMinmax;
+extern Model *modelRaMath;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -136,4 +137,5 @@ void init(Plugin *p) {
     p->addModel(modelRaSlowRandom);
     p->addModel(modelRaGear);
     p->addModel(modelRaMinmax);
+    p->addModel(modelRaMath);
 }

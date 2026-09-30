@@ -607,6 +607,15 @@
         "Utility",
         "Logic"
       ]
+    },
+    {
+      "slug": "ra-math",
+      "name": "ra-math",
+      "description": "4-channel math module — add, sub, mult, div, pow, mod, max, min, avg, abs, sqrt, floor, ceil, round, sin, cos with per-channel mode button and dual inputs",
+      "tags": [
+        "Utility",
+        "Math"
+      ]
     }
   ]
 }
