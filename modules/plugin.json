@@ -560,6 +560,16 @@
         "Utility",
         "Logic"
       ]
+    },
+    {
+      "slug": "ra-resampler",
+      "name": "ra-resampler",
+      "description": "Polyphonic sample player — loads a WAV sample and pitch-shifts it 1V/oct, with speed, position, level, and loop controls",
+      "tags": [
+        "Polyphonic",
+        "Sampler",
+        "Sound source"
+      ]
     }
   ]
 }

@@ -62,7 +62,8 @@ SOURCES = \
 	src/ra-repeater.cpp \
 	src/ra-bump.cpp \
 	src/ra-reverbir.cpp \
-	src/ra-threshold.cpp
+	src/ra-threshold.cpp \
+	src/ra-resampler.cpp
 
 
 DISTRIBUTABLES += $(shell find res -type f)
