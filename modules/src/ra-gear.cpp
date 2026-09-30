@@ -247,13 +247,13 @@ struct RaGearWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(0, box.size.y - RACK_GRID_WIDTH)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
-        float colX[2] = {30.f, 75.f};
+        float colX[2] = {25.f, 80.f};
         float displayY = 20.f;
         float displayH = 60.f;
         float rowY[5] = {100.f, 150.f, 200.f, 250.f, 300.f};
 
         auto *display = new GearDisplay();
-        display->box.pos = Vec(15, displayY);
+        display->box.pos = Vec(22.5f, displayY);
         display->box.size = Vec(60, displayH);
         display->module = module;
         addChild(display);
