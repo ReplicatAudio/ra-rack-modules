@@ -150,7 +150,7 @@ struct GearDisplay : LedDisplay {
         float cx = box.size.x / 2;
         float cy = box.size.y / 2;
         float radius = std::min(box.size.x, box.size.y) / 2.f - 4.f;
-        float angle = smoothPos / (float)module->teeth * 2.f * M_PI;
+        float angle = smoothPos / (float)module->teeth * 2.f * M_PI - M_PI / 2.f;
 
         int teeth = module->teeth;
         float toothAngle = 2.f * M_PI / (float)teeth;
