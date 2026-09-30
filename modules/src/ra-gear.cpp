@@ -105,6 +105,7 @@ struct RaGearModule : Module {
 
 struct GearDisplay : LedDisplay {
     RaGearModule *module;
+    float smoothPos = 0.f;
 
     void draw(const DrawArgs &args) override {
         nvgBeginPath(args.vg);
@@ -117,36 +118,69 @@ struct GearDisplay : LedDisplay {
 
         if (!module) return;
 
+        float targetPos = (float)module->position;
+        float diff = targetPos - smoothPos;
+        if (diff > (float)module->teeth / 2.f) {
+            smoothPos += (float)module->teeth;
+        } else if (diff < -(float)module->teeth / 2.f) {
+            smoothPos -= (float)module->teeth;
+        }
+        smoothPos += (targetPos - smoothPos) * 0.2f;
+        while (smoothPos >= (float)module->teeth) smoothPos -= (float)module->teeth;
+        while (smoothPos < 0.f) smoothPos += (float)module->teeth;
+
         float cx = box.size.x / 2;
         float cy = box.size.y / 2;
         float radius = std::min(box.size.x, box.size.y) / 2.f - 4.f;
-        float angle = (float)module->position / (float)module->teeth * 2.f * M_PI;
+        float angle = smoothPos / (float)module->teeth * 2.f * M_PI;
 
-        nvgBeginPath(args.vg);
         int teeth = module->teeth;
         float toothAngle = 2.f * M_PI / (float)teeth;
+        float rootRadius = radius * 0.75f;
+        float tipRadius = radius;
+        float toothTopAngle = toothAngle * 0.3f;
+        float toothSideAngle = toothAngle * 0.2f;
+
+        nvgBeginPath(args.vg);
         for (int i = 0; i < teeth; i++) {
             float a = angle + i * toothAngle;
-            float r1 = radius * 0.7f;
-            float r2 = radius;
-            float x1 = cx + r1 * cosf(a);
-            float y1 = cy + r1 * sinf(a);
-            float x2 = cx + r2 * cosf(a);
-            float y2 = cy + r2 * sinf(a);
+            float a1 = a - toothSideAngle;
+            float a2 = a - toothTopAngle / 2.f;
+            float a3 = a + toothTopAngle / 2.f;
+            float a4 = a + toothSideAngle;
+            float x1 = cx + rootRadius * cosf(a1);
+            float y1 = cy + rootRadius * sinf(a1);
+            float x2 = cx + tipRadius * cosf(a2);
+            float y2 = cy + tipRadius * sinf(a2);
+            float x3 = cx + tipRadius * cosf(a3);
+            float y3 = cy + tipRadius * sinf(a3);
+            float x4 = cx + rootRadius * cosf(a4);
+            float y4 = cy + rootRadius * sinf(a4);
             if (i == 0) {
                 nvgMoveTo(args.vg, x1, y1);
             } else {
                 nvgLineTo(args.vg, x1, y1);
             }
             nvgLineTo(args.vg, x2, y2);
+            nvgLineTo(args.vg, x3, y3);
+            nvgLineTo(args.vg, x4, y4);
         }
         nvgClosePath(args.vg);
         nvgFillColor(args.vg, nvgRGB(0x99, 0x6d, 0xd2));
         nvgFill(args.vg);
 
         nvgBeginPath(args.vg);
-        nvgCircle(args.vg, cx, cy, radius * 0.3f);
+        nvgCircle(args.vg, cx, cy, radius * 0.25f);
         nvgFillColor(args.vg, nvgRGB(0x10, 0x10, 0x10));
+        nvgFill(args.vg);
+
+        float topAngle = -M_PI / 2.f;
+        float indicatorRadius = tipRadius + 3.f;
+        float ix = cx + indicatorRadius * cosf(topAngle);
+        float iy = cy + indicatorRadius * sinf(topAngle);
+        nvgBeginPath(args.vg);
+        nvgCircle(args.vg, ix, iy, 3.f);
+        nvgFillColor(args.vg, nvgRGB(0xff, 0xff, 0xff));
         nvgFill(args.vg);
     }
 };
