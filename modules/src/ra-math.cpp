@@ -121,7 +121,7 @@ struct RaMathModule : Module {
             configInput(IN1A_INPUT + i * 2, string::f("In %d A", i + 1));
             configInput(IN1B_INPUT + i * 2, string::f("In %d B", i + 1));
             configOutput(OUT1_OUTPUT + i, string::f("Out %d", i + 1));
-            configParam(ATTN1_PARAM + i, -1.f, 1.f, 1.f, string::f("Attn %d", i + 1), "", 0.f, 1.f, -1.f);
+            configParam(ATTN1_PARAM + i, -1.f, 1.f, 1.f, string::f("Attn %d", i + 1), "x", 0.f, 1.f, 0.f);
             configSwitch(CLAMP1_PARAM + i, 0.f, 1.f, 0.f, string::f("Clamp %d", i + 1), {"Off", "On"});
             paramQuantities[CLAMP1_PARAM + i]->snapEnabled = true;
             configLight(CLAMP1_LIGHT + i, string::f("Clamp %d LED", i + 1));
