@@ -111,6 +111,8 @@ struct RaMathModule : Module {
 
     int modes[NUM_CHANNELS] = {0, 1, 2, 3};
     dsp::SchmittTrigger modeTriggers[NUM_CHANNELS];
+    bool clampState[NUM_CHANNELS] = {};
+    dsp::SchmittTrigger clampTriggers[NUM_CHANNELS];
 
     RaMathModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -122,8 +124,7 @@ struct RaMathModule : Module {
             configInput(IN1B_INPUT + i * 2, string::f("In %d B", i + 1));
             configOutput(OUT1_OUTPUT + i, string::f("Out %d", i + 1));
             configParam(ATTN1_PARAM + i, -1.f, 1.f, 1.f, string::f("Attn %d", i + 1), "x", 0.f, 1.f, 0.f);
-            configSwitch(CLAMP1_PARAM + i, 0.f, 1.f, 0.f, string::f("Clamp %d", i + 1), {"Off", "On"});
-            paramQuantities[CLAMP1_PARAM + i]->snapEnabled = true;
+            configParam(CLAMP1_PARAM + i, 0.f, 1.f, 0.f, string::f("Clamp %d", i + 1));
             configLight(CLAMP1_LIGHT + i, string::f("Clamp %d LED", i + 1));
         }
     }
@@ -162,15 +163,17 @@ struct RaMathModule : Module {
                 default: result = 0.f; break;
             }
 
-            bool clamp = params[CLAMP1_PARAM + i].getValue() > 0.5f;
-            if (clamp) {
+            if (clampTriggers[i].process(params[CLAMP1_PARAM + i].getValue()))
+                clampState[i] = !clampState[i];
+
+            if (clampState[i]) {
                 result = std::max(-10.f, std::min(result, 10.f));
             }
 
             float attn = params[ATTN1_PARAM + i].getValue();
             result = result * attn;
 
-            lights[CLAMP1_LIGHT + i].setBrightness(clamp ? 1.f : 0.f);
+            lights[CLAMP1_LIGHT + i].setBrightness(clampState[i] ? 1.f : 0.f);
 
             outputs[OUT1_OUTPUT + i].setVoltage(result);
         }
