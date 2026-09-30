@@ -3,65 +3,95 @@
 // Read by util/gen-panel.mjs for the rendered SVG label text.
 // Overrides the configParam/Input/Output tooltip names.
 // ============================================================
-// fname: A_INPUT "A"
-// fname: B_INPUT "B"
-// fname: MODE_PARAM "Mode"
-// fname: OUTPUT "Out"
-// fname: LED_A "A"
-// fname: LED_B "B"
+// fname: A1_INPUT "A1"
+// fname: B1_INPUT "B1"
+// fname: MODE1_PARAM "Mode1"
+// fname: OUT1_OUTPUT "Out1"
+// fname: LED1_A "A1"
+// fname: LED1_B "B1"
+// fname: A2_INPUT "A2"
+// fname: B2_INPUT "B2"
+// fname: MODE2_PARAM "Mode2"
+// fname: OUT2_OUTPUT "Out2"
+// fname: LED2_A "A2"
+// fname: LED2_B "B2"
+// fname: A3_INPUT "A3"
+// fname: B3_INPUT "B3"
+// fname: MODE3_PARAM "Mode3"
+// fname: OUT3_OUTPUT "Out3"
+// fname: LED3_A "A3"
+// fname: LED3_B "B3"
 #include "ra-components.hpp"
 
 using namespace rack;
 
 extern Plugin *pluginInstance;
 
+static constexpr int NUM_CHANNELS = 3;
+
 struct RaMinmaxModule : Module {
     enum ParamIds {
-        MODE_PARAM,
+        MODE1_PARAM,
+        MODE2_PARAM,
+        MODE3_PARAM,
         NUM_PARAMS
     };
     enum InputIds {
-        A_INPUT,
-        B_INPUT,
+        A1_INPUT,
+        B1_INPUT,
+        A2_INPUT,
+        B2_INPUT,
+        A3_INPUT,
+        B3_INPUT,
         NUM_INPUTS
     };
     enum OutputIds {
-        OUTPUT,
+        OUT1_OUTPUT,
+        OUT2_OUTPUT,
+        OUT3_OUTPUT,
         NUM_OUTPUTS
     };
     enum LightIds {
-        LED_A,
-        LED_B,
+        LED1_A,
+        LED1_B,
+        LED2_A,
+        LED2_B,
+        LED3_A,
+        LED3_B,
         NUM_LIGHTS
     };
 
     RaMinmaxModule() {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-        configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Mode", {"Min", "Max"});
-        configInput(A_INPUT, "A");
-        configInput(B_INPUT, "B");
-        configOutput(OUTPUT, "Out");
-        configLight(LED_A, "A active");
-        configLight(LED_B, "B active");
+        for (int i = 0; i < NUM_CHANNELS; i++) {
+            configSwitch(MODE1_PARAM + i, 0.f, 1.f, 0.f, string::f("Mode %d", i + 1), {"Min", "Max"});
+            configInput(A1_INPUT + i * 2, string::f("A %d", i + 1));
+            configInput(B1_INPUT + i * 2, string::f("B %d", i + 1));
+            configOutput(OUT1_OUTPUT + i, string::f("Out %d", i + 1));
+            configLight(LED1_A + i * 2, string::f("A %d active", i + 1));
+            configLight(LED1_B + i * 2, string::f("B %d active", i + 1));
+        }
     }
 
     void process(const ProcessArgs &args) override {
-        float a = inputs[A_INPUT].getVoltage();
-        float b = inputs[B_INPUT].getVoltage();
-        int mode = (int)std::round(params[MODE_PARAM].getValue());
+        for (int i = 0; i < NUM_CHANNELS; i++) {
+            float a = inputs[A1_INPUT + i * 2].getVoltage();
+            float b = inputs[B1_INPUT + i * 2].getVoltage();
+            int mode = (int)std::round(params[MODE1_PARAM + i].getValue());
 
-        float out;
-        if (mode == 0) {
-            out = std::min(a, b);
-            lights[LED_A].setBrightness(a <= b ? 1.f : 0.f);
-            lights[LED_B].setBrightness(b < a ? 1.f : 0.f);
-        } else {
-            out = std::max(a, b);
-            lights[LED_A].setBrightness(a >= b ? 1.f : 0.f);
-            lights[LED_B].setBrightness(b > a ? 1.f : 0.f);
+            float out;
+            if (mode == 0) {
+                out = std::min(a, b);
+                lights[LED1_A + i * 2].setBrightness(a <= b ? 1.f : 0.f);
+                lights[LED1_B + i * 2].setBrightness(b < a ? 1.f : 0.f);
+            } else {
+                out = std::max(a, b);
+                lights[LED1_A + i * 2].setBrightness(a >= b ? 1.f : 0.f);
+                lights[LED1_B + i * 2].setBrightness(b > a ? 1.f : 0.f);
+            }
+
+            outputs[OUT1_OUTPUT + i].setVoltage(out);
         }
-
-        outputs[OUTPUT].setVoltage(out);
     }
 };
 
@@ -76,17 +106,21 @@ struct RaMinmaxWidget : ModuleWidget {
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, box.size.y - RACK_GRID_WIDTH)));
 
         float colX[3] = {20.f, 45.f, 70.f};
-        float rowY = 50.f;
+        float rowY[3] = {40.f, 100.f, 160.f};
 
-        addInput(createInputCentered<RaPort>(Vec(colX[0], rowY), module, RaMinmaxModule::A_INPUT));
-        addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(Vec(colX[0], rowY + 30.f), module, RaMinmaxModule::LED_A));
+        for (int i = 0; i < 3; i++) {
+            float y = rowY[i];
 
-        addParam(createParamCentered<RaSwitch2>(Vec(colX[1], rowY), module, RaMinmaxModule::MODE_PARAM));
+            addInput(createInputCentered<RaPort>(Vec(colX[0], y), module, RaMinmaxModule::A1_INPUT + i * 2));
+            addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(Vec(colX[0], y + 25.f), module, RaMinmaxModule::LED1_A + i * 2));
 
-        addInput(createInputCentered<RaPort>(Vec(colX[2], rowY), module, RaMinmaxModule::B_INPUT));
-        addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(Vec(colX[2], rowY + 30.f), module, RaMinmaxModule::LED_B));
+            addParam(createParamCentered<RaSwitch2>(Vec(colX[1], y), module, RaMinmaxModule::MODE1_PARAM + i));
 
-        addOutput(createOutputCentered<RaPort>(Vec(colX[1], 120.f), module, RaMinmaxModule::OUTPUT));
+            addInput(createInputCentered<RaPort>(Vec(colX[2], y), module, RaMinmaxModule::B1_INPUT + i * 2));
+            addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(Vec(colX[2], y + 25.f), module, RaMinmaxModule::LED1_B + i * 2));
+
+            addOutput(createOutputCentered<RaPort>(Vec(colX[1], y + 50.f), module, RaMinmaxModule::OUT1_OUTPUT + i));
+        }
     }
 };
 
