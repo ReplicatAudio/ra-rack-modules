@@ -112,13 +112,13 @@
     <circle cx="58.42" cy="125.96" r="2.54" fill="#2a2a2a" stroke="#444" stroke-width="1.5"/>
     <circle cx="58.42" cy="125.96" r="0.8" fill="#444"/>
     <rect x="7.11" y="15.24" width="10.16" height="6.77" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
-    <rect x="7.11" y="94.83" width="10.16" height="20.32" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
+    <rect x="7.11" y="91.44" width="10.16" height="20.32" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
     <rect x="19.30" y="15.24" width="10.16" height="6.77" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
-    <rect x="19.30" y="94.83" width="10.16" height="20.32" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
+    <rect x="19.30" y="91.44" width="10.16" height="20.32" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
     <rect x="31.50" y="15.24" width="10.16" height="6.77" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
-    <rect x="31.50" y="94.83" width="10.16" height="20.32" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
+    <rect x="31.50" y="91.44" width="10.16" height="20.32" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
     <rect x="43.69" y="15.24" width="10.16" height="6.77" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
-    <rect x="43.69" y="94.83" width="10.16" height="20.32" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
+    <rect x="43.69" y="91.44" width="10.16" height="20.32" rx="1" fill="#0a0f0a" stroke="#1a3a1a" stroke-width="1.7"/>
     <circle cx="12.19" cy="23.71" r="3.05" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>
     <circle cx="12.19" cy="23.71" r="1.22" fill="#444" opacity="0.4"/>
     <circle cx="12.19" cy="33.87" r="3.02" fill="#222" stroke="#888" stroke-width="1.5" opacity="0.6"/>

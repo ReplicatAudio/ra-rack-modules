@@ -286,7 +286,7 @@ struct RaMathWidget : ModuleWidget {
 
             addParam(createParamCentered<RaKnobTrim>(Vec(x, rowY + 205), module, RaMathModule::ATTN1_PARAM + i));
 
-            ValueDisplay *valueDisplay = createWidget<ValueDisplay>(Vec(x - 15, rowY + 235));
+            ValueDisplay *valueDisplay = createWidget<ValueDisplay>(Vec(x - 15, rowY + 225));
             valueDisplay->box.size = Vec(30, 60);
             valueDisplay->module = module;
             valueDisplay->channel = i;
