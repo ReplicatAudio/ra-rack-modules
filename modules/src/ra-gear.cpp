@@ -208,7 +208,7 @@ struct GearDisplay : LedDisplay {
         nvgLineTo(args.vg, tx3, ty3);
         nvgLineTo(args.vg, tx4, ty4);
         nvgClosePath(args.vg);
-        nvgFillColor(args.vg, nvgRGB(0xc0, 0x9a, 0xe8));
+        nvgFillColor(args.vg, nvgRGB(0xd0, 0xa0, 0xf0));
         nvgFill(args.vg);
 
         float holeRadius = radius * 0.35f;
@@ -232,7 +232,7 @@ struct GearDisplay : LedDisplay {
         float iy = cy + indicatorRadius * sinf(topAngle);
         nvgBeginPath(args.vg);
         nvgCircle(args.vg, ix, iy, 3.f);
-        nvgFillColor(args.vg, nvgRGB(0xc0, 0x9a, 0xe8));
+        nvgFillColor(args.vg, nvgRGB(0xd0, 0xa0, 0xf0));
         nvgFill(args.vg);
     }
 };
