@@ -25,7 +25,6 @@ extern Plugin *pluginInstance;
 
 static constexpr int FFT_SIZE = 2048;
 static constexpr int HOP_SIZE = FFT_SIZE / 4;
-static constexpr int OVERLAP = FFT_SIZE / HOP_SIZE;
 
 struct RaRepitchModule : Module {
     enum ParamIds {
@@ -59,8 +58,8 @@ struct RaRepitchModule : Module {
     std::vector<float> lastPhase;
     std::vector<float> sumPhase;
 
-    int inputPos = 0;
-    int outputPos = 0;
+    int pos = 0;
+    int hopCount = HOP_SIZE;
 
     RaRepitchModule() : fft(FFT_SIZE) {
         config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -95,18 +94,20 @@ struct RaRepitchModule : Module {
 
         float in = inputs[AUDIO_INPUT].getVoltage();
 
-        inputBuffer[inputPos] = in;
-        inputPos++;
-        if (inputPos >= HOP_SIZE) {
-            processFrame(ratio);
-            inputPos = 0;
-        }
+        inputBuffer[pos] = in;
 
-        float wet = outputBuffer[outputPos] / (float)OVERLAP;
-        outputBuffer[outputPos] = 0.f;
-        outputPos++;
-        if (outputPos >= HOP_SIZE)
-            outputPos = 0;
+        // Hann-squared at 75% overlap sums to 1.5, so normalise by 2/3.
+        float wet = outputBuffer[pos] * (2.f / 3.f);
+        outputBuffer[pos] = 0.f;
+
+        pos++;
+        if (pos >= FFT_SIZE)
+            pos = 0;
+
+        if (--hopCount <= 0) {
+            hopCount = HOP_SIZE;
+            processFrame(ratio);
+        }
 
         outputs[AUDIO_OUTPUT].setVoltage(in * (1.f - mix) + wet * mix);
     }
@@ -114,7 +115,7 @@ struct RaRepitchModule : Module {
     void processFrame(float ratio) {
         std::vector<float> frame(FFT_SIZE);
         for (int i = 0; i < FFT_SIZE; i++)
-            frame[i] = inputBuffer[i] * window[i];
+            frame[i] = inputBuffer[(pos + i) % FFT_SIZE] * window[i];
 
         std::vector<float> fftOut(FFT_SIZE);
         fft.rfft(frame.data(), fftOut.data());
@@ -135,17 +136,15 @@ struct RaRepitchModule : Module {
             float mag = sqrtf(re * re + im * im);
             float phase = atan2f(im, re);
 
-            float phaseDiff = phase - lastPhase[k];
+            float expected = 2.f * M_PI * (float)k * (float)HOP_SIZE / (float)FFT_SIZE;
+            float phaseDiff = phase - lastPhase[k] - expected;
             lastPhase[k] = phase;
 
-            phaseDiff -= 2.f * M_PI * (float)k * (float)HOP_SIZE / (float)FFT_SIZE;
             while (phaseDiff > M_PI) phaseDiff -= 2.f * M_PI;
             while (phaseDiff < -M_PI) phaseDiff += 2.f * M_PI;
 
-            float binFreq = 2.f * M_PI * (float)k / (float)FFT_SIZE;
-            phaseDiff = binFreq * (float)HOP_SIZE + ratio * (phaseDiff - binFreq * (float)HOP_SIZE);
-
-            sumPhase[k] += phaseDiff;
+            // Instantaneous frequency scaled by the pitch ratio.
+            sumPhase[k] += (expected + phaseDiff) * ratio;
 
             float outRe = mag * cosf(sumPhase[k]);
             float outIm = mag * sinf(sumPhase[k]);
@@ -164,7 +163,7 @@ struct RaRepitchModule : Module {
         fft.scale(frame.data());
 
         for (int i = 0; i < FFT_SIZE; i++)
-            outputBuffer[i] += frame[i] * window[i];
+            outputBuffer[(pos + i) % FFT_SIZE] += frame[i] * window[i];
     }
 };
 
