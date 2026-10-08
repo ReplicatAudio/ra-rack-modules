@@ -258,7 +258,7 @@ struct ValueDisplay : LedDisplay {
 struct RaCalcWidget : ModuleWidget {
     RaCalcWidget(RaCalcModule *module) {
         setModule(module);
-        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-math.svg")));
+        setPanel(createPanel(asset::plugin(pluginInstance, "res/ra-calc.svg")));
 
         addChild(createWidget<RaScrew>(Vec(0, 0)));
         addChild(createWidget<RaScrew>(Vec(box.size.x - RACK_GRID_WIDTH, 0)));
